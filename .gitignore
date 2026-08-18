@@ -1,28 +1,43 @@
-target/ HELP.md .gradle build/
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Java compiled files
+*.class
+
+# Spring Boot
+HELP.md
+
+# Eclipse / STS
 .classpath
-!gradle/wrapper/gradle-wrapper.jar **/src/main/**/build/ 
-!**/src/test/**/build/
 .project
+.settings/
+.factorypath
+.apt_generated/
+.springBeans
+.sts4-cache
+bin/
 
-### STS ###
-.settings/ .apt_generated .classpath .factorypath .project .settings 
-.springBeans .sts4-cache bin/
+# IntelliJ IDEA
 .idea/
-!**/src/main/**/bin/ **/src/test/**/bin/
 *.iml
+*.ipr
+*.iws
+out/
 
-### IntelliJ IDEA ###
-.vscode/ .idea *.iws *.iml *.ipr out/
-*.log
-!**/src/main/**/out/ **/src/test/**/out/
-.env
+# VS Code
+.vscode/
 
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
 
-### VS Code ###
-.vscode/
+# Logs
+*.log
+
+# Environment / secrets
+.env
