@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>OTP Verification - Hospital Management System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">🛡️ Our Hospital</a>
+
+
+    </nav>
+
+    <div class="container">
+        <div class="auth-card">
+            <h2 style="text-align: center; margin-bottom: 0.5rem;">🔒 OTP Verification</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">
+                📩 An OTP verification code has been sent to your registered email address.<br>
+                Please check your Gmail inbox and enter the 6-digit code below.
+            </p>
+
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+            <form th:action="@{/verify-otp}" method="post">
+                <input type="hidden" name="userId" th:value="${userId}" />
+                <div class="form-group">
+                    <label class="form-label" style="text-align: center;">Enter 6-Digit OTP Code</label>
+                    <input type="text" name="otp" class="form-control" placeholder="••••••" maxlength="6" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem; font-weight: 700;" required autofocus autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Verify Account</button>
+            </form>
+
+            <div style="text-align: center; margin-top: 1.2rem;">
+                <a th:href="@{/resend-otp(userId=${userId})}" style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem; text-decoration: none;">🔄 Didn't receive email? Click here to Resend OTP</a>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Appointments - Hospital Management System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/doctor/dashboard" class="navbar-brand">🛡️ Our Hospital - Doctor Portal</a>
+
+
+        <ul class="nav-links">
+            <li><a href="/doctor/dashboard">Dashboard</a></li>
+            <li><a href="/doctor/appointments">All Appointments</a></li>
+            <li><a href="/doctor/profile">My Profile & Availability</a></li>
+            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h2>All Patient Appointments History</h2>
+        
+        <div class="table-container" style="margin-top: 1.5rem;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Patient Name</th>
+                        <th>Mobile</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="app : ${appointments}">
+                        <td th:text="${'#APP-' + app.id}">#1</td>
+                        <td th:text="${app.patient.fullName}">Patient Name</td>
+                        <td th:text="${app.patient.mobileNumber}">9876543210</td>
+                        <td th:text="${app.appointmentDate}">2026-08-20</td>
+                        <td th:text="${app.appointmentTime}">10:00 AM</td>
+                        <td th:text="${app.reason}">Reason</td>
+                        <td>
+                            <span class="badge" 
+                                  th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : (app.status.name() == 'COMPLETED' ? 'badge-completed' : 'badge-rejected'))}"
+                                  th:text="${app.status}">STATUS</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(appointments)}">
+                        <td colspan="7" style="text-align: center; color: var(--text-muted);">No appointments found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

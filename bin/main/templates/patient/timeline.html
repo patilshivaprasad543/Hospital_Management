@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Health Timeline - HospitalCare Pro</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding-left: 2rem;
+            border-left: 3px solid var(--primary-color);
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.94);
+            border-radius: var(--radius-md);
+            border: 2px solid var(--border-color);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-3d-sm);
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.7rem;
+            top: 1.5rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            border: 3px solid white;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3);
+        }
+        .timeline-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/patient/dashboard" class="navbar-brand">🏥 HospitalCare Pro - Patient Portal</a>
+        <ul class="nav-links">
+            <li><a href="/patient/dashboard">Dashboard</a></li>
+            <li><a href="/patient/symptom-wizard">Smart Doctor Match</a></li>
+            <li><a href="/patient/appointments">My Appointments</a></li>
+            <li><a href="/patient/timeline">Health Timeline</a></li>
+            <li><a href="/patient/prescriptions">Prescriptions</a></li>
+            <li><a href="/patient/lab-reports">Lab Reports</a></li>
+            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 0.5rem;">📜 Patient Medical Journey Timeline</h2>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;">Chronological record of your doctor consultations, digital prescriptions, and diagnostic lab reports.</p>
+
+        <div class="timeline">
+            <!-- Appointments Entries -->
+            <div class="timeline-item" th:each="app : ${appointments}">
+                <span class="timeline-badge badge-confirmed" th:text="${app.state}">CONFIRMED</span>
+                <div style="font-size: 0.85rem; color: var(--text-muted);" th:text="${#temporals.format(app.createdAt, 'dd-MMM-yyyy HH:mm')}">Date</div>
+                <h3 style="margin: 0.3rem 0; color: var(--secondary-color);" th:text="${'Doctor Consultation - Dr. ' + app.doctor.fullName}">Doctor Consultation</h3>
+                <p><strong>Department:</strong> <span th:text="${app.departmentCategory != null ? app.departmentCategory : 'General'}">General</span></p>
+                <p th:if="${app.queueTicket != null}">🎟️ <strong>Queue Ticket:</strong> <span th:text="${app.queueTicket}" style="font-weight: 800; color: var(--primary-color);">#A101</span></p>
+                <p><strong>Reason:</strong> <span th:text="${app.reason}">Symptoms</span></p>
+            </div>
+
+            <!-- Prescriptions Entries -->
+            <div class="timeline-item" th:each="rx : ${prescriptions}" style="border-left: 4px solid var(--success-color);">
+                <span class="timeline-badge badge-completed">DIGITAL PRESCRIPTION</span>
+                <div style="font-size: 0.85rem; color: var(--text-muted);" th:text="${#temporals.format(rx.createdAt, 'dd-MMM-yyyy HH:mm')}">Date</div>
+                <h3 style="margin: 0.3rem 0; color: var(--success-color);" th:text="${'Prescription by Dr. ' + rx.doctor.fullName}">Prescription</h3>
+                <p>🩺 <strong>Diagnosis:</strong> <span th:text="${rx.diagnosis}">Diagnosis</span></p>
+                
+                <div style="margin-top: 0.8rem; background: rgba(241, 245, 249, 0.8); padding: 0.8rem; border-radius: var(--radius-sm);">
+                    <strong>Prescribed Medicines:</strong>
+                    <ul style="margin-left: 1.2rem; font-size: 0.9rem;">
+                        <li th:each="item : ${rx.items}">
+                            <span th:text="${item.medicineName + ' (' + item.dosage + ')'}">Medicine</span> - 
+                            <span th:text="${item.frequency}">1-0-1</span> for 
+                            <span th:text="${item.duration}">5 days</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Lab Reports Entries -->
+            <div class="timeline-item" th:each="lab : ${labRequests}" style="border-left: 4px solid var(--accent-color);">
+                <span class="timeline-badge badge-role">LAB TEST REPORT</span>
+                <div style="font-size: 0.85rem; color: var(--text-muted);" th:text="${#temporals.format(lab.createdAt, 'dd-MMM-yyyy HH:mm')}">Date</div>
+                <h3 style="margin: 0.3rem 0; color: var(--accent-color);" th:text="${'Diagnostic Test: ' + lab.testName}">Lab Test</h3>
+                <p><strong>Recommended By:</strong> <span th:text="${'Dr. ' + lab.doctor.fullName}">Dr. Name</span></p>
+                <p><strong>Status:</strong> <span class="badge badge-pending" th:text="${lab.status}">PROCESSING</span></p>
+                <div th:if="${lab.reportResult != null}" style="margin-top: 0.6rem; padding: 0.8rem; background: rgba(236, 254, 255, 0.9); border-radius: var(--radius-sm); border: 1px solid #a5f3fc;">
+                    📋 <strong>Test Result Findings:</strong>
+                    <div th:text="${lab.reportResult}" style="margin-top: 0.3rem;">Normal results.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

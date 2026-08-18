@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - Hospital Management System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script>
+        function toggleVendorType() {
+            var roleSelect = document.getElementById("roleSelect");
+            var vendorGroup = document.getElementById("vendorTypeGroup");
+            if (roleSelect.value === "VENDOR") {
+                vendorGroup.style.display = "block";
+            } else {
+                vendorGroup.style.display = "none";
+            }
+        }
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">🛡️ Our Hospital</a>
+
+
+        <ul class="nav-links">
+            <li><a href="/login">Login</a></li>
+        </ul>
+    </nav>
+
+    <div class="container login-splash-wrapper">
+        <div class="auth-card-3d-splash" style="max-width: 540px;">
+            <h2 style="text-align: center; margin-bottom: 0.4rem; color: var(--accent-color);">Create Account</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.8rem; font-size: 0.95rem;">Register as Patient, Doctor, Admin, or Vendor</p>
+
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <form th:action="@{/register}" th:object="${user}" method="post">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" th:field="*{fullName}" class="form-control" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" th:field="*{email}" class="form-control" placeholder="john@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mobile Number</label>
+                    <input type="tel" th:field="*{mobileNumber}" class="form-control" placeholder="9876543210" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" th:field="*{password}" class="form-control" placeholder="••••••••" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Role</label>
+                    <select id="roleSelect" th:field="*{role}" class="form-control" onchange="toggleVendorType()" required>
+                        <option value="PATIENT">Patient</option>
+                        <option value="DOCTOR">Doctor</option>
+                        <option value="ADMIN">Admin</option>
+                        <option value="VENDOR">Vendor (Lab / Pharmacy)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="vendorTypeGroup" style="display: none;">
+                    <label class="form-label">Vendor Category</label>
+                    <select name="selectedVendorType" class="form-control">
+                        <option value="LABORATORY">Laboratory / Lab Test Vendor</option>
+                        <option value="PHARMACY">Pharmacy Vendor</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.2rem; background: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%); border: none; box-shadow: 0 5px 0 0 #0891b2;">Register & Send OTP</button>
+            </form>
+
+            <p style="text-align: center; margin-top: 1.8rem; font-size: 0.9rem; color: var(--text-muted);">
+                Already have an account? <a href="/login" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Sign In</a>
+            </p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 HospitalCare Management System. All Rights Reserved.</p>
+    </footer>
+
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Available Doctors - Hospital Management System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/patient/dashboard" class="navbar-brand">🛡️ Our Hospital - Patient Portal</a>
+
+
+        <ul class="nav-links">
+            <li><a href="/patient/dashboard">Dashboard</a></li>
+            <li><a href="/patient/doctors">Doctors</a></li>
+            <li><a href="/patient/book-appointment">Book Appointment</a></li>
+            <li><a href="/patient/appointments">My Appointments</a></li>
+            <li><a href="/patient/profile">My Profile</a></li>
+            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h2 style="margin-bottom: 1.5rem;">Available Medical Specialists</h2>
+
+        <div class="grid">
+            <div class="card" th:each="doc : ${doctors}">
+                <div class="card-title" th:text="${doc.fullName}">Dr. Name</div>
+                <p style="color: var(--primary-color); font-weight: 600;" th:text="${doc.email}">Specialization</p>
+                <div style="margin: 0.8rem 0; font-size: 0.9rem; color: var(--text-muted);">
+                    <p><strong>Mobile:</strong> <span th:text="${doc.mobileNumber}">9876543210</span></p>
+                </div>
+                <a th:href="@{/patient/book-appointment(doctorId=${doc.id})}" class="btn btn-primary btn-sm" style="width: 100%; margin-top: 0.5rem;">Book Appointment</a>
+            </div>
+            <div th:if="${#lists.isEmpty(doctors)}" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">
+                No doctors currently registered in the system.
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

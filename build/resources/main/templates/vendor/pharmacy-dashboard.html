@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Pharmacy Dashboard - Vendor Portal</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/vendor/dashboard" class="navbar-brand">💊 Our Hospital - Pharmacy Vendor</a>
+
+        <ul class="nav-links">
+            <li><a href="/vendor/dashboard">Dashboard</a></li>
+            <li><a href="/vendor/profile">Vendor Profile</a></li>
+            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div>
+                <h2>Pharmacy Management Portal</h2>
+                <p style="color: var(--text-muted);" th:text="${profile.businessName != null ? profile.businessName : vendor.fullName}">Pharmacy Vendor</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+            <!-- Add Medicine Item Form -->
+            <div class="card">
+                <div class="card-title">💊 Add Medicine / Product</div>
+                <form th:action="@{/vendor/pharmacy-item/add}" method="post" style="margin-top: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Item / Medicine Name</label>
+                        <input type="text" name="itemName" class="form-control" placeholder="e.g. Paracetamol 650mg" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <input type="text" name="category" class="form-control" placeholder="e.g. Analgesic / Antibiotic" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <div class="form-group">
+                            <label class="form-label">Price (₹)</label>
+                            <input type="number" step="0.01" name="price" class="form-control" placeholder="50.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Stock Qty</label>
+                            <input type="number" name="stockQuantity" class="form-control" placeholder="100" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description / Dosage Info</label>
+                        <textarea name="description" class="form-control" placeholder="Strip of 10 tablets..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Add Item to Pharmacy</button>
+                </form>
+            </div>
+
+            <!-- Pharmacy Items Catalog Table -->
+            <div>
+                <h3 style="margin-bottom: 1rem;">Pharmacy Stock Inventory</h3>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Medicine Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${pharmacyItems}">
+                                <td th:text="${item.itemName}">Paracetamol</td>
+                                <td th:text="${item.category}">Category</td>
+                                <td th:text="${'₹' + item.price}">₹35</td>
+                                <td th:text="${item.stockQuantity}">100</td>
+                                <td>
+                                    <form th:action="@{/vendor/pharmacy-item/{id}/delete(id=${item.id})}" method="post">
+                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(pharmacyItems)}">
+                                <td colspan="5" style="text-align: center; color: var(--text-muted);">No pharmacy items listed yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <!-- Incoming Prescription Orders Fulfillment Table -->
+        <h3 style="margin: 2rem 0 1rem 0;">📦 Incoming Prescription Orders & Fulfillment</h3>
+        <div class="table-container" style="margin-bottom: 2.5rem;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Patient Name</th>
+                        <th>Order Summary</th>
+                        <th>Total Price (₹)</th>
+                        <th>Order Status</th>
+                        <th>Fulfillment Control</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ord : ${pharmacyOrders}">
+                        <td th:text="${'#ORD-' + ord.id}">#ORD-1</td>
+                        <td th:text="${ord.patient.fullName}">Patient</td>
+                        <td th:text="${ord.orderSummary}">Prescription #1</td>
+                        <td th:text="${'₹' + ord.totalPrice}">₹250</td>
+                        <td><span class="badge" th:classappend="${ord.status == 'COMPLETED' ? 'badge-confirmed' : 'badge-pending'}" th:text="${ord.status}">PLACED</span></td>
+                        <td>
+                            <form th:action="@{/vendor/pharmacy-order/{id}/update-status(id=${ord.id})}" method="post" style="display: flex; gap: 0.4rem;">
+                                <select name="status" class="form-control form-control-sm">
+                                    <option value="ACCEPTED">ACCEPTED</option>
+                                    <option value="READY_FOR_PICKUP">READY FOR PICKUP</option>
+                                    <option value="COMPLETED">COMPLETED</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pharmacyOrders)}">
+                        <td colspan="6" style="text-align: center; color: var(--text-muted);">No incoming pharmacy orders.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

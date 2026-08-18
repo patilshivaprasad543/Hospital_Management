@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Digital Prescriptions - HospitalCare Pro</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/patient/dashboard" class="navbar-brand">🏥 HospitalCare Pro - Patient Portal</a>
+        <ul class="nav-links">
+            <li><a href="/patient/dashboard">Dashboard</a></li>
+            <li><a href="/patient/symptom-wizard">Smart Doctor Match</a></li>
+            <li><a href="/patient/appointments">My Appointments</a></li>
+            <li><a href="/patient/timeline">Health Timeline</a></li>
+            <li><a href="/patient/prescriptions">Prescriptions</a></li>
+            <li><a href="/patient/lab-reports">Lab Reports</a></li>
+            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h2>💊 Digital Prescriptions</h2>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">View digital prescriptions issued by your doctors and order medicines online from Pharmacy Vendors.</p>
+
+        <div class="grid">
+            <div class="card" th:each="rx : ${prescriptions}">
+                <div class="card-title" th:text="${'Prescription #' + rx.id}">Rx #1</div>
+                <p>👨‍⚕️ <strong>Doctor:</strong> <span th:text="${'Dr. ' + rx.doctor.fullName}">Dr. Smith</span></p>
+                <p>🩺 <strong>Diagnosis:</strong> <span th:text="${rx.diagnosis}">Diagnosis</span></p>
+                
+                <div style="margin: 1rem 0; background: rgba(241, 245, 249, 0.9); padding: 0.8rem; border-radius: var(--radius-sm);">
+                    <strong>Prescribed Medicines:</strong>
+                    <ul style="margin-left: 1.2rem; font-size: 0.88rem; margin-top: 0.4rem;">
+                        <li th:each="item : ${rx.items}">
+                            <strong th:text="${item.medicineName}">Paracetamol</strong> 
+                            (<span th:text="${item.dosage}">500mg</span>) - 
+                            <span th:text="${item.frequency}">1-0-1</span> x 
+                            <span th:text="${item.duration}">5 Days</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Order from Pharmacy Vendor Form -->
+                <form th:action="@{/patient/order-pharmacy}" method="post">
+                    <input type="hidden" name="prescriptionId" th:value="${rx.id}" />
+                    <div class="form-group">
+                        <label class="form-label">Select Pharmacy Vendor for Delivery</label>
+                        <select name="pharmacyVendorId" class="form-control" required>
+                            <option value="">-- Choose Pharmacy --</option>
+                            <option th:each="vendor : ${pharmacyVendors}" th:value="${vendor.id}" th:text="${vendor.fullName + ' (Pharmacy Vendor)'}">MediPlus Pharmacy</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="width: 100%;">📦 Place Medicine Order</button>
+                </form>
+            </div>
+
+            <div th:if="${#lists.isEmpty(prescriptions)}" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">
+                No digital prescriptions issued yet.
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

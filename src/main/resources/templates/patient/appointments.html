@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Appointments - Hospital Management System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/patient/dashboard" class="navbar-brand">🛡️ Our Hospital - Patient Portal</a>
+
+
+        <ul class="nav-links">
+            <li><a href="/patient/dashboard">Dashboard</a></li>
+            <li><a href="/patient/doctors">Doctors</a></li>
+            <li><a href="/patient/book-appointment">Book Appointment</a></li>
+            <li><a href="/patient/appointments">My Appointments</a></li>
+            <li><a href="/patient/profile">My Profile</a></li>
+            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2>My Scheduled Appointments</h2>
+            <a href="/patient/book-appointment" class="btn btn-primary">+ New Appointment</a>
+        </div>
+
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Appointment ID</th>
+                        <th>Doctor Name</th>
+                        <th>Date & Time</th>
+                        <th>Status</th>
+                        <th>Queue Ticket / Action</th>
+                        <th>Reason / Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="app : ${appointments}">
+                        <td th:text="${'#APP-' + app.id}">#APP-1</td>
+                        <td th:text="${app.doctor.fullName}">Dr. Smith</td>
+                        <td th:text="${app.appointmentDate + ' ' + app.appointmentTime}">2026-08-20 10:00 AM</td>
+                        <td>
+                            <span class="badge" 
+                                  th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : 'badge-rejected')}"
+                                  th:text="${app.status}">PENDING</span>
+                        </td>
+                        <td>
+                            <form th:if="${app.status.name() == 'CONFIRMED' && app.queueTicket == null}" th:action="@{/patient/check-in/{id}(id=${app.id})}" method="post">
+                                <button type="submit" class="btn btn-success btn-sm">🎟️ Check-In</button>
+                            </form>
+                            <span th:if="${app.queueTicket != null}" class="badge badge-role" th:text="${'Ticket: ' + app.queueTicket}">#A101</span>
+                            <span th:if="${app.status.name() != 'CONFIRMED' && app.queueTicket == null}" style="color: var(--text-muted); font-size: 0.85rem;">Pending Confirmation</span>
+                        </td>
+                        <td>
+                            <span th:text="${app.reason}">Reason</span>
+                            <div th:if="${app.notes != null}" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;" th:text="${'Doctor Note: ' + app.notes}"></div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(appointments)}">
+                        <td colspan="6" style="text-align: center; color: var(--text-muted);">No appointments booked yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

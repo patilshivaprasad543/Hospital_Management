@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Laboratory Dashboard - Vendor Portal</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/vendor/dashboard" class="navbar-brand">🧪 Our Hospital - Lab Vendor</a>
+
+        <ul class="nav-links">
+            <li><a href="/vendor/dashboard">Dashboard</a></li>
+            <li><a href="/vendor/profile">Vendor Profile</a></li>
+            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div>
+                <h2>Laboratory Diagnostic Portal</h2>
+                <p style="color: var(--text-muted);" th:text="${profile.businessName != null ? profile.businessName : vendor.fullName}">Lab Vendor</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+            <!-- Add Lab Test Form -->
+            <div class="card">
+                <div class="card-title">🧪 Add New Lab Test</div>
+                <form th:action="@{/vendor/lab-test/add}" method="post" style="margin-top: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Test Name</label>
+                        <input type="text" name="testName" class="form-control" placeholder="e.g. Complete Blood Count" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <input type="text" name="category" class="form-control" placeholder="e.g. Pathology / Cardiology" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Price (₹)</label>
+                        <input type="number" step="0.01" name="price" class="form-control" placeholder="500.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Test Description / Requirements</label>
+                        <textarea name="description" class="form-control" placeholder="Fasting required 8 hours prior..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Add Test to Catalog</button>
+                </form>
+            </div>
+
+            <!-- Lab Tests Catalog Table -->
+            <div>
+                <h3 style="margin-bottom: 1rem;">Offered Diagnostic Tests</h3>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Test Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="test : ${labTests}">
+                                <td th:text="${test.testName}">Blood Test</td>
+                                <td th:text="${test.category}">Category</td>
+                                <td th:text="${'₹' + test.price}">₹500</td>
+                                <td>
+                                    <form th:action="@{/vendor/lab-test/{id}/delete(id=${test.id})}" method="post">
+                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(labTests)}">
+                                <td colspan="4" style="text-align: center; color: var(--text-muted);">No lab tests listed yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <!-- Incoming Diagnostic Test Requests for Sample Processing -->
+        <h3 style="margin: 2rem 0 1rem 0;">📋 Assigned Patient Test Requests & Report Upload</h3>
+        <div class="table-container" style="margin-bottom: 2.5rem;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Patient Name</th>
+                        <th>Recommended By</th>
+                        <th>Test Required</th>
+                        <th>Status</th>
+                        <th>Upload Report Findings</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="req : ${labRequests}">
+                        <td th:text="${'#LAB-' + req.id}">#LAB-1</td>
+                        <td th:text="${req.patient.fullName}">Patient</td>
+                        <td th:text="${'Dr. ' + req.doctor.fullName}">Doctor</td>
+                        <td th:text="${req.testName}">Blood Test</td>
+                        <td><span class="badge" th:classappend="${req.status == 'REPORT_READY' ? 'badge-confirmed' : 'badge-pending'}" th:text="${req.status}">PROCESSING</span></td>
+                        <td>
+                            <form th:action="@{/vendor/lab-request/{id}/upload-report(id=${req.id})}" method="post" style="display: flex; gap: 0.4rem;">
+                                <input type="text" name="reportResult" class="form-control form-control-sm" placeholder="e.g. Hemoglobin: 14.2 g/dL (Normal)" required style="width: 250px;">
+                                <button type="submit" class="btn btn-success btn-sm">Upload Report</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(labRequests)}">
+                        <td colspan="6" style="text-align: center; color: var(--text-muted);">No assigned lab test requests.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Profile - Hospital Management System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/doctor/dashboard" class="navbar-brand">🛡️ Our Hospital - Doctor Portal</a>
+
+
+        <ul class="nav-links">
+            <li><a href="/doctor/dashboard">Dashboard</a></li>
+            <li><a href="/doctor/appointments">All Appointments</a></li>
+            <li><a href="/doctor/profile">My Profile & Availability</a></li>
+            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="auth-card" style="max-width: 600px;">
+            <h2 style="text-align: center; margin-bottom: 0.5rem;">👨‍⚕️ Doctor Profile & Schedule</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">Update your specialization, fees, and consultation availability</p>
+
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+            <form th:action="@{/doctor/profile}" th:object="${profile}" method="post">
+                <div class="form-group">
+                    <label class="form-label">Doctor Name</label>
+                    <input type="text" class="form-control" th:value="${doctor.fullName}" disabled readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-control" th:value="${doctor.email}" disabled readonly>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Medical Specialization</label>
+                        <input type="text" th:field="*{specialization}" class="form-control" placeholder="Cardiology, Pediatrics..." required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Qualifications</label>
+                        <input type="text" th:field="*{qualification}" class="form-control" placeholder="MBBS, MD" required>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Experience (Years)</label>
+                        <input type="number" th:field="*{experienceYears}" class="form-control" placeholder="8">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Consultation Fee (₹)</label>
+                        <input type="number" step="0.01" th:field="*{consultationFee}" class="form-control" placeholder="500.00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Weekly Availability Schedule</label>
+                    <input type="text" th:field="*{availabilitySchedule}" class="form-control" placeholder="Mon - Sat (09:00 AM - 04:00 PM)">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Doctor Details</button>
+            </form>
+        </div>
+    </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

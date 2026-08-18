@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>HospitalCare Pro - Cyber Healthcare Platform</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <div class="brand-icon">🛡️</div>
+            <span>Our <span class="gradient-text">Hospital</span></span>
+        </a>
+
+
+        <ul class="nav-links">
+            <li th:if="${session.loggedInUser == null}"><a href="/login">Login</a></li>
+            <li th:if="${session.loggedInUser == null}"><a href="/register" class="btn btn-primary btn-sm">Get Started</a></li>
+            <li th:if="${session.loggedInUser != null}">
+                <span class="user-info" th:text="${session.loggedInUser.fullName + ' (' + session.loggedInUser.role + ')'}">User</span>
+            </li>
+            <li th:if="${session.loggedInUser != null}"><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <section class="hero">
+            <div class="hero-badge">⚡ Next-Gen Healthcare Portal</div>
+            <h1>Empowering Digital Healthcare <span class="gradient-text">Excellence</span></h1>
+            <p>Seamless doctor appointment booking, real-time OTP security, automated email confirmations, diagnostic laboratory tests, and integrated pharmacy management.</p>
+            <div style="display: flex; gap: 1.2rem; justify-content: center;">
+                <a href="/register" class="btn btn-primary">Create Account</a>
+                <a href="/login" class="btn btn-secondary">Portal Sign In</a>
+            </div>
+        </section>
+
+        <h2 style="margin-bottom: 2rem; text-align: center; font-family: 'Outfit', sans-serif; font-size: 2rem;" class="gradient-text">Specialized Medical Ecosystem</h2>
+        
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">👨‍⚕️ Specialist Doctors</div>
+                <p>Book consultations with certified Cardiologists, Neurologists, Pediatricians, and General Physicians.</p>
+            </div>
+            <div class="card">
+                <div class="card-title">🧪 Laboratory & Pathology</div>
+                <p>Order blood diagnostic tests, thyroid panels, and pathology reports directly from accredited lab vendors.</p>
+            </div>
+            <div class="card">
+                <div class="card-title">💊 Pharmacy Inventory</div>
+                <p>Browse prescription medicines and daily health supplements with real-time stock availability.</p>
+            </div>
+            <div class="card">
+                <div class="card-title">📩 Automated Email Dispatch</div>
+                <p>Receive instant email notifications with Doctor Name, Date, Time, and Status upon appointment confirmation.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 HospitalCare Pro Management System. All Rights Reserved.</p>
+    </footer>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>
