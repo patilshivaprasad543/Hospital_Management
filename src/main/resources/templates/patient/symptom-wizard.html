@@ -1,52 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Smart Doctor Matching - HospitalCare Pro</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        .wizard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.2rem;
-            margin-bottom: 2.5rem;
-        }
-        .wizard-card {
-            background: rgba(255, 255, 255, 0.92);
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            text-decoration: none;
-            color: var(--text-primary);
-        }
-        .wizard-card:hover {
-            transform: translateY(-8px) scale(1.03);
-            border-color: var(--primary-color);
-            box-shadow: 0 12px 25px rgba(37, 99, 235, 0.2);
-        }
-        .wizard-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-    </style>
-</head>
+<head th:replace="~{fragments/layout :: head('Symptom Checker')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/patient/dashboard" class="navbar-brand">🏥 HospitalCare Pro - Patient Portal</a>
-        <ul class="nav-links">
-            <li><a href="/patient/dashboard">Dashboard</a></li>
-            <li><a href="/patient/symptom-wizard">Smart Doctor Match</a></li>
-            <li><a href="/patient/doctors">Doctors</a></li>
-            <li><a href="/patient/appointments">My Appointments</a></li>
-            <li><a href="/patient/timeline">Health Timeline</a></li>
-            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
-        </ul>
-    </nav>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
-    <div class="container">
+<div class="container">
         <h2 style="text-align: center; margin-bottom: 0.4rem;">🩺 Smart Doctor & Service Matcher</h2>
         <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;">Select what you need help with, and our smart engine will recommend the best specialists for you.</p>
 

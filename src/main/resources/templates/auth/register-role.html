@@ -1,19 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title th:text="${portalRole.label + ' Registration - SmartCare 360'}">Register - SmartCare 360</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-    <nav class="navbar">
-        <a href="/" class="navbar-brand">🏥 SmartCare 360</a>
-        <ul class="nav-links">
-            <li><a th:href="@{/login/{r}(r=${portalRole.pathSegment})}">← Back to Login</a></li>
-        </ul>
-    </nav>
+<head th:replace="~{fragments/layout :: head('Register')}"></head>
+<body class="auth-body">
+    <nav th:replace="~{fragments/layout :: auth-nav}"></nav>
 
-    <div class="container login-splash-wrapper">
+<div class="container login-splash-wrapper">
         <div class="auth-card portal-login-card" style="max-width: 540px;">
             <div class="portal-login-badge">
                 <span th:text="${portalRole.icon}">👤</span>

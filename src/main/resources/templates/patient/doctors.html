@@ -1,26 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Available Doctors - Hospital Management System</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Find Doctors')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/patient/dashboard" class="navbar-brand">🛡️ Our Hospital - Patient Portal</a>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
-
-        <ul class="nav-links">
-            <li><a href="/patient/dashboard">Dashboard</a></li>
-            <li><a href="/patient/doctors">Doctors</a></li>
-            <li><a href="/patient/book-appointment">Book Appointment</a></li>
-            <li><a href="/patient/appointments">My Appointments</a></li>
-            <li><a href="/patient/profile">My Profile</a></li>
-            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
+<div class="container">
         <h2 style="margin-bottom: 1.5rem;">Available Medical Specialists</h2>
 
         <div class="grid">

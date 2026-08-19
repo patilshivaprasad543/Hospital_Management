@@ -1,15 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Consultation - SmartCare 360</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Consultation')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/doctor/dashboard" class="navbar-brand">🏥 SmartCare 360 - Doctor</a>
-    </nav>
-    <div class="container">
+    <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
+
+<div class="container">
         <h2>Consultation — <span th:text="${patient.fullName}">Patient</span></h2>
         <div class="grid" style="margin-bottom:2rem;">
             <div class="card">

@@ -1,21 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>My Bills - SmartCare 360</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Billing')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/patient/dashboard" class="navbar-brand">🏥 SmartCare 360 - Patient</a>
-        <ul class="nav-links">
-            <li><a href="/patient/dashboard">Dashboard</a></li>
-            <li><a href="/patient/bills">Bills</a></li>
-            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
-        </ul>
-    </nav>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
-    <div class="container">
+<div class="container">
         <h2>My Bills &amp; Payments</h2>
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>

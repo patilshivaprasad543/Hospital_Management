@@ -1,25 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Vendor Management - SmartCare 360 Admin</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Vendors')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/admin/dashboard" class="navbar-brand">🏥 SmartCare 360 - Admin</a>
-        <ul class="nav-links">
-            <li><a href="/admin/dashboard">Dashboard</a></li>
-            <li><a href="/admin/users">Patients</a></li>
-            <li><a href="/admin/doctors">Doctors</a></li>
-            <li><a href="/admin/vendors">Vendors</a></li>
-            <li><a href="/admin/appointments">Appointments</a></li>
-            <li><a href="/admin/audit-logs">Audit Logs</a></li>
-            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
-        </ul>
-    </nav>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
 
-    <div class="container">
+<div class="container">
         <h2>Vendor Management</h2>
         <p style="color: var(--text-muted); margin-bottom: 2rem;">Verify, approve, or reject pharmacy and laboratory vendors</p>
 

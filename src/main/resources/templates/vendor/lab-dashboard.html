@@ -1,35 +1,22 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Laboratory Dashboard - Vendor Portal</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Laboratory')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/vendor/dashboard" class="navbar-brand">🧪 Our Hospital - Lab Vendor</a>
+    <nav th:replace="~{fragments/layout :: vendor-nav}"></nav>
 
-        <ul class="nav-links">
-            <li><a href="/vendor/dashboard">Dashboard</a></li>
-            <li><a href="/vendor/profile">Vendor Profile</a></li>
-            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
+<div class="container">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <div>
-                <h2>Laboratory Diagnostic Portal</h2>
-                <p style="color: var(--text-muted);" th:text="${profile.businessName != null ? profile.businessName : vendor.fullName}">Lab Vendor</p>
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Laboratory Portal</h1>
+                <p th:text="${profile.businessName != null ? profile.businessName : vendor.fullName}">Lab Vendor</p>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
-            <!-- Add Lab Test Form -->
+        <div class="split-layout">
             <div class="card">
-                <div class="card-title">🧪 Add New Lab Test</div>
+                <div class="card-title">Add New Lab Test</div>
                 <form th:action="@{/vendor/lab-test/add}" method="post" style="margin-top: 1rem;">
                     <div class="form-group">
                         <label class="form-label">Test Name</label>

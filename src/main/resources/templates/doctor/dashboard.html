@@ -1,33 +1,21 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Doctor Dashboard - Hospital Management System</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Doctor Dashboard')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/doctor/dashboard" class="navbar-brand">🛡️ Our Hospital - Doctor Portal</a>
+    <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
 
-
-        <ul class="nav-links">
-            <li><a href="/doctor/dashboard">Dashboard</a></li>
-            <li><a href="/doctor/appointments">All Appointments</a></li>
-            <li><a href="/doctor/profile">My Profile & Availability</a></li>
-            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
+<div class="container">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <div>
-                <h2>Welcome, <span th:text="${doctor.fullName}">Doctor</span> 🩺</h2>
-                <p style="color: var(--text-muted);" th:text="${'Specialization: ' + (profile.specialization != null ? profile.specialization : 'General Physician')}">Cardiology</p>
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1 th:text="'Dr. ' + ${doctor.fullName}">Doctor</h1>
+                <p th:text="${profile.specialization != null ? profile.specialization : 'General Physician'}">Specialization</p>
             </div>
-            <a href="/doctor/profile" class="btn btn-secondary">Edit Availability & Fees</a>
+            <div class="page-header-actions">
+                <a href="/doctor/profile" class="btn btn-outline">Manage Schedule</a>
+            </div>
         </div>
 
         <!-- Quick Stats -->
@@ -35,13 +23,13 @@
             <div class="card stat-card">
                 <div>
                     <div class="card-title">Pending Requests</div>
-                    <div class="stat-number" th:text="${#lists.size(pendingAppointments)}" style="color: var(--warning-color);">0</div>
+                    <div class="stat-number warning" th:text="${#lists.size(pendingAppointments)}">0</div>
                 </div>
             </div>
             <div class="card stat-card">
                 <div>
                     <div class="card-title">Confirmed Appointments</div>
-                    <div class="stat-number" th:text="${#lists.size(confirmedAppointments)}" style="color: var(--success-color);">0</div>
+                    <div class="stat-number success" th:text="${#lists.size(confirmedAppointments)}">0</div>
                 </div>
             </div>
             <div class="card stat-card">
@@ -223,6 +211,7 @@
             </table>
         </div>
     </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
     <script th:src="@{/js/main.js}"></script>
 </body>
 </html>

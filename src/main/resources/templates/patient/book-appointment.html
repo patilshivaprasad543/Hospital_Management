@@ -1,23 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Book Appointment - SmartCare 360</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Book Appointment')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/patient/dashboard" class="navbar-brand">🏥 SmartCare 360 - Patient</a>
-        <ul class="nav-links">
-            <li><a href="/patient/dashboard">Dashboard</a></li>
-            <li><a href="/patient/doctors">Doctors</a></li>
-            <li><a href="/patient/book-appointment">Book Appointment</a></li>
-            <li><a href="/patient/appointments">Appointments</a></li>
-            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
-        </ul>
-    </nav>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
-    <div class="container">
+<div class="container">
         <div class="auth-card" style="max-width: 680px;">
             <h2 style="text-align: center; margin-bottom: 0.5rem;">📅 Book Doctor Appointment</h2>
             <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">

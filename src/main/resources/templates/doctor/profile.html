@@ -1,24 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Doctor Profile - Hospital Management System</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Profile & Schedule')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/doctor/dashboard" class="navbar-brand">🛡️ Our Hospital - Doctor Portal</a>
+    <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
 
-
-        <ul class="nav-links">
-            <li><a href="/doctor/dashboard">Dashboard</a></li>
-            <li><a href="/doctor/appointments">All Appointments</a></li>
-            <li><a href="/doctor/profile">My Profile & Availability</a></li>
-            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
+<div class="container">
         <div class="auth-card" style="max-width: 600px;">
             <h2 style="text-align: center; margin-bottom: 0.5rem;">👨‍⚕️ Doctor Profile & Schedule</h2>
             <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">Update your specialization, fees, and consultation availability</p>

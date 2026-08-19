@@ -1,29 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>SmartCare 360 - Integrated Hospital Platform</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Home')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/" class="navbar-brand">
-            <div class="brand-icon">🏥</div>
-            <span>Smart<span class="gradient-text">Care 360</span></span>
-        </a>
+    <nav th:replace="~{fragments/layout :: auth-nav}"></nav>
 
-
-        <ul class="nav-links">
-            <li th:if="${session.loggedInUser == null}"><a href="/login">Login</a></li>
-            <li th:if="${session.loggedInUser == null}"><a href="/register" class="btn btn-primary btn-sm">Get Started</a></li>
-            <li th:if="${session.loggedInUser != null}">
-                <span class="user-info" th:text="${session.loggedInUser.fullName + ' (' + session.loggedInUser.role + ')'}">User</span>
-            </li>
-            <li th:if="${session.loggedInUser != null}"><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
+<div class="container">
         <section class="hero">
             <div class="hero-badge">⚡ Next-Gen Healthcare Portal</div>
             <h1>Empowering Digital Healthcare <span class="gradient-text">Excellence</span></h1>
