@@ -25,23 +25,35 @@ public class PharmacyOrder {
 
     private Double totalPrice;
 
-    private String status = "PLACED"; // PLACED, ACCEPTED, READY_FOR_PICKUP, COMPLETED, CANCELLED
+    @Enumerated(EnumType.STRING)
+    private PharmacyOrderStatus status = PharmacyOrderStatus.PLACED;
 
     @Column(length = 1000)
     private String orderSummary;
 
+    @Column(length = 500)
+    private String deliveryAddress;
+
+    @Column(length = 500)
+    private String trackingNotes;
+
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     public PharmacyOrder() {}
 
-    public PharmacyOrder(User patient, Prescription prescription, User pharmacyVendor, Double totalPrice, String orderSummary) {
+    public PharmacyOrder(User patient, Prescription prescription, User pharmacyVendor,
+                         Double totalPrice, String orderSummary, String deliveryAddress) {
         this.patient = patient;
         this.prescription = prescription;
         this.pharmacyVendor = pharmacyVendor;
         this.totalPrice = totalPrice;
         this.orderSummary = orderSummary;
-        this.status = "PLACED";
+        this.deliveryAddress = deliveryAddress;
+        this.status = PharmacyOrderStatus.PLACED;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -84,11 +96,11 @@ public class PharmacyOrder {
         this.totalPrice = totalPrice;
     }
 
-    public String getStatus() {
+    public PharmacyOrderStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(PharmacyOrderStatus status) {
         this.status = status;
     }
 
@@ -100,11 +112,35 @@ public class PharmacyOrder {
         this.orderSummary = orderSummary;
     }
 
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
+    }
+
+    public String getTrackingNotes() {
+        return trackingNotes;
+    }
+
+    public void setTrackingNotes(String trackingNotes) {
+        this.trackingNotes = trackingNotes;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

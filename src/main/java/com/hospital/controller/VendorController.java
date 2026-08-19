@@ -78,14 +78,20 @@ public class VendorController {
 
     @PostMapping("/pharmacy-order/{id}/update-status")
     public String updateOrderStatus(@PathVariable("id") Long id,
-                                    @RequestParam("status") String status,
+                                    @RequestParam("status") PharmacyOrderStatus status,
+                                    @RequestParam(value = "trackingNotes", required = false) String trackingNotes,
                                     HttpSession session,
                                     RedirectAttributes redirectAttributes) {
         User vendor = getLoggedInVendor(session);
         if (vendor == null) return "redirect:/login";
 
-        pharmacyWorkflowService.updateOrderStatus(id, status);
-        redirectAttributes.addFlashAttribute("successMessage", "Order status updated to " + status);
+        try {
+            pharmacyWorkflowService.updateOrderStatus(id, status, vendor, trackingNotes);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Order status updated to " + status.getDisplayName());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/vendor/dashboard";
     }
 

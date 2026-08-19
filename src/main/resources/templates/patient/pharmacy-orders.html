@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pharmacy Orders')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="container">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Pharmacy Orders</h1>
+                <p>Track medicine orders placed from your prescriptions — from placement to delivery.</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="/patient/prescriptions" class="btn btn-primary">Order Medicines</a>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Pharmacy</th>
+                        <th>Order Summary</th>
+                        <th>Total (₹)</th>
+                        <th>Delivery Address</th>
+                        <th>Status</th>
+                        <th>Tracking</th>
+                        <th>Ordered On</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ord : ${pharmacyOrders}">
+                        <td th:text="${'#ORD-' + ord.id}">#ORD-1</td>
+                        <td th:text="${ord.pharmacyVendor != null ? ord.pharmacyVendor.fullName : 'N/A'}">Pharmacy</td>
+                        <td th:text="${ord.orderSummary}">Summary</td>
+                        <td th:text="${'₹' + #numbers.formatDecimal(ord.totalPrice, 1, 2)}">₹250</td>
+                        <td th:text="${ord.deliveryAddress != null ? ord.deliveryAddress : '—'}">Address</td>
+                        <td>
+                            <span class="badge pharmacy-status-badge"
+                                  th:classappend="${' status-' + ord.status.name()}"
+                                  th:text="${ord.status.displayName}">Order Placed</span>
+                        </td>
+                        <td th:text="${ord.trackingNotes != null ? ord.trackingNotes : '—'}">—</td>
+                        <td th:text="${#temporals.format(ord.createdAt, 'dd MMM yyyy, HH:mm')}">Date</td>
+                        <td th:text="${#temporals.format(ord.updatedAt, 'dd MMM yyyy, HH:mm')}">Updated</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pharmacyOrders)}">
+                        <td colspan="9" style="text-align: center; color: var(--text-muted);">
+                            No pharmacy orders yet.
+                            <a href="/patient/prescriptions">Place an order</a> from your prescriptions.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" style="margin-top: 1.5rem;">
+            <h3>Order Status Guide</h3>
+            <div class="status-guide">
+                <span class="badge status-PLACED">Order Placed</span>
+                <span>→</span>
+                <span class="badge status-ACCEPTED">Accepted</span>
+                <span>→</span>
+                <span class="badge status-PROCESSING">Processing</span>
+                <span>→</span>
+                <span class="badge status-DISPATCHED">Dispatched</span>
+                <span>→</span>
+                <span class="badge status-DELIVERED">Delivered</span>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>
