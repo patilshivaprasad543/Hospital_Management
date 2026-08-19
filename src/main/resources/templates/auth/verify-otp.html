@@ -2,22 +2,20 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>OTP Verification - Hospital Management System</title>
+    <title>OTP Verification - SmartCare 360</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
     <nav class="navbar">
-        <a href="/" class="navbar-brand">🛡️ Our Hospital</a>
-
-
+        <a href="/" class="navbar-brand">🏥 SmartCare 360</a>
     </nav>
 
-    <div class="container">
+    <div class="container login-splash-wrapper">
         <div class="auth-card">
-            <h2 style="text-align: center; margin-bottom: 0.5rem;">🔒 OTP Verification</h2>
+            <h2 style="text-align: center; margin-bottom: 0.5rem;">🔒 Email OTP Verification</h2>
             <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">
-                📩 An OTP verification code has been sent to your registered email address.<br>
-                Please check your Gmail inbox and enter the 6-digit code below.
+                A 6-digit OTP has been sent to your registered email address.<br>
+                <strong th:if="${userEmail != null}" th:text="${userEmail}" style="color: var(--cyan-accent);">you@email.com</strong>
             </p>
 
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
@@ -27,13 +25,18 @@
                 <input type="hidden" name="userId" th:value="${userId}" />
                 <div class="form-group">
                     <label class="form-label" style="text-align: center;">Enter 6-Digit OTP Code</label>
-                    <input type="text" name="otp" class="form-control" placeholder="••••••" maxlength="6" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem; font-weight: 700;" required autofocus autocomplete="off">
+                    <input type="text" name="otp" class="form-control" placeholder="••••••" maxlength="6"
+                           style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem; font-weight: 700;"
+                           required autofocus autocomplete="off">
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Verify Account</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Verify &amp; Activate Account</button>
             </form>
 
             <div style="text-align: center; margin-top: 1.2rem;">
-                <a th:href="@{/resend-otp(userId=${userId})}" style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem; text-decoration: none;">🔄 Didn't receive email? Click here to Resend OTP</a>
+                <a th:href="@{/resend-otp(userId=${userId})}"
+                   style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem; text-decoration: none;">
+                    🔄 Didn't receive OTP? Resend to registered email
+                </a>
             </div>
         </div>
     </div>

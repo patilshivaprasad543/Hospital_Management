@@ -68,8 +68,16 @@ public class EmailService {
 
     @Async
     public void sendOtpEmail(String recipientEmail, String otpCode) {
-        String subject = "SmartCare 360 - Verification OTP";
-        String body = "Dear User,\n\nYour OTP for SmartCare 360 verification is: " + otpCode + "\n\nDo not share this OTP with anyone.";
+        String subject = "SmartCare 360 - Email Verification OTP";
+        String body = String.format(
+                "Dear User,\n\n" +
+                "Thank you for registering with SmartCare 360.\n\n" +
+                "Your email verification OTP is: %s\n\n" +
+                "Enter this code on the verification page to activate your account.\n" +
+                "Do not share this OTP with anyone.\n\n" +
+                "If you did not register, please ignore this email.\n\n" +
+                "— SmartCare 360 Team",
+                otpCode);
         
         logger.info("\n=======================================================");
         logger.info("SENDING OTP EMAIL TO: {}", recipientEmail);

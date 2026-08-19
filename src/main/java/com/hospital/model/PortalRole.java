@@ -52,4 +52,56 @@ public enum PortalRole {
             case PHARMACY -> user.getRole() == Role.VENDOR && user.getVendorType() == VendorType.PHARMACY;
         };
     }
+
+    public boolean canSelfRegister() {
+        return this != ADMIN;
+    }
+
+    public String pathSegment() {
+        return name().toLowerCase();
+    }
+
+    public void applyToUser(User user) {
+        switch (this) {
+            case PATIENT -> {
+                user.setRole(Role.PATIENT);
+                user.setVendorType(VendorType.NONE);
+            }
+            case DOCTOR -> {
+                user.setRole(Role.DOCTOR);
+                user.setVendorType(VendorType.NONE);
+            }
+            case VENDOR -> {
+                user.setRole(Role.VENDOR);
+                user.setVendorType(VendorType.LABORATORY);
+            }
+            case PHARMACY -> {
+                user.setRole(Role.VENDOR);
+                user.setVendorType(VendorType.PHARMACY);
+            }
+            default -> throw new IllegalStateException("Admin cannot self-register");
+        }
+    }
+
+    public static String loginPathForUser(User user) {
+        if (user == null) {
+            return "/login";
+        }
+        if (user.getRole() == Role.ADMIN) {
+            return "/login/admin";
+        }
+        if (user.getRole() == Role.PATIENT) {
+            return "/login/patient";
+        }
+        if (user.getRole() == Role.DOCTOR) {
+            return "/login/doctor";
+        }
+        if (user.getRole() == Role.VENDOR) {
+            if (user.getVendorType() == VendorType.PHARMACY) {
+                return "/login/pharmacy";
+            }
+            return "/login/vendor";
+        }
+        return "/login";
+    }
 }

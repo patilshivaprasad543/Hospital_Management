@@ -22,51 +22,53 @@ public class AuthController {
     private UserService userService;
 
     @GetMapping("/register")
-    public String showRegisterPage(@RequestParam(value = "role", required = false) String roleParam, Model model) {
-        model.addAttribute("user", new User());
-        model.addAttribute("roles", new Role[]{Role.PATIENT, Role.DOCTOR, Role.VENDOR});
-        model.addAttribute("vendorTypes", VendorType.values());
-
-        PortalRole portalRole = PortalRole.fromPath(roleParam);
-        if (portalRole != null && portalRole != PortalRole.ADMIN) {
-            model.addAttribute("selectedPortalRole", portalRole);
-            if (portalRole == PortalRole.PATIENT) {
-                model.addAttribute("preselectedRole", Role.PATIENT);
-            } else if (portalRole == PortalRole.DOCTOR) {
-                model.addAttribute("preselectedRole", Role.DOCTOR);
-            } else if (portalRole == PortalRole.VENDOR) {
-                model.addAttribute("preselectedRole", Role.VENDOR);
-                model.addAttribute("preselectedVendorType", VendorType.LABORATORY);
-            } else if (portalRole == PortalRole.PHARMACY) {
-                model.addAttribute("preselectedRole", Role.VENDOR);
-                model.addAttribute("preselectedVendorType", VendorType.PHARMACY);
-            }
-        }
-        return "auth/register";
+    public String redirectRegisterPortal() {
+        return "redirect:/login";
     }
 
-    @PostMapping("/register")
-    public String registerUser(@ModelAttribute("user") User user,
+    @GetMapping("/register/{portalRole}")
+    public String showRoleRegisterPage(@PathVariable String portalRole, Model model) {
+        PortalRole role = PortalRole.fromPath(portalRole);
+        if (role == null || !role.canSelfRegister()) {
+            return "redirect:/login";
+        }
+
+        User user = new User();
+        role.applyToUser(user);
+        model.addAttribute("user", user);
+        model.addAttribute("portalRole", role);
+        return "auth/register-role";
+    }
+
+    @PostMapping("/register/{portalRole}")
+    public String registerUser(@PathVariable String portalRole,
+                               @ModelAttribute("user") User user,
                                @RequestParam(value = "selectedVendorType", required = false) VendorType selectedVendorType,
                                HttpSession session,
                                RedirectAttributes redirectAttributes,
                                Model model) {
+        PortalRole role = PortalRole.fromPath(portalRole);
+        if (role == null || !role.canSelfRegister()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Registration is not available for this role.");
+            return "redirect:/login";
+        }
+
         try {
-            if (user.getRole() == Role.ADMIN) {
-                throw new RuntimeException("Admin accounts cannot be self-registered.");
-            }
+            role.applyToUser(user);
             if (user.getRole() == Role.VENDOR && selectedVendorType != null) {
                 user.setVendorType(selectedVendorType);
             }
+
             User registeredUser = userService.registerUser(user);
             session.setAttribute("pendingVerificationUser", registeredUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Registration successful! Enter the OTP sent to your email.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Registration successful! Enter the OTP sent to " + registeredUser.getEmail());
             return "redirect:/verify-otp?userId=" + registeredUser.getId();
         } catch (Exception e) {
+            role.applyToUser(user);
+            model.addAttribute("portalRole", role);
             model.addAttribute("errorMessage", e.getMessage());
-            model.addAttribute("roles", new Role[]{Role.PATIENT, Role.DOCTOR, Role.VENDOR});
-            model.addAttribute("vendorTypes", VendorType.values());
-            return "auth/register";
+            return "auth/register-role";
         }
     }
 
@@ -76,6 +78,14 @@ public class AuthController {
         userService.findById(userId).ifPresent(user -> {
             model.addAttribute("userEmail", user.getEmail());
             model.addAttribute("userRole", user.getRole());
+            if (user.getRole() == Role.VENDOR) {
+                model.addAttribute("portalRole", user.getVendorType() == VendorType.PHARMACY
+                        ? PortalRole.PHARMACY : PortalRole.VENDOR);
+            } else if (user.getRole() == Role.PATIENT) {
+                model.addAttribute("portalRole", PortalRole.PATIENT);
+            } else if (user.getRole() == Role.DOCTOR) {
+                model.addAttribute("portalRole", PortalRole.DOCTOR);
+            }
         });
         return "auth/verify-otp";
     }
@@ -93,11 +103,12 @@ public class AuthController {
                 User user = userOptional.get();
                 if (user.getRole() == Role.PATIENT) {
                     session.setAttribute("loggedInUser", user);
-                    redirectAttributes.addFlashAttribute("successMessage", "Account activated! Welcome to SmartCare 360.");
+                    redirectAttributes.addFlashAttribute("successMessage",
+                            "Email verified! Welcome to SmartCare 360.");
                     return getRedirectUrlForRole(user.getRole());
                 }
                 redirectAttributes.addFlashAttribute("successMessage",
-                        "OTP verified! Please submit your documents for admin approval.");
+                        "Email verified! Please submit your documents for admin approval.");
                 return "redirect:/submit-documents?userId=" + userId;
             }
         }
@@ -123,6 +134,12 @@ public class AuthController {
         model.addAttribute("userId", userId);
         model.addAttribute("userRole", user.getRole());
         model.addAttribute("userEmail", user.getEmail());
+        if (user.getRole() == Role.VENDOR) {
+            model.addAttribute("loginPath", user.getVendorType() == VendorType.PHARMACY
+                    ? "/login/pharmacy" : "/login/vendor");
+        } else if (user.getRole() == Role.DOCTOR) {
+            model.addAttribute("loginPath", "/login/doctor");
+        }
         return "auth/submit-documents";
     }
 
@@ -132,9 +149,11 @@ public class AuthController {
                                   RedirectAttributes redirectAttributes) {
         try {
             userService.submitDocuments(userId, documentInfo);
+            User user = userService.findById(userId).orElse(null);
+            String loginPath = PortalRole.loginPathForUser(user);
             redirectAttributes.addFlashAttribute("successMessage",
                     "Documents submitted successfully. Your account is pending admin approval.");
-            return "redirect:/login";
+            return "redirect:" + loginPath;
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/submit-documents?userId=" + userId;
@@ -194,6 +213,7 @@ public class AuthController {
 
             if (!user.isVerified()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Your account is not verified yet. Please complete OTP verification.");
+                redirectAttributes.addFlashAttribute("successMessage", "Check your registered email for the OTP code.");
                 return "redirect:/verify-otp?userId=" + user.getId();
             }
 

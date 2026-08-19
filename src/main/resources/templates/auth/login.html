@@ -22,6 +22,11 @@
 
             <h2 style="text-align: center; margin-bottom: 0.4rem;">Sign In</h2>
             <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.8rem; font-size: 0.95rem;"
+               th:if="${portalRole.name() != 'ADMIN'}">
+                Already registered? Enter your email and password to sign in.
+            </p>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.8rem; font-size: 0.95rem;"
+               th:if="${portalRole.name() == 'ADMIN'}"
                th:text="${portalRole.description}">
                 Enter your credentials
             </p>
@@ -34,7 +39,7 @@
                 <div class="form-group">
                     <label class="form-label">Email Address</label>
                     <input type="email" name="email" class="form-control"
-                           th:placeholder="${portalRole.name() == 'ADMIN'} ? 'admin@smartcare360.com' : 'name@example.com'"
+                           th:placeholder="${portalRole.name() == 'ADMIN'} ? 'admin@smartcare360.com' : 'your@registered-email.com'"
                            required autofocus>
                 </div>
                 <div class="form-group">
@@ -49,14 +54,19 @@
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.2rem;">Sign In</button>
             </form>
 
-            <p th:if="${portalRole.name() != 'ADMIN'}" style="text-align: center; margin-top: 1.8rem; font-size: 0.9rem; color: var(--text-muted);">
-                Need an account?
-                <a th:href="@{/register(role=${portalRole.name()})}"
-                   style="color: var(--primary-color); font-weight: 700; text-decoration: none;">Register Here</a>
-            </p>
+            <div th:if="${portalRole.name() != 'ADMIN'}" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--glass-border); text-align: center;">
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.8rem;">New to SmartCare 360?</p>
+                <a th:href="@{/register/{r}(r=${portalRole.pathSegment})}"
+                   class="btn btn-secondary" style="width: 100%; text-decoration: none; display: inline-block; text-align: center;">
+                    Create <span th:text="${portalRole.label}">Role</span> Account
+                </a>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.8rem;">
+                    Registration sends OTP to your email for verification
+                </p>
+            </div>
 
             <p th:if="${portalRole.name() == 'ADMIN'}" style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
-                Admin accounts are pre-created by the system.
+                Admin accounts are pre-created by the system. No registration available.
             </p>
         </div>
     </div>
