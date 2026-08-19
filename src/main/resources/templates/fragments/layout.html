@@ -2,8 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!-- Auth / public navbar -->
-<nav th:fragment="auth-nav" class="navbar navbar-auth">
+<!-- Public website navbar (Home, About, Contact) -->
+<nav th:fragment="public-nav" class="navbar navbar-public">
     <a href="/" class="navbar-brand">
         <div class="brand-mark">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -13,14 +13,41 @@
         </div>
         <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
     </a>
+    <ul class="nav-links nav-links-center">
+        <li><a href="/" th:classappend="${activePage == 'home'} ? 'active' : ''">Home</a></li>
+        <li><a href="/about" th:classappend="${activePage == 'about'} ? 'active' : ''">About</a></li>
+        <li><a href="/contact" th:classappend="${activePage == 'contact'} ? 'active' : ''">Contact</a></li>
+    </ul>
     <div class="navbar-actions">
-        <a href="/login" class="nav-link-muted">Sign In</a>
+        <a th:if="${loggedInUser == null}" href="/login" class="btn btn-outline btn-sm">Portal Sign In</a>
+        <a th:if="${loggedInUser != null}" th:href="${dashboardUrl}" class="btn btn-primary btn-sm">My Dashboard</a>
+    </div>
+</nav>
+
+<!-- Auth portal navbar (login/register pages) -->
+<nav th:fragment="auth-nav" class="navbar navbar-public">
+    <a href="/" class="navbar-brand">
+        <div class="brand-mark">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
+    </a>
+    <ul class="nav-links nav-links-center">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/contact">Contact</a></li>
+    </ul>
+    <div class="navbar-actions">
+        <a href="/login" class="btn btn-primary btn-sm">Portal Sign In</a>
     </div>
 </nav>
 
 <!-- Admin navbar -->
 <nav th:fragment="admin-nav" class="navbar">
-    <a href="/admin/dashboard" class="navbar-brand">
+    <a href="/" class="navbar-brand">
         <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
         <span class="portal-tag">Admin</span>
@@ -39,7 +66,7 @@
 
 <!-- Patient navbar -->
 <nav th:fragment="patient-nav" class="navbar">
-    <a href="/patient/dashboard" class="navbar-brand">
+    <a href="/" class="navbar-brand">
         <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
         <span class="portal-tag">Patient</span>
@@ -59,7 +86,7 @@
 
 <!-- Doctor navbar -->
 <nav th:fragment="doctor-nav" class="navbar">
-    <a href="/doctor/dashboard" class="navbar-brand">
+    <a href="/" class="navbar-brand">
         <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
         <span class="portal-tag">Doctor</span>
@@ -74,7 +101,7 @@
 
 <!-- Vendor navbar -->
 <nav th:fragment="vendor-nav" class="navbar">
-    <a href="/vendor/dashboard" class="navbar-brand">
+    <a href="/" class="navbar-brand">
         <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
         <span class="portal-tag" th:text="${vendorTag != null ? vendorTag : 'Vendor'}">Vendor</span>
@@ -87,15 +114,41 @@
 </nav>
 
 <footer th:fragment="footer" class="site-footer">
-    <div class="footer-inner">
-        <div class="footer-brand">
+    <div class="footer-inner footer-grid">
+        <div class="footer-col footer-brand-col">
             <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
-            <p>Integrated Hospital Management Platform</p>
+            <p>Integrated hospital management platform connecting patients, doctors, laboratories, and pharmacies in one secure ecosystem.</p>
         </div>
-        <div class="footer-meta">
-            <span>Secure &middot; HIPAA-ready architecture</span>
-            <span>&copy; 2026 SmartCare 360. All rights reserved.</span>
+        <div class="footer-col">
+            <h4>Quick Links</h4>
+            <ul class="footer-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About Us</a></li>
+                <li><a href="/contact">Contact</a></li>
+                <li><a href="/login">Portal Sign In</a></li>
+            </ul>
         </div>
+        <div class="footer-col">
+            <h4>Services</h4>
+            <ul class="footer-links">
+                <li><a href="/login/patient">Patient Portal</a></li>
+                <li><a href="/login/doctor">Doctor Portal</a></li>
+                <li><a href="/login/vendor">Lab &amp; Diagnostics</a></li>
+                <li><a href="/login/pharmacy">Pharmacy Portal</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Contact Us</h4>
+            <ul class="footer-contact">
+                <li>support@smartcare360.com</li>
+                <li>+91 1800-360-2478</li>
+                <li>SmartCare Tower, Health City<br>Bengaluru, Karnataka 560001</li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>Secure &middot; HIPAA-ready architecture</span>
+        <span>&copy; 2026 SmartCare 360. All rights reserved.</span>
     </div>
 </footer>
 

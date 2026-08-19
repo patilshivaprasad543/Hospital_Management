@@ -684,11 +684,10 @@ footer, .site-footer {
 .footer-inner {
     max-width: 1280px;
     margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1.5rem;
-    flex-wrap: wrap;
+}
+
+.footer-inner.footer-grid {
+    display: grid;
 }
 
 .footer-brand .brand-text {
@@ -915,6 +914,292 @@ footer, .site-footer {
     .split-layout { grid-template-columns: 1fr; }
 }
 
+/* ── Public Website Pages ─────────────────────────────────────── */
+
+.public-page {
+    background: var(--bg-page);
+}
+
+.navbar-public {
+    background: var(--bg-surface);
+}
+
+.nav-links-center {
+    flex: 1;
+    justify-content: center;
+}
+
+.nav-links a.active {
+    color: var(--primary);
+    background: var(--primary-soft);
+    font-weight: 700;
+}
+
+.public-hero {
+    background:
+        linear-gradient(135deg, rgba(12, 35, 64, 0.88) 0%, rgba(30, 90, 150, 0.82) 100%),
+        url('/images/hospital_bg.jpg') center / cover no-repeat;
+    padding: 5rem 2rem;
+    text-align: center;
+    color: #fff;
+}
+
+.public-hero-content {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.public-hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    color: #fff;
+    margin: 1rem 0;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+}
+
+.public-hero .brand-accent { color: #7dd3fc; }
+
+.public-hero p {
+    font-size: 1.0625rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.88);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+}
+
+.public-hero .hero-badge {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.public-page-banner {
+    background: var(--brand-navy);
+    color: #fff;
+    padding: 3rem 0;
+    text-align: center;
+}
+
+.public-page-banner h1 {
+    font-family: var(--font-display);
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.public-page-banner p {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 1.0625rem;
+    font-weight: 500;
+}
+
+.public-content {
+    padding-top: 2.5rem;
+    padding-bottom: 3rem;
+}
+
+.public-section-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-align: center;
+    margin: 2.5rem 0 1.75rem;
+    color: var(--text-heading);
+}
+
+.feature-card {
+    text-align: center;
+}
+
+.feature-card h3 {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+}
+
+.feature-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.cta-banner {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--brand-teal) 100%);
+    color: #fff;
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    margin: 3rem 0 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.cta-banner h2 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.cta-banner p {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+}
+
+.cta-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+.about-text h2 {
+    font-size: 1.375rem;
+    margin-bottom: 0.75rem;
+}
+
+.about-text p {
+    margin-bottom: 1rem;
+    line-height: 1.75;
+}
+
+.about-list {
+    margin: 0.75rem 0 0 1.25rem;
+    line-height: 1.85;
+    color: var(--text-body);
+}
+
+.about-list li { margin-bottom: 0.35rem; }
+
+.about-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-content: start;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 2.5rem;
+    align-items: start;
+}
+
+.contact-info h2 {
+    font-size: 1.375rem;
+    margin-bottom: 0.75rem;
+}
+
+.contact-info > p {
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+}
+
+.contact-item {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.contact-item:last-child { border-bottom: none; }
+
+.contact-item strong {
+    display: block;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary);
+    margin-bottom: 0.35rem;
+}
+
+.contact-item p {
+    color: var(--text-body);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.contact-form-card h3 {
+    margin-bottom: 1.25rem;
+    font-size: 1.25rem;
+}
+
+/* ── Enhanced Footer ───────────────────────────────────────────── */
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+    gap: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1.25rem;
+}
+
+.footer-col h4 {
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.footer-brand-col p {
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.65;
+    opacity: 0.75;
+    max-width: 280px;
+}
+
+.footer-links,
+.footer-contact {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li,
+.footer-contact li {
+    margin-bottom: 0.55rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.footer-links a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: color var(--transition);
+}
+
+.footer-links a:hover { color: #fff; }
+
+.footer-bottom {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    opacity: 0.65;
+}
+
 /* ── Responsive ────────────────────────────────────────────────── */
 
 @media (max-width: 1100px) {
@@ -937,6 +1222,12 @@ footer, .site-footer {
 
     .footer-inner { flex-direction: column; text-align: center; }
     .footer-meta { align-items: center; text-align: center; }
+
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .about-grid { grid-template-columns: 1fr; }
+    .contact-grid { grid-template-columns: 1fr; }
+    .cta-banner { flex-direction: column; text-align: center; }
+    .nav-links-center { justify-content: center; }
 
     .grid { grid-template-columns: 1fr; }
 }
