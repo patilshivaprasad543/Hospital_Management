@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Care Workflow - HospitalCare Pro</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <div class="brand-icon">🛡️</div>
+            <span>Hospital<span class="gradient-text">Care Pro</span></span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/login">Login</a></li>
+            <li><a href="/register" class="btn btn-primary btn-sm">Get Started</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <section class="hero">
+            <div class="hero-badge">🔄 End-to-End Care Workflow</div>
+            <h1>Your Complete <span class="gradient-text">Hospital Journey</span></h1>
+            <p>Track every step from booking a doctor to receiving lab reports and pharmacy orders — all in one visual workflow.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="/register" class="btn btn-primary">Start Your Journey</a>
+                <a href="/login" class="btn btn-secondary">Sign In to Track Progress</a>
+            </div>
+        </section>
+
+        <h2 class="section-title gradient-text">How the Care Workflow Works</h2>
+
+        <div class="workflow-pipeline">
+            <div class="workflow-pipeline-step">
+                <div class="workflow-pipeline-icon">📅</div>
+                <h3>Book</h3>
+                <p>Patient books an appointment with a specialist doctor.</p>
+            </div>
+            <div class="workflow-pipeline-connector"></div>
+            <div class="workflow-pipeline-step">
+                <div class="workflow-pipeline-icon">✅</div>
+                <h3>Approve</h3>
+                <p>Doctor reviews and confirms the appointment request.</p>
+            </div>
+            <div class="workflow-pipeline-connector"></div>
+            <div class="workflow-pipeline-step">
+                <div class="workflow-pipeline-icon">🎟️</div>
+                <h3>Check-In</h3>
+                <p>Patient checks in digitally and receives a queue ticket.</p>
+            </div>
+            <div class="workflow-pipeline-connector"></div>
+            <div class="workflow-pipeline-step">
+                <div class="workflow-pipeline-icon">🩺</div>
+                <h3>Consult</h3>
+                <p>Doctor conducts consultation and creates prescriptions.</p>
+            </div>
+            <div class="workflow-pipeline-connector"></div>
+            <div class="workflow-pipeline-step">
+                <div class="workflow-pipeline-icon">🔬</div>
+                <h3>Lab</h3>
+                <p>Diagnostic tests are processed by lab vendors.</p>
+            </div>
+            <div class="workflow-pipeline-connector"></div>
+            <div class="workflow-pipeline-step">
+                <div class="workflow-pipeline-icon">💊</div>
+                <h3>Pharmacy</h3>
+                <p>Medicines are ordered and fulfilled by pharmacy vendors.</p>
+            </div>
+            <div class="workflow-pipeline-connector"></div>
+            <div class="workflow-pipeline-step">
+                <div class="workflow-pipeline-icon">🏁</div>
+                <h3>Complete</h3>
+                <p>Care episode is wrapped up with full medical records.</p>
+            </div>
+        </div>
+
+        <div class="grid" style="margin-top: 3rem;">
+            <div class="card">
+                <div class="card-title">👤 For Patients</div>
+                <p>See real-time progress on every appointment — know exactly what step you're on and what action to take next.</p>
+            </div>
+            <div class="card">
+                <div class="card-title">👨‍⚕️ For Doctors</div>
+                <p>Monitor your active patient queue with a clear view of each case's workflow stage.</p>
+            </div>
+            <div class="card">
+                <div class="card-title">🏪 For Vendors</div>
+                <p>Lab and pharmacy vendors receive notifications when patients reach their step in the workflow.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 HospitalCare Pro. Visual care workflow for modern hospitals.</p>
+    </footer>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Care Workflow - HospitalCare Pro</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/patient/dashboard" class="navbar-brand">🏥 HospitalCare Pro</a>
+        <ul class="nav-links">
+            <li><a href="/patient/dashboard">Dashboard</a></li>
+            <li><a href="/workflow/patient" class="nav-active">My Workflow</a></li>
+            <li><a href="/patient/appointments">Appointments</a></li>
+            <li><a href="/patient/timeline">Timeline</a></li>
+            <li><a href="/patient/prescriptions">Prescriptions</a></li>
+            <li><a href="/patient/lab-reports">Lab Reports</a></li>
+            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="workflow-header">
+            <div>
+                <h2>My Care <span class="gradient-text">Workflow</span></h2>
+                <p>Track your hospital journey step by step. Each card shows where you are and what to do next.</p>
+            </div>
+            <a href="/patient/book-appointment" class="btn btn-primary">+ Book New Appointment</a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(workflows)}" class="card workflow-empty">
+            <h3>No appointments yet</h3>
+            <p>Book your first appointment to start your care workflow.</p>
+            <a href="/patient/book-appointment" class="btn btn-primary">Book Appointment</a>
+        </div>
+
+        <div th:each="wf : ${workflows}" class="card workflow-case-card">
+            <div class="workflow-case-header">
+                <div>
+                    <span class="badge badge-role" th:text="${wf.department}">General</span>
+                    <h3 th:text="${'Visit with Dr. ' + wf.doctorName}">Dr. Smith</h3>
+                    <p class="workflow-meta" th:text="${wf.appointmentDate + ' at ' + wf.appointmentTime}">Date</p>
+                </div>
+                <div class="workflow-progress-ring">
+                    <span class="workflow-progress-value" th:text="${wf.progressPercent + '%'}">0%</span>
+                    <span class="workflow-progress-label">Complete</span>
+                </div>
+            </div>
+
+            <div class="workflow-current-step" th:if="${wf.currentStepLabel}">
+                <strong>Current step:</strong> <span th:text="${wf.currentStepLabel}">Check-In</span>
+                <span class="badge badge-pending" th:text="${wf.currentState}">CONFIRMED</span>
+            </div>
+
+            <div class="workflow-stepper">
+                <div th:each="step, iter : ${wf.steps}"
+                     th:class="'workflow-step workflow-step-' + ${step.status.name().toLowerCase()}">
+                    <div class="workflow-step-marker">
+                        <span th:text="${step.icon}">📅</span>
+                    </div>
+                    <div class="workflow-step-body">
+                        <div class="workflow-step-title" th:text="${step.label}">Step</div>
+                        <div class="workflow-step-desc" th:text="${step.description}">Description</div>
+                        <div th:if="${step.detail != null}" class="workflow-step-detail" th:text="${step.detail}">Detail</div>
+                        <a th:if="${step.actionUrl != null and step.actionLabel != null}"
+                           th:href="${step.actionUrl}"
+                           class="btn btn-sm btn-secondary workflow-step-action"
+                           th:text="${step.actionLabel}">Action</a>
+                    </div>
+                    <div th:unless="${iter.last}" class="workflow-step-line"></div>
+                </div>
+            </div>
+
+            <div class="workflow-case-footer">
+                <a th:href="@{/workflow/case/{id}(id=${wf.appointmentId})}" class="btn btn-secondary btn-sm">View Full Details</a>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

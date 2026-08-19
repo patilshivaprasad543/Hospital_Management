@@ -14,6 +14,7 @@
 
 
         <ul class="nav-links">
+            <li th:if="${session.loggedInUser == null}"><a href="/workflow">Workflow</a></li>
             <li th:if="${session.loggedInUser == null}"><a href="/login">Login</a></li>
             <li th:if="${session.loggedInUser == null}"><a href="/register" class="btn btn-primary btn-sm">Get Started</a></li>
             <li th:if="${session.loggedInUser != null}">
@@ -31,6 +32,7 @@
             <div style="display: flex; gap: 1.2rem; justify-content: center;">
                 <a href="/register" class="btn btn-primary">Create Account</a>
                 <a href="/login" class="btn btn-secondary">Portal Sign In</a>
+                <a href="/workflow" class="btn btn-secondary">View Care Workflow</a>
             </div>
         </section>
 

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Care Case Workflow - HospitalCare Pro</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a th:href="${user.role.name() == 'PATIENT'} ? '/patient/dashboard' : '/doctor/dashboard'" class="navbar-brand">🏥 HospitalCare Pro</a>
+        <ul class="nav-links">
+            <li th:if="${user.role.name() == 'PATIENT'}"><a href="/workflow/patient">← Back to Workflows</a></li>
+            <li th:if="${user.role.name() == 'DOCTOR'}"><a href="/workflow/doctor">← Back to Queue</a></li>
+            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="card workflow-case-card">
+            <div class="workflow-case-header">
+                <div>
+                    <span class="badge badge-role" th:text="${workflow.department}">Dept</span>
+                    <h2 th:text="${user.role.name() == 'PATIENT' ? ('Visit with Dr. ' + workflow.doctorName) : workflow.patientName}">Case</h2>
+                    <p class="workflow-meta" th:text="${workflow.appointmentDate + ' at ' + workflow.appointmentTime}">Date</p>
+                </div>
+                <div class="workflow-progress-ring workflow-progress-ring-lg">
+                    <span class="workflow-progress-value" th:text="${workflow.progressPercent + '%'}">0%</span>
+                    <span class="workflow-progress-label">Progress</span>
+                </div>
+            </div>
+
+            <div class="workflow-stepper workflow-stepper-vertical">
+                <div th:each="step, iter : ${workflow.steps}"
+                     th:class="'workflow-step workflow-step-' + ${step.status.name().toLowerCase()}">
+                    <div class="workflow-step-marker">
+                        <span th:text="${step.icon}">📅</span>
+                    </div>
+                    <div class="workflow-step-body">
+                        <div class="workflow-step-title-row">
+                            <span class="workflow-step-title" th:text="${step.label}">Step</span>
+                            <span th:class="'badge workflow-badge-' + ${step.status.name().toLowerCase()}"
+                                  th:text="${step.status}">ACTIVE</span>
+                        </div>
+                        <div class="workflow-step-desc" th:text="${step.description}">Description</div>
+                        <div th:if="${step.detail != null}" class="workflow-step-detail" th:text="${step.detail}">Detail</div>
+                        <a th:if="${step.actionUrl != null and step.actionLabel != null}"
+                           th:href="${step.actionUrl}"
+                           class="btn btn-sm btn-primary workflow-step-action"
+                           th:text="${step.actionLabel}">Action</a>
+                    </div>
+                    <div th:unless="${iter.last}" class="workflow-step-line"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>
