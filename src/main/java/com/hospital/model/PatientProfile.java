@@ -21,6 +21,15 @@ public class PatientProfile {
     @Column(length = 500)
     private String address;
 
+    private java.time.LocalDate dateOfBirth;
+
+    private String emergencyContactName;
+
+    private String emergencyContactPhone;
+
+    @Column(length = 500)
+    private String allergies;
+
     @Column(length = 1000)
     private String medicalHistory;
 
@@ -77,6 +86,38 @@ public class PatientProfile {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public java.time.LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(java.time.LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public String getEmergencyContactName() {
+        return emergencyContactName;
+    }
+
+    public void setEmergencyContactName(String emergencyContactName) {
+        this.emergencyContactName = emergencyContactName;
+    }
+
+    public String getEmergencyContactPhone() {
+        return emergencyContactPhone;
+    }
+
+    public void setEmergencyContactPhone(String emergencyContactPhone) {
+        this.emergencyContactPhone = emergencyContactPhone;
+    }
+
+    public String getAllergies() {
+        return allergies;
+    }
+
+    public void setAllergies(String allergies) {
+        this.allergies = allergies;
     }
 
     public String getMedicalHistory() {

@@ -281,6 +281,10 @@ public class UserService {
         existingProfile.setBloodGroup(updatedProfile.getBloodGroup());
         existingProfile.setGender(updatedProfile.getGender());
         existingProfile.setAddress(updatedProfile.getAddress());
+        existingProfile.setDateOfBirth(updatedProfile.getDateOfBirth());
+        existingProfile.setEmergencyContactName(updatedProfile.getEmergencyContactName());
+        existingProfile.setEmergencyContactPhone(updatedProfile.getEmergencyContactPhone());
+        existingProfile.setAllergies(updatedProfile.getAllergies());
         existingProfile.setMedicalHistory(updatedProfile.getMedicalHistory());
 
         return patientProfileRepository.save(existingProfile);
@@ -298,6 +302,12 @@ public class UserService {
         existingProfile.setExperienceYears(updatedProfile.getExperienceYears());
         existingProfile.setConsultationFee(updatedProfile.getConsultationFee());
         existingProfile.setAvailabilitySchedule(updatedProfile.getAvailabilitySchedule());
+        existingProfile.setSlotDurationMinutes(updatedProfile.getSlotDurationMinutes());
+        existingProfile.setWorkingDays(updatedProfile.getWorkingDays());
+        existingProfile.setWorkStartTime(updatedProfile.getWorkStartTime());
+        existingProfile.setWorkEndTime(updatedProfile.getWorkEndTime());
+        existingProfile.setMaxAppointmentsPerDay(updatedProfile.getMaxAppointmentsPerDay());
+        existingProfile.setDepartment(updatedProfile.getDepartment());
 
         return doctorProfileRepository.save(existingProfile);
     }

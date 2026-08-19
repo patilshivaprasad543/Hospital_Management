@@ -2,61 +2,117 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Book Appointment - Hospital Management System</title>
+    <title>Book Appointment - SmartCare 360</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
     <nav class="navbar">
-        <a href="/patient/dashboard" class="navbar-brand">🛡️ Our Hospital - Patient Portal</a>
-
-
+        <a href="/patient/dashboard" class="navbar-brand">🏥 SmartCare 360 - Patient</a>
         <ul class="nav-links">
             <li><a href="/patient/dashboard">Dashboard</a></li>
             <li><a href="/patient/doctors">Doctors</a></li>
             <li><a href="/patient/book-appointment">Book Appointment</a></li>
-            <li><a href="/patient/appointments">My Appointments</a></li>
-            <li><a href="/patient/profile">My Profile</a></li>
+            <li><a href="/patient/appointments">Appointments</a></li>
             <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
         </ul>
     </nav>
 
     <div class="container">
-        <div class="auth-card" style="max-width: 600px;">
+        <div class="auth-card" style="max-width: 680px;">
             <h2 style="text-align: center; margin-bottom: 0.5rem;">📅 Book Doctor Appointment</h2>
-            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">Select your preferred Doctor, Date, and Slot</p>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">
+                Calendar starts from today. Past dates and unavailable slots are disabled.
+            </p>
 
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-            <form th:action="@{/patient/book-appointment}" method="post">
+            <form th:action="@{/patient/book-appointment}" method="post" id="bookingForm">
                 <div class="form-group">
-                    <label class="form-label">Select Specialist Doctor</label>
-                    <select name="doctorId" class="form-control" required>
+                    <label class="form-label">Department</label>
+                    <select id="departmentFilter" class="form-control">
+                        <option value="">All Departments</option>
+                        <option th:each="dept : ${departments}" th:value="${dept.name}" th:text="${dept.name}"
+                                th:selected="${department != null and department == dept.name}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Select Doctor</label>
+                    <select name="doctorId" id="doctorSelect" class="form-control" required>
                         <option value="">-- Choose a Doctor --</option>
                         <option th:each="doc : ${doctors}"
                                 th:value="${doc.id}"
-                                th:selected="${selectedDoctorId != null && selectedDoctorId == doc.id}"
-                                th:text="${doc.fullName + ' (' + doc.email + ')'}">Dr. Smith</option>
+                                th:attr="data-dept=${doctorDepartments[doc.id]}"
+                                th:selected="${selectedDoctorId != null and selectedDoctorId == doc.id}"
+                                th:text="${doc.fullName + ' — ' + (doctorDepartments[doc.id] != null ? doctorDepartments[doc.id] : 'General')}">Dr.</option>
                     </select>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label class="form-label">Appointment Date</label>
-                        <input type="date" name="appointmentDate" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Preferred Time Slot</label>
-                        <input type="time" name="appointmentTime" class="form-control" required>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Appointment Date</label>
+                    <input type="date" name="appointmentDate" id="appointmentDate" class="form-control"
+                           th:attr="min=${minDate}, value=${minDate}" required>
+                    <small style="color: var(--text-muted);">Only today and future dates are allowed</small>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Reason for Consultation / Health Concerns</label>
-                    <textarea name="reason" class="form-control" placeholder="Describe symptoms or reason for visit..."></textarea>
+                    <label class="form-label">Available Time Slots</label>
+                    <select name="appointmentTime" id="timeSlotSelect" class="form-control" required>
+                        <option value="">Select doctor and date first</option>
+                    </select>
                 </div>
-
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Submit Appointment Request</button>
+                <input type="hidden" name="department" id="departmentHidden" th:value="${department}" />
+                <div class="form-group">
+                    <label class="form-label">Reason for Consultation</label>
+                    <textarea name="reason" class="form-control" placeholder="Describe symptoms or reason for visit..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Book Appointment</button>
             </form>
         </div>
     </div>
-    <script th:src="@{/js/main.js}"></script>
+
+    <script th:inline="javascript">
+        const minDate = /*[[${minDate}]]*/ '';
+        const doctorSelect = document.getElementById('doctorSelect');
+        const dateInput = document.getElementById('appointmentDate');
+        const slotSelect = document.getElementById('timeSlotSelect');
+        const deptFilter = document.getElementById('departmentFilter');
+        const deptHidden = document.getElementById('departmentHidden');
+
+        deptFilter.addEventListener('change', () => {
+            const dept = deptFilter.value;
+            deptHidden.value = dept || 'General Consultation';
+            Array.from(doctorSelect.options).forEach(opt => {
+                if (!opt.value) return;
+                opt.hidden = dept && opt.dataset.dept !== dept;
+            });
+        });
+
+        async function loadSlots() {
+            const doctorId = doctorSelect.value;
+            const date = dateInput.value;
+            slotSelect.innerHTML = '<option value="">Loading slots...</option>';
+            if (!doctorId || !date) {
+                slotSelect.innerHTML = '<option value="">Select doctor and date first</option>';
+                return;
+            }
+            const res = await fetch(`/patient/api/slots?doctorId=${doctorId}&date=${date}`);
+            const slots = await res.json();
+            slotSelect.innerHTML = '';
+            if (!slots.length) {
+                slotSelect.innerHTML = '<option value="">No slots available</option>';
+                return;
+            }
+            slots.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.time;
+                opt.textContent = s.label + (s.available ? '' : ' (Unavailable)');
+                opt.disabled = !s.available;
+                slotSelect.appendChild(opt);
+            });
+        }
+
+        doctorSelect.addEventListener('change', loadSlots);
+        dateInput.addEventListener('change', loadSlots);
+        dateInput.min = minDate;
+        if (doctorSelect.value && dateInput.value) loadSlots();
+    </script>
 </body>
 </html>

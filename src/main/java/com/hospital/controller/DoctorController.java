@@ -30,6 +30,9 @@ public class DoctorController {
     @Autowired
     private LabWorkflowService labWorkflowService;
 
+    @Autowired
+    private ConsultationService consultationService;
+
     private User getLoggedInDoctor(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user != null && user.getRole() == Role.DOCTOR) {
@@ -67,13 +70,48 @@ public class DoctorController {
                                     HttpSession session,
                                     RedirectAttributes redirectAttributes) {
         User doctor = getLoggedInDoctor(session);
-        if (doctor == null) return "redirect:/login";
+        if (doctor == null) return "redirect:/login/doctor";
 
         appointmentService.findById(id).ifPresent(app -> {
             app.setState(AppointmentState.IN_CONSULTATION);
             appointmentService.updateAppointmentStatus(id, AppointmentStatus.CONFIRMED, "In Consultation");
+            consultationService.startConsultation(app, doctor);
         });
         redirectAttributes.addFlashAttribute("successMessage", "Consultation started!");
+        return "redirect:/doctor/consultation/" + id;
+    }
+
+    @GetMapping("/consultation/{id}")
+    public String consultationPage(@PathVariable Long id, HttpSession session, Model model) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return "redirect:/login/doctor";
+        Appointment app = appointmentService.findById(id).orElse(null);
+        if (app == null) return "redirect:/doctor/dashboard";
+        model.addAttribute("appointment", app);
+        model.addAttribute("patient", app.getPatient());
+        model.addAttribute("patientProfile", userService.getPatientProfile(app.getPatient()).orElse(new PatientProfile(app.getPatient())));
+        model.addAttribute("consultation", consultationService.findByAppointment(id).orElse(null));
+        model.addAttribute("prescriptions", prescriptionService.getPatientPrescriptions(app.getPatient()));
+        model.addAttribute("labRequests", labWorkflowService.getPatientLabRequests(app.getPatient()));
+        return "doctor/consultation";
+    }
+
+    @PostMapping("/consultation/{id}/complete")
+    public String completeConsultation(@PathVariable Long id,
+                                       @RequestParam String symptoms,
+                                       @RequestParam String diagnosis,
+                                       @RequestParam String treatment,
+                                       @RequestParam(required = false) String notes,
+                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate followUpDate,
+                                       HttpSession session,
+                                       RedirectAttributes redirectAttributes) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return "redirect:/login/doctor";
+        consultationService.findByAppointment(id).ifPresent(c -> {
+            consultationService.completeConsultation(c.getId(), symptoms, diagnosis, treatment, notes, followUpDate, doctor);
+            appointmentService.updateAppointmentStatus(id, AppointmentStatus.COMPLETED, "Consultation completed");
+        });
+        redirectAttributes.addFlashAttribute("successMessage", "Consultation completed and recorded.");
         return "redirect:/doctor/dashboard";
     }
 

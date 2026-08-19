@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Consultation - SmartCare 360</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/doctor/dashboard" class="navbar-brand">🏥 SmartCare 360 - Doctor</a>
+    </nav>
+    <div class="container">
+        <h2>Consultation — <span th:text="${patient.fullName}">Patient</span></h2>
+        <div class="grid" style="margin-bottom:2rem;">
+            <div class="card">
+                <div class="card-title">Patient Info</div>
+                <p>Blood Group: <span th:text="${patientProfile.bloodGroup}">-</span></p>
+                <p>Allergies: <span th:text="${patientProfile.allergies != null ? patientProfile.allergies : 'None'}">-</span></p>
+                <p>History: <span th:text="${patientProfile.medicalHistory}">-</span></p>
+            </div>
+            <div class="card">
+                <div class="card-title">Appointment</div>
+                <p th:text="${appointment.appointmentDate + ' at ' + appointment.appointmentTime}">Date</p>
+                <p th:text="${appointment.reason}">Reason</p>
+            </div>
+        </div>
+
+        <div class="auth-card">
+            <h3>Record Consultation</h3>
+            <form th:action="@{/doctor/consultation/{id}/complete(id=${appointment.id})}" method="post">
+                <div class="form-group"><label class="form-label">Symptoms</label><textarea name="symptoms" class="form-control" required></textarea></div>
+                <div class="form-group"><label class="form-label">Diagnosis</label><textarea name="diagnosis" class="form-control" required></textarea></div>
+                <div class="form-group"><label class="form-label">Treatment</label><textarea name="treatment" class="form-control" required></textarea></div>
+                <div class="form-group"><label class="form-label">Notes</label><textarea name="notes" class="form-control"></textarea></div>
+                <div class="form-group"><label class="form-label">Follow-up Date</label><input type="date" name="followUpDate" class="form-control"></div>
+                <button type="submit" class="btn btn-primary">Complete Consultation</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

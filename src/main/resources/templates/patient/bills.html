@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Bills - SmartCare 360</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/patient/dashboard" class="navbar-brand">🏥 SmartCare 360 - Patient</a>
+        <ul class="nav-links">
+            <li><a href="/patient/dashboard">Dashboard</a></li>
+            <li><a href="/patient/bills">Bills</a></li>
+            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h2>My Bills &amp; Payments</h2>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="inv : ${invoices}">
+                        <td th:text="${inv.invoiceNumber}">INV</td>
+                        <td th:text="${inv.chargeType}">TYPE</td>
+                        <td th:text="${inv.description}">Desc</td>
+                        <td th:text="${'₹' + inv.amount}">₹0</td>
+                        <td><span class="badge badge-pending" th:text="${inv.paymentStatus}">PENDING</span></td>
+                        <td>
+                            <a th:href="@{/patient/invoice/{id}/pdf(id=${inv.id})}" class="btn btn-secondary btn-sm">PDF</a>
+                            <form th:if="${inv.paymentStatus.name() == 'PENDING'}" th:action="@{/patient/bills/{id}/pay(id=${inv.id})}" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-primary btn-sm">Pay Now</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(invoices)}">
+                        <td colspan="6" style="text-align:center;color:var(--text-muted);">No bills yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
