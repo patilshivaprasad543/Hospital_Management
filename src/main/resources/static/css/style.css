@@ -2,9 +2,12 @@
    SmartCare 360 — Professional Healthcare Design System
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 
 :root {
+    /* Typography */
+    --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
     /* Brand */
     --brand-navy: #0c2340;
     --brand-blue: #1e5a96;
@@ -34,10 +37,10 @@
     --danger: #dc2626;
     --danger-color: #dc2626;
 
-    /* Text */
-    --text-heading: #0f172a;
-    --text-body: #475569;
-    --text-muted: #94a3b8;
+    /* Text — higher contrast for clarity */
+    --text-heading: #0b1220;
+    --text-body: #334155;
+    --text-muted: #64748b;
     --text-inverse: #ffffff;
 
     /* Borders & shadows */
@@ -79,18 +82,27 @@
     box-sizing: border-box;
 }
 
-html { scroll-behavior: smooth; }
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+}
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 0.9375rem;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 500;
     background: var(--bg-page);
     color: var(--text-body);
-    line-height: 1.6;
+    line-height: 1.7;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern' 1, 'liga' 1;
 }
 
 /* Auth pages: subtle clinical backdrop */
@@ -124,18 +136,31 @@ body.auth-body::before {
 
 /* ── Typography ──────────────────────────────────────────────── */
 
-h1, h2, h3, h4, .card-title {
+h1, h2, h3, h4 {
+    font-family: var(--font-display);
     color: var(--text-heading);
-    font-weight: 600;
-    letter-spacing: -0.02em;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.25;
 }
 
-h2 { font-size: 1.5rem; }
+h1 { font-size: 1.875rem; font-weight: 800; }
+h2 { font-size: 1.625rem; }
 h3 {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.0625rem;
+    font-weight: 700;
     color: var(--text-heading);
     margin-bottom: 0.75rem;
+}
+
+p, li, label, td, th {
+    font-family: var(--font-body);
+}
+
+.brand-text {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.03em;
 }
 
 .gradient-text,
@@ -178,9 +203,10 @@ h3 {
     gap: 0.65rem;
     text-decoration: none;
     color: var(--text-heading);
-    font-weight: 700;
-    font-size: 1.1rem;
-    letter-spacing: -0.02em;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: -0.03em;
 }
 
 .navbar-auth .navbar-brand { color: #fff; }
@@ -217,10 +243,11 @@ h3 {
 }
 
 .portal-tag {
-    font-size: 0.7rem;
-    font-weight: 600;
+    font-family: var(--font-body);
+    font-size: 0.6875rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     color: var(--primary);
     background: var(--primary-soft);
     padding: 0.2rem 0.55rem;
@@ -239,8 +266,8 @@ h3 {
 .nav-links a {
     text-decoration: none;
     color: var(--text-body);
-    font-weight: 500;
-    font-size: 0.875rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
     padding: 0.45rem 0.75rem;
     border-radius: var(--radius-sm);
     transition: all var(--transition);
@@ -252,10 +279,10 @@ h3 {
 }
 
 .nav-link-muted {
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.9);
     text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: 0.9375rem;
+    font-weight: 600;
 }
 
 .nav-link-muted:hover { color: #fff; }
@@ -282,14 +309,18 @@ h3 {
 }
 
 .page-header h1 {
-    font-size: 1.625rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
+    font-family: var(--font-display);
+    font-size: 1.875rem;
+    font-weight: 800;
+    margin-bottom: 0.35rem;
+    letter-spacing: -0.03em;
 }
 
 .page-header p {
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.6;
 }
 
 .page-header-actions {
@@ -300,10 +331,11 @@ h3 {
 }
 
 .section-title {
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: 0.8125rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     color: var(--text-muted);
     margin: 2rem 0 1rem;
 }
@@ -314,10 +346,11 @@ h3 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.6rem 1.25rem;
-    font-family: inherit;
-    font-weight: 600;
-    font-size: 0.875rem;
+    padding: 0.65rem 1.35rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.9375rem;
+    letter-spacing: 0.01em;
     border-radius: var(--radius-sm);
     border: 1px solid transparent;
     cursor: pointer;
@@ -409,12 +442,13 @@ h3 {
 }
 
 .card-title {
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-family: var(--font-body);
+    font-size: 0.8125rem;
+    font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.5rem;
+    letter-spacing: 0.07em;
+    margin-bottom: 0.55rem;
 }
 
 .stat-card {
@@ -425,11 +459,13 @@ h3 {
 }
 
 .stat-number {
-    font-size: 2rem;
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: 2.25rem;
+    font-weight: 800;
     color: var(--primary);
-    line-height: 1.1;
-    letter-spacing: -0.03em;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
 }
 
 .stat-number.success { color: var(--success); }
@@ -475,21 +511,23 @@ h3 {
 
 .form-label {
     display: block;
-    font-weight: 600;
-    font-size: 0.8125rem;
-    margin-bottom: 0.4rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    margin-bottom: 0.45rem;
     color: var(--text-heading);
+    letter-spacing: 0.01em;
 }
 
 .form-control {
     width: 100%;
-    padding: 0.65rem 0.9rem;
+    padding: 0.75rem 1rem;
     background: var(--bg-surface);
-    border: 1px solid var(--border-strong);
+    border: 1.5px solid var(--border-strong);
     border-radius: var(--radius-sm);
     color: var(--text-heading);
-    font-family: inherit;
-    font-size: 0.9rem;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 500;
     outline: none;
     transition: border-color var(--transition), box-shadow var(--transition);
 }
@@ -552,11 +590,11 @@ select.form-control {
 /* ── Alerts ──────────────────────────────────────────────────── */
 
 .alert {
-    padding: 0.85rem 1.1rem;
+    padding: 0.9rem 1.15rem;
     border-radius: var(--radius-sm);
     margin-bottom: 1.25rem;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: 0.9375rem;
+    font-weight: 600;
     border: 1px solid;
 }
 
@@ -597,15 +635,16 @@ select.form-control {
 .table th {
     background: var(--bg-subtle);
     color: var(--text-muted);
-    font-weight: 600;
-    font-size: 0.7rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
 }
 
 .table tbody tr:hover { background: var(--bg-subtle); }
 .table tbody tr:last-child td { border-bottom: none; }
-.table td { font-size: 0.875rem; color: var(--text-body); }
+.table td { font-size: 0.9375rem; font-weight: 500; color: var(--text-body); }
 
 .table-empty td {
     text-align: center;
@@ -654,14 +693,17 @@ footer, .site-footer {
 
 .footer-brand .brand-text {
     color: #fff;
-    font-weight: 700;
-    font-size: 1rem;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.0625rem;
+    letter-spacing: -0.02em;
 }
 
 .footer-brand p {
-    margin-top: 0.25rem;
-    font-size: 0.8rem;
-    opacity: 0.7;
+    margin-top: 0.35rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0.75;
 }
 
 .footer-meta {
@@ -692,17 +734,23 @@ footer, .site-footer {
 }
 
 .portal-header h1 {
-    font-size: clamp(1.75rem, 4vw, 2.25rem);
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4.5vw, 2.75rem);
+    font-weight: 800;
     color: #fff;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.65rem;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
 }
 
 .portal-header p {
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 1rem;
-    max-width: 480px;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 1.0625rem;
+    font-weight: 500;
+    max-width: 520px;
     margin: 0 auto;
+    line-height: 1.65;
 }
 
 .portal-alert {
@@ -753,24 +801,28 @@ footer, .site-footer {
 }
 
 .portal-card h3 {
-    font-size: 1rem;
+    font-family: var(--font-display);
+    font-size: 1.125rem;
     font-weight: 700;
     color: var(--text-heading);
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.45rem;
+    letter-spacing: -0.02em;
 }
 
 .portal-card p {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
+    font-weight: 500;
     color: var(--text-muted);
     flex: 1;
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
 .portal-card-action {
     margin-top: 1rem;
-    font-weight: 600;
-    font-size: 0.8125rem;
+    font-weight: 700;
+    font-size: 0.875rem;
     color: var(--primary);
+    letter-spacing: 0.02em;
 }
 
 .portal-card-admin .portal-card-icon { background: #f3e8ff; }
@@ -787,26 +839,31 @@ footer, .site-footer {
     gap: 0.4rem;
     background: var(--primary-soft);
     border-radius: 99px;
-    padding: 0.35rem 0.9rem;
-    font-size: 0.75rem;
-    font-weight: 600;
+    padding: 0.4rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
     color: var(--primary);
     margin: 0 auto 1rem;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
 }
 
 .portal-login-card h2 {
+    font-family: var(--font-display);
     text-align: center;
-    font-size: 1.5rem;
+    font-size: 1.75rem;
+    font-weight: 800;
     margin-bottom: 0.25rem;
+    letter-spacing: -0.03em;
 }
 
 .auth-subtitle {
     text-align: center;
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 1rem;
+    font-weight: 500;
     margin-bottom: 1.5rem;
+    line-height: 1.6;
 }
 
 /* ── Hero (landing) ────────────────────────────────────────────── */
