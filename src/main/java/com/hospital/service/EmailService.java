@@ -1,9 +1,11 @@
 package com.hospital.service;
 
 import com.hospital.model.Appointment;
+import com.hospital.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -17,6 +19,16 @@ public class EmailService {
     @Autowired(required = false)
     private JavaMailSender mailSender;
 
+    @Value("${spring.mail.username:}")
+    private String fromEmail;
+
+    @Async
+    public void sendNotificationEmail(String recipientEmail, String recipientName, String subject, String body) {
+        String fullBody = String.format("Dear %s,\n\n%s\n\n— SmartCare 360 Hospital Team",
+                recipientName != null ? recipientName : "User", body);
+        sendEmail(recipientEmail, subject, fullBody, "NOTIFICATION");
+    }
+
     @Async
     public void sendAppointmentConfirmationEmail(Appointment appointment) {
         String patientEmail = appointment.getPatient().getEmail();
@@ -27,7 +39,7 @@ public class EmailService {
         String status = appointment.getStatus().name();
         String details = appointment.getReason() != null ? appointment.getReason() : "Regular Consultation";
 
-        String subject = "Appointment Confirmation - Hospital Management";
+        String subject = "SmartCare 360 - Appointment Confirmed";
         
         String body = String.format(
             "Dear %s,\n\n" +
@@ -42,28 +54,34 @@ public class EmailService {
             "-----------------------------------\n\n" +
             "Please arrive 15 minutes prior to your scheduled time.\n\n" +
             "Best Regards,\n" +
-            "Hospital Management Team",
+            "SmartCare 360 Team",
             patientName, doctorName, date, time, status, details
         );
 
-        logger.info("\n=======================================================");
-        logger.info("SENDING APPOINTMENT CONFIRMATION EMAIL TO: {}", patientEmail);
-        logger.info("SUBJECT: {}", subject);
-        logger.info("BODY:\n{}", body);
-        logger.info("=======================================================\n");
+        sendEmail(patientEmail, subject, body, "APPOINTMENT CONFIRMATION");
+    }
 
-        if (mailSender != null) {
-            try {
-                SimpleMailMessage message = new SimpleMailMessage();
-                message.setTo(patientEmail);
-                message.setSubject(subject);
-                message.setText(body);
-                mailSender.send(message);
-                logger.info("Email successfully dispatched to {}", patientEmail);
-            } catch (Exception e) {
-                logger.warn("Could not send SMTP email to {}: {}. Logged email content to console.", patientEmail, e.getMessage());
-            }
-        }
+    @Async
+    public void sendAppointmentBookedEmail(Appointment appointment) {
+        String patientName = appointment.getPatient().getFullName();
+        String doctorName = appointment.getDoctor().getFullName();
+        String date = appointment.getAppointmentDate().toString();
+        String time = appointment.getAppointmentTime().toString();
+
+        String patientBody = String.format(
+                "Dear %s,\n\nYour appointment request with Dr. %s on %s at %s has been submitted.\n" +
+                "Status: PENDING doctor approval.\n\n— SmartCare 360",
+                patientName, doctorName, date, time);
+        sendEmail(appointment.getPatient().getEmail(),
+                "SmartCare 360 - Appointment Request Submitted", patientBody, "APPOINTMENT BOOKED (PATIENT)");
+
+        String doctorBody = String.format(
+                "Dear Dr. %s,\n\nPatient %s has requested an appointment on %s at %s.\n" +
+                "Reason: %s\nPlease review and accept/reject in your dashboard.\n\n— SmartCare 360",
+                doctorName, patientName, date, time,
+                appointment.getReason() != null ? appointment.getReason() : "General consultation");
+        sendEmail(appointment.getDoctor().getEmail(),
+                "SmartCare 360 - New Appointment Request", doctorBody, "APPOINTMENT BOOKED (DOCTOR)");
     }
 
     @Async
@@ -79,22 +97,7 @@ public class EmailService {
                 "— SmartCare 360 Team",
                 otpCode);
         
-        logger.info("\n=======================================================");
-        logger.info("SENDING OTP EMAIL TO: {}", recipientEmail);
-        logger.info("OTP CODE: {}", otpCode);
-        logger.info("=======================================================\n");
-
-        if (mailSender != null) {
-            try {
-                SimpleMailMessage message = new SimpleMailMessage();
-                message.setTo(recipientEmail);
-                message.setSubject(subject);
-                message.setText(body);
-                mailSender.send(message);
-            } catch (Exception e) {
-                logger.warn("Could not send SMTP OTP to {}: {}", recipientEmail, e.getMessage());
-            }
-        }
+        sendEmail(recipientEmail, subject, body, "OTP");
     }
 
     @Async
@@ -102,22 +105,7 @@ public class EmailService {
         String subject = "SmartCare 360 - Password Reset OTP";
         String body = "Dear User,\n\nYour password reset OTP is: " + resetOtp + "\n\nThis code expires after use. Do not share it with anyone.";
 
-        logger.info("\n=======================================================");
-        logger.info("SENDING PASSWORD RESET EMAIL TO: {}", recipientEmail);
-        logger.info("RESET OTP: {}", resetOtp);
-        logger.info("=======================================================\n");
-
-        if (mailSender != null) {
-            try {
-                SimpleMailMessage message = new SimpleMailMessage();
-                message.setTo(recipientEmail);
-                message.setSubject(subject);
-                message.setText(body);
-                mailSender.send(message);
-            } catch (Exception e) {
-                logger.warn("Could not send password reset email to {}: {}", recipientEmail, e.getMessage());
-            }
-        }
+        sendEmail(recipientEmail, subject, body, "PASSWORD RESET");
     }
 
     @Async
@@ -129,19 +117,29 @@ public class EmailService {
                 ? String.format("Dear %s,\n\nYour SmartCare 360 account has been approved by the administrator. You can now log in.", fullName)
                 : String.format("Dear %s,\n\nYour SmartCare 360 account application was not approved. Please contact the hospital administrator for details.", fullName);
 
+        sendEmail(recipientEmail, subject, body, "APPROVAL");
+    }
+
+    private void sendEmail(String to, String subject, String body, String type) {
         logger.info("\n=======================================================");
-        logger.info("SENDING APPROVAL EMAIL TO: {} (approved={})", recipientEmail, approved);
+        logger.info("EMAIL [{}] TO: {}", type, to);
+        logger.info("SUBJECT: {}", subject);
+        logger.info("BODY:\n{}", body);
         logger.info("=======================================================\n");
 
-        if (mailSender != null) {
+        if (mailSender != null && to != null && !to.isBlank()) {
             try {
                 SimpleMailMessage message = new SimpleMailMessage();
-                message.setTo(recipientEmail);
+                if (fromEmail != null && !fromEmail.isBlank()) {
+                    message.setFrom(fromEmail);
+                }
+                message.setTo(to);
                 message.setSubject(subject);
                 message.setText(body);
                 mailSender.send(message);
+                logger.info("Email successfully dispatched to {}", to);
             } catch (Exception e) {
-                logger.warn("Could not send approval email to {}: {}", recipientEmail, e.getMessage());
+                logger.warn("Could not send SMTP email to {}: {}", to, e.getMessage());
             }
         }
     }

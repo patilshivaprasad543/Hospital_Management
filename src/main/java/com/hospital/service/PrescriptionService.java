@@ -17,6 +17,9 @@ public class PrescriptionService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private UserService userService;
+
     public Prescription createPrescription(Appointment appointment, User doctor, User patient, String diagnosis, String instructions, LocalDate followUpDate, List<PrescriptionItem> items) {
         Prescription prescription = new Prescription(appointment, doctor, patient, diagnosis, instructions, followUpDate);
         if (items != null) {
@@ -33,6 +36,16 @@ public class PrescriptionService {
             NotificationCategory.PRESCRIPTION,
             "/patient/prescriptions"
         );
+
+        userService.findVendors().stream()
+                .filter(v -> v.getVendorType() == VendorType.PHARMACY)
+                .forEach(vendor -> notificationService.sendNotification(
+                        vendor,
+                        "💊 New Prescription Received",
+                        "A new prescription for patient " + patient.getFullName() + " is available. Prepare medicines.",
+                        NotificationCategory.PHARMACY,
+                        "/vendor/dashboard"
+                ));
 
         return saved;
     }

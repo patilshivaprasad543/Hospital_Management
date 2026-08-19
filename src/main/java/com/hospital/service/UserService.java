@@ -35,6 +35,9 @@ public class UserService {
     @Autowired
     private AuditLogService auditLogService;
 
+    @Autowired
+    private WhatsAppService whatsAppService;
+
     public User registerUser(User user) {
         if (user.getRole() == Role.ADMIN) {
             throw new RuntimeException("Admin accounts cannot be self-registered. Contact system administrator.");
@@ -70,7 +73,8 @@ public class UserService {
         }
 
         emailService.sendOtpEmail(user.getEmail(), otp);
-        auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered, OTP sent");
+        whatsAppService.sendOtp(user.getMobileNumber(), otp);
+        auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered, OTP sent via email & WhatsApp");
         return savedUser;
     }
 
@@ -128,6 +132,8 @@ public class UserService {
         auditLogService.log(admin, "USER_APPROVED", "ADMIN",
                 user.getRole().name(), userId, "Approved " + user.getFullName());
         emailService.sendApprovalEmail(user.getEmail(), user.getFullName(), true);
+        whatsAppService.sendMessage(user.getMobileNumber(), "Account Approved",
+                "Your SmartCare 360 account has been approved. You can now log in.");
     }
 
     public void rejectUser(Long userId, User admin, String reason) {
@@ -142,6 +148,8 @@ public class UserService {
         auditLogService.log(admin, "USER_REJECTED", "ADMIN",
                 user.getRole().name(), userId, reason != null ? reason : "Rejected by admin");
         emailService.sendApprovalEmail(user.getEmail(), user.getFullName(), false);
+        whatsAppService.sendMessage(user.getMobileNumber(), "Account Update",
+                "Your SmartCare 360 account application was not approved. Contact the administrator.");
     }
 
     public String resendOtp(Long userId) {
@@ -152,6 +160,7 @@ public class UserService {
         user.setOtpCode(newOtp);
         userRepository.save(user);
         emailService.sendOtpEmail(user.getEmail(), newOtp);
+        whatsAppService.sendOtp(user.getMobileNumber(), newOtp);
         return newOtp;
     }
 
@@ -181,7 +190,8 @@ public class UserService {
         user.setResetOtpCode(resetOtp);
         userRepository.save(user);
         emailService.sendPasswordResetEmail(user.getEmail(), resetOtp);
-        auditLogService.log(user, "PASSWORD_RESET_REQUESTED", "AUTH", "Password reset OTP sent");
+        whatsAppService.sendOtp(user.getMobileNumber(), resetOtp);
+        auditLogService.log(user, "PASSWORD_RESET_REQUESTED", "AUTH", "Password reset OTP sent via email & WhatsApp");
     }
 
     public boolean resetPassword(String email, String resetOtp, String newPassword) {
