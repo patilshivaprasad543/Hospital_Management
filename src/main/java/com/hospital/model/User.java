@@ -35,6 +35,15 @@ public class User {
 
     private String accountStatus = "ACTIVE"; // PENDING, ACTIVE, BLOCKED
 
+    @Enumerated(EnumType.STRING)
+    private ApprovalStatus approvalStatus = ApprovalStatus.PENDING_OTP;
+
+    private boolean adminApproved = false;
+
+    private String documentInfo;
+
+    private String resetOtpCode;
+
     private java.time.LocalDateTime lastLoginAt;
 
     public User() {
@@ -135,5 +144,50 @@ public class User {
 
     public void setLastLoginAt(java.time.LocalDateTime lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
+    }
+
+    public ApprovalStatus getApprovalStatus() {
+        return approvalStatus;
+    }
+
+    public void setApprovalStatus(ApprovalStatus approvalStatus) {
+        this.approvalStatus = approvalStatus;
+    }
+
+    public boolean isAdminApproved() {
+        return adminApproved;
+    }
+
+    public void setAdminApproved(boolean adminApproved) {
+        this.adminApproved = adminApproved;
+    }
+
+    public String getDocumentInfo() {
+        return documentInfo;
+    }
+
+    public void setDocumentInfo(String documentInfo) {
+        this.documentInfo = documentInfo;
+    }
+
+    public String getResetOtpCode() {
+        return resetOtpCode;
+    }
+
+    public void setResetOtpCode(String resetOtpCode) {
+        this.resetOtpCode = resetOtpCode;
+    }
+
+    public boolean canLogin() {
+        if ("BLOCKED".equals(accountStatus)) {
+            return false;
+        }
+        if (!verified) {
+            return false;
+        }
+        if (role == Role.ADMIN || role == Role.PATIENT) {
+            return true;
+        }
+        return adminApproved && approvalStatus == ApprovalStatus.APPROVED;
     }
 }

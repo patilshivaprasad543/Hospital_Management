@@ -24,7 +24,7 @@ public class MainController {
         if (loggedInUser != null) {
             return AuthController.getRedirectUrlForRole(loggedInUser.getRole());
         }
-        model.addAttribute("doctors", userService.findDoctors());
+        model.addAttribute("doctors", userService.findApprovedDoctors());
         model.addAttribute("labTests", vendorService.getAllLabTests());
         model.addAttribute("pharmacyItems", vendorService.getAllPharmacyItems());
         return "index";

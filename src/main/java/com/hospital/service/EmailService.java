@@ -68,8 +68,8 @@ public class EmailService {
 
     @Async
     public void sendOtpEmail(String recipientEmail, String otpCode) {
-        String subject = "Your Hospital Management Verification OTP";
-        String body = "Dear User,\n\nYour OTP for verification is: " + otpCode + "\n\nDo not share this OTP with anyone.";
+        String subject = "SmartCare 360 - Verification OTP";
+        String body = "Dear User,\n\nYour OTP for SmartCare 360 verification is: " + otpCode + "\n\nDo not share this OTP with anyone.";
         
         logger.info("\n=======================================================");
         logger.info("SENDING OTP EMAIL TO: {}", recipientEmail);
@@ -85,6 +85,55 @@ public class EmailService {
                 mailSender.send(message);
             } catch (Exception e) {
                 logger.warn("Could not send SMTP OTP to {}: {}", recipientEmail, e.getMessage());
+            }
+        }
+    }
+
+    @Async
+    public void sendPasswordResetEmail(String recipientEmail, String resetOtp) {
+        String subject = "SmartCare 360 - Password Reset OTP";
+        String body = "Dear User,\n\nYour password reset OTP is: " + resetOtp + "\n\nThis code expires after use. Do not share it with anyone.";
+
+        logger.info("\n=======================================================");
+        logger.info("SENDING PASSWORD RESET EMAIL TO: {}", recipientEmail);
+        logger.info("RESET OTP: {}", resetOtp);
+        logger.info("=======================================================\n");
+
+        if (mailSender != null) {
+            try {
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setTo(recipientEmail);
+                message.setSubject(subject);
+                message.setText(body);
+                mailSender.send(message);
+            } catch (Exception e) {
+                logger.warn("Could not send password reset email to {}: {}", recipientEmail, e.getMessage());
+            }
+        }
+    }
+
+    @Async
+    public void sendApprovalEmail(String recipientEmail, String fullName, boolean approved) {
+        String subject = approved
+                ? "SmartCare 360 - Account Approved"
+                : "SmartCare 360 - Account Application Update";
+        String body = approved
+                ? String.format("Dear %s,\n\nYour SmartCare 360 account has been approved by the administrator. You can now log in.", fullName)
+                : String.format("Dear %s,\n\nYour SmartCare 360 account application was not approved. Please contact the hospital administrator for details.", fullName);
+
+        logger.info("\n=======================================================");
+        logger.info("SENDING APPROVAL EMAIL TO: {} (approved={})", recipientEmail, approved);
+        logger.info("=======================================================\n");
+
+        if (mailSender != null) {
+            try {
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setTo(recipientEmail);
+                message.setSubject(subject);
+                message.setText(body);
+                mailSender.send(message);
+            } catch (Exception e) {
+                logger.warn("Could not send approval email to {}: {}", recipientEmail, e.getMessage());
             }
         }
     }

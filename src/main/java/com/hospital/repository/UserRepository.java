@@ -1,5 +1,6 @@
 package com.hospital.repository;
 
+import com.hospital.model.ApprovalStatus;
 import com.hospital.model.Role;
 import com.hospital.model.User;
 import com.hospital.model.VendorType;
@@ -21,4 +22,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByRoleAndVendorType(Role role, VendorType vendorType);
 
     long countByRole(Role role);
+
+    List<User> findByApprovalStatus(ApprovalStatus approvalStatus);
+
+    List<User> findByRoleAndApprovalStatus(Role role, ApprovalStatus approvalStatus);
+
+    List<User> findByRoleAndAdminApprovedTrueAndApprovalStatus(Role role, ApprovalStatus approvalStatus);
 }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +37,17 @@ public class AppointmentService {
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
         User doctor = userRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Doctor not found"));
+
+        if (!doctor.isAdminApproved() || doctor.getApprovalStatus() != com.hospital.model.ApprovalStatus.APPROVED) {
+            throw new RuntimeException("This doctor is not yet approved for appointments.");
+        }
+
+        boolean slotTaken = appointmentRepository.existsByDoctorAndAppointmentDateAndAppointmentTimeAndStatusIn(
+                doctor, date, time,
+                Arrays.asList(AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED));
+        if (slotTaken) {
+            throw new RuntimeException("This time slot is already booked. Please select another slot.");
+        }
 
         Appointment appointment = new Appointment(patient, doctor, date, time, reason);
         appointment.setDepartmentCategory(departmentCategory != null ? departmentCategory : "General Consultation");
@@ -166,5 +178,13 @@ public class AppointmentService {
 
     public long countPendingAppointments() {
         return appointmentRepository.countByStatus(AppointmentStatus.PENDING);
+    }
+
+    public long countTodayAppointments() {
+        return appointmentRepository.countByAppointmentDate(LocalDate.now());
+    }
+
+    public long countCompletedConsultations() {
+        return appointmentRepository.countByStatus(AppointmentStatus.COMPLETED);
     }
 }

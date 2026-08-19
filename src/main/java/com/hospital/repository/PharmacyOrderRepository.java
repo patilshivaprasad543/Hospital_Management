@@ -11,4 +11,6 @@ import java.util.List;
 public interface PharmacyOrderRepository extends JpaRepository<PharmacyOrder, Long> {
     List<PharmacyOrder> findByPatientOrderByCreatedAtDesc(User patient);
     List<PharmacyOrder> findByPharmacyVendorOrderByCreatedAtDesc(User pharmacyVendor);
+
+    long countByStatus(String status);
 }
