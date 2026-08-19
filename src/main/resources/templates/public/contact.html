@@ -7,7 +7,7 @@
     <section class="public-page-banner">
         <div class="container">
             <h1>Contact Us</h1>
-            <p>We're here to help — reach out for support, partnerships, or enterprise inquiries</p>
+            <p>Get support, request a demo, or partner with SmartCare 360 for your hospital</p>
         </div>
     </section>
 
@@ -17,49 +17,138 @@
         <div class="contact-grid">
             <div class="contact-info">
                 <h2>Get in Touch</h2>
-                <p>Have questions about SmartCare 360? Our support team is available to assist hospitals, clinics, and healthcare partners.</p>
+                <p>Whether you are a hospital administrator looking to digitize operations, a doctor wanting to join our network, a patient needing portal assistance, or a vendor interested in lab/pharmacy integration — our team is ready to help.</p>
 
                 <div class="contact-item">
-                    <strong>Email</strong>
+                    <strong>General Support</strong>
                     <p>support@smartcare360.com</p>
+                    <p class="contact-hint">Account issues, portal login help, and general inquiries</p>
+                </div>
+                <div class="contact-item">
+                    <strong>Sales &amp; Partnerships</strong>
+                    <p>sales@smartcare360.com</p>
+                    <p class="contact-hint">Hospital deployments, enterprise licensing, and vendor onboarding</p>
+                </div>
+                <div class="contact-item">
+                    <strong>Technical Support</strong>
+                    <p>tech@smartcare360.com</p>
+                    <p class="contact-hint">Bug reports, integration issues, and API documentation</p>
                 </div>
                 <div class="contact-item">
                     <strong>Phone</strong>
-                    <p>+91 1800-360-2478 (24/7 Support)</p>
+                    <p>+91 1800-360-2478 (Toll Free)</p>
+                    <p>+91 80-4567-8900 (Bengaluru Office)</p>
                 </div>
                 <div class="contact-item">
-                    <strong>Address</strong>
-                    <p>SmartCare Tower, Health City<br>Bengaluru, Karnataka 560001<br>India</p>
+                    <strong>Head Office</strong>
+                    <p>
+                        SmartCare 360 Healthcare Technologies Pvt. Ltd.<br>
+                        SmartCare Tower, 4th Floor, Health City<br>
+                        MG Road, Bengaluru, Karnataka 560001<br>
+                        India
+                    </p>
                 </div>
                 <div class="contact-item">
                     <strong>Business Hours</strong>
-                    <p>Monday – Saturday: 8:00 AM – 8:00 PM IST<br>Sunday: Emergency support only</p>
+                    <p>
+                        Monday – Friday: 8:00 AM – 8:00 PM IST<br>
+                        Saturday: 9:00 AM – 5:00 PM IST<br>
+                        Sunday &amp; Public Holidays: Emergency support only<br>
+                        <em>Average response time: within 4 business hours</em>
+                    </p>
                 </div>
             </div>
 
             <div class="card contact-form-card">
                 <h3>Send a Message</h3>
+                <p class="text-muted mb-2" style="font-size:0.9rem;">Fill out the form below and our team will respond within one business day.</p>
                 <form th:action="@{/contact}" method="post">
                     <div class="form-group">
                         <label class="form-label">Full Name</label>
-                        <input type="text" name="name" class="form-control" placeholder="Your full name" required>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Dr. Rajesh Kumar" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Email Address</label>
-                        <input type="email" name="email" class="form-control" placeholder="you@email.com" required>
+                        <input type="email" name="email" class="form-control" placeholder="you@hospital.com" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Subject</label>
-                        <input type="text" name="subject" class="form-control" placeholder="How can we help?" required>
+                        <select name="subject" class="form-control" required>
+                            <option value="">Select a topic...</option>
+                            <option value="General Inquiry">General Inquiry</option>
+                            <option value="Hospital Demo Request">Hospital Demo Request</option>
+                            <option value="Patient Portal Support">Patient Portal Support</option>
+                            <option value="Doctor Registration">Doctor Registration</option>
+                            <option value="Vendor / Lab Partnership">Vendor / Lab Partnership</option>
+                            <option value="Pharmacy Integration">Pharmacy Integration</option>
+                            <option value="Technical Issue">Technical Issue</option>
+                            <option value="Billing & Payments">Billing &amp; Payments</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Message</label>
-                        <textarea name="message" class="form-control" rows="5" placeholder="Write your message here..." required></textarea>
+                        <textarea name="message" class="form-control" rows="5" placeholder="Please describe your inquiry in detail..." required></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block">Send Message</button>
                 </form>
             </div>
         </div>
+
+        <h2 class="public-section-title">Department Contacts</h2>
+        <div class="grid">
+            <div class="card info-card">
+                <h3>Patient Support</h3>
+                <p><strong>Email:</strong> patients@smartcare360.com</p>
+                <p>Help with registration, OTP verification, appointment booking, prescriptions, lab reports, and billing queries.</p>
+            </div>
+            <div class="card info-card">
+                <h3>Doctor Onboarding</h3>
+                <p><strong>Email:</strong> doctors@smartcare360.com</p>
+                <p>Assistance with doctor registration, document submission, profile setup, availability scheduling, and consultation tools.</p>
+            </div>
+            <div class="card info-card">
+                <h3>Hospital Administration</h3>
+                <p><strong>Email:</strong> admin@smartcare360.com</p>
+                <p>Admin account setup, department configuration, user approvals, analytics dashboard, and audit log access.</p>
+            </div>
+            <div class="card info-card">
+                <h3>Vendor &amp; Pharmacy</h3>
+                <p><strong>Email:</strong> vendors@smartcare360.com</p>
+                <p>Lab vendor and pharmacy partner registration, test catalog setup, report uploads, and inventory management.</p>
+            </div>
+        </div>
+
+        <h2 class="public-section-title">Frequently Asked Questions</h2>
+        <div class="faq-list">
+            <div class="faq-item">
+                <h3>How do I register as a patient?</h3>
+                <p>Visit the <a href="/login/patient">Patient Portal</a>, click "Create Patient Account", fill in your details, and verify your email with the OTP sent to your inbox. Once verified, you can log in and book appointments.</p>
+            </div>
+            <div class="faq-item">
+                <h3>How can a doctor join SmartCare 360?</h3>
+                <p>Doctors register at the <a href="/login/doctor">Doctor Portal</a>, complete OTP verification, submit required documents (medical license, ID proof), and wait for admin approval. Once approved, you can set your schedule and start accepting patients.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Is my health data secure?</h3>
+                <p>Yes. SmartCare 360 uses encrypted passwords (BCrypt), role-based access control, secure sessions, and audit logging. Only authorized users can access patient records relevant to their role.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Can hospitals request a full platform demo?</h3>
+                <p>Absolutely. Email <strong>sales@smartcare360.com</strong> or use the contact form above with subject "Hospital Demo Request". Our team will schedule a walkthrough of all modules including admin, patient, doctor, lab, and pharmacy portals.</p>
+            </div>
+            <div class="faq-item">
+                <h3>What notification channels are supported?</h3>
+                <p>SmartCare 360 sends notifications via in-app alerts, email, and WhatsApp (when configured) for appointments, OTP codes, approvals, prescriptions, lab reports, pharmacy orders, and billing updates.</p>
+            </div>
+        </div>
+
+        <section class="info-banner">
+            <div>
+                <h2>Visit Our Office</h2>
+                <p>SmartCare Tower is located in the heart of Bengaluru's Health City district, easily accessible via MG Road Metro Station (5 min walk). Visitor parking is available on the basement levels B1–B3.</p>
+            </div>
+            <a href="https://maps.google.com/?q=Bengaluru+Karnataka+560001" target="_blank" rel="noopener" class="btn btn-outline" style="background:#fff;color:var(--primary);flex-shrink:0;">Open in Google Maps</a>
+        </section>
     </div>
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>
