@@ -2,46 +2,61 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Login - SmartCare 360</title>
+    <title th:text="${portalRole.label + ' Login - SmartCare 360'}">Login - SmartCare 360</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
     <nav class="navbar">
         <a href="/" class="navbar-brand">🏥 SmartCare 360</a>
         <ul class="nav-links">
-            <li><a href="/register">Register</a></li>
+            <li><a href="/">← Change Role</a></li>
         </ul>
     </nav>
 
     <div class="container login-splash-wrapper">
-        <div class="auth-card">
-            <h2 style="text-align: center; margin-bottom: 0.4rem;">Welcome Back</h2>
-            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.8rem; font-size: 0.95rem;">
-                Sign in to your SmartCare 360 portal — Patient, Doctor, Vendor, or Admin
+        <div class="auth-card portal-login-card">
+            <div class="portal-login-badge">
+                <span th:text="${portalRole.icon}">👤</span>
+                <span th:text="${portalRole.label + ' Portal'}">Patient Portal</span>
+            </div>
+
+            <h2 style="text-align: center; margin-bottom: 0.4rem;">Sign In</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.8rem; font-size: 0.95rem;"
+               th:text="${portalRole.description}">
+                Enter your credentials
             </p>
 
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
             <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
             <form th:action="@{/login}" method="post">
+                <input type="hidden" name="portalRole" th:value="${portalRole.name()}" />
                 <div class="form-group">
                     <label class="form-label">Email Address</label>
-                    <input type="email" name="email" class="form-control" placeholder="admin@smartcare360.com" required autofocus>
+                    <input type="email" name="email" class="form-control"
+                           th:placeholder="${portalRole.name() == 'ADMIN'} ? 'admin@smartcare360.com' : 'name@example.com'"
+                           required autofocus>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Password</label>
                     <input type="password" name="password" class="form-control" placeholder="••••••••" required>
                 </div>
 
-                <div style="text-align: right; margin-top: 0.5rem;">
+                <div th:if="${portalRole.name() != 'ADMIN'}" style="text-align: right; margin-top: 0.5rem;">
                     <a href="/forgot-password" style="font-size: 0.85rem; color: var(--primary-color); text-decoration: none;">Forgot password?</a>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.2rem;">Sign In</button>
             </form>
 
-            <p style="text-align: center; margin-top: 1.8rem; font-size: 0.9rem; color: var(--text-muted);">
-                Need an account? <a href="/register" style="color: var(--primary-color); font-weight: 700; text-decoration: none;">Register Here</a>
+            <p th:if="${portalRole.name() != 'ADMIN'}" style="text-align: center; margin-top: 1.8rem; font-size: 0.9rem; color: var(--text-muted);">
+                Need an account?
+                <a th:href="@{/register(role=${portalRole.name()})}"
+                   style="color: var(--primary-color); font-weight: 700; text-decoration: none;">Register Here</a>
+            </p>
+
+            <p th:if="${portalRole.name() == 'ADMIN'}" style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
+                Admin accounts are pre-created by the system.
             </p>
         </div>
     </div>

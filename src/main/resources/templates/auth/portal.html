@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartCare 360 — Login Portal</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="portal-body">
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <div class="brand-icon">🏥</div>
+            <span>Smart<span class="gradient-text">Care 360</span></span>
+        </a>
+    </nav>
+
+    <div class="container portal-wrapper">
+        <div class="portal-header">
+            <h1>Welcome to <span class="gradient-text">SmartCare 360</span></h1>
+            <p>Select your role to sign in to the hospital portal</p>
+        </div>
+
+        <div th:if="${successMessage}" class="alert alert-success portal-alert" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger portal-alert" th:text="${errorMessage}"></div>
+
+        <div class="portal-grid">
+            <a th:each="role : ${portalRoles}"
+               th:href="@{/login/{r}(r=${#strings.toLowerCase(role.name())})}"
+               class="portal-card"
+               th:classappend="${'portal-card-' + #strings.toLowerCase(role.name())}">
+                <div class="portal-card-icon" th:text="${role.icon}">👤</div>
+                <h3 th:text="${role.label}">Role</h3>
+                <p th:text="${role.description}">Description</p>
+                <span class="portal-card-action">Sign In →</span>
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 SmartCare 360. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>
