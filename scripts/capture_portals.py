@@ -7,6 +7,12 @@ BASE = "http://localhost:8080"
 OUT = "/opt/cursor/artifacts/screenshots"
 os.makedirs(OUT, exist_ok=True)
 
+WEBSITE_PAGES = [
+    ("00-home-page", "/"),
+    ("00-about-page", "/about"),
+    ("00-contact-page", "/contact"),
+]
+
 PUBLIC_PAGES = [
     ("01-role-selection-portal", "/login"),
     ("02-admin-login", "/login/admin"),
@@ -42,6 +48,12 @@ def main():
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(viewport={"width": 1400, "height": 900})
         page = context.new_page()
+
+        for name, path in WEBSITE_PAGES:
+            page.goto(f"{BASE}{path}")
+            page.wait_for_load_state("networkidle")
+            page.screenshot(path=f"{OUT}/{name}.png", full_page=True)
+            print(f"Saved {name}.png")
 
         for name, path in PUBLIC_PAGES:
             page.goto(f"{BASE}{path}")
