@@ -7,13 +7,11 @@ build/
 
 
 
-# Eclipse
+# Eclipse local overrides (shared project files are committed)
+.settings/org.eclipse.jdt.apt.core.prefs
 
-.classpath
-
-.project
-
-.settings/
+# Optional machine-specific classpath from `./gradlew eclipse`
+.classpath.local
 
 
 
