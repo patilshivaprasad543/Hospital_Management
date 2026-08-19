@@ -471,3 +471,112 @@ footer {
     font-size: 0.9rem;
     margin-top: auto;
 }
+
+/* Login Portal — Role Selection */
+.portal-wrapper {
+    flex: 1;
+    padding: 2rem 1.5rem 3rem;
+}
+
+.portal-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.portal-header h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.4rem;
+    color: var(--text-heading);
+    margin-bottom: 0.6rem;
+}
+
+.portal-header p {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+}
+
+.portal-alert {
+    max-width: 720px;
+    margin: 0 auto 1.5rem;
+}
+
+.portal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.portal-card {
+    background: var(--bg-surface);
+    backdrop-filter: blur(25px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 220px;
+    box-shadow: var(--shadow-glass);
+}
+
+.portal-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--shadow-accent);
+}
+
+.portal-card-icon {
+    font-size: 2.8rem;
+    margin-bottom: 0.8rem;
+}
+
+.portal-card h3 {
+    font-family: 'Outfit', sans-serif;
+    color: var(--text-heading);
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.portal-card p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    flex: 1;
+    line-height: 1.5;
+}
+
+.portal-card-action {
+    margin-top: 1rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--cyan-accent);
+}
+
+.portal-card-admin:hover { border-color: rgba(168, 85, 247, 0.5); }
+.portal-card-patient:hover { border-color: rgba(16, 185, 129, 0.5); }
+.portal-card-doctor:hover { border-color: rgba(59, 130, 246, 0.5); }
+.portal-card-vendor:hover { border-color: rgba(245, 158, 11, 0.5); }
+.portal-card-pharmacy:hover { border-color: rgba(236, 72, 153, 0.5); }
+
+.portal-login-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0, 242, 254, 0.1);
+    border: 1px solid rgba(0, 242, 254, 0.3);
+    border-radius: 99px;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--cyan-accent);
+    margin: 0 auto 1.2rem;
+}
+
+.portal-login-card {
+    margin-top: 2rem;
+}

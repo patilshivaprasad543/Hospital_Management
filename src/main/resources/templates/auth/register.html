@@ -10,20 +10,27 @@
             var vendorGroup = document.getElementById("vendorTypeGroup");
             vendorGroup.style.display = roleSelect.value === "VENDOR" ? "block" : "none";
         }
+        document.addEventListener('DOMContentLoaded', toggleVendorType);
     </script>
 </head>
 <body>
     <nav class="navbar">
         <a href="/" class="navbar-brand">🏥 SmartCare 360</a>
         <ul class="nav-links">
-            <li><a href="/login">Login</a></li>
+            <li><a href="/login">← Back to Portal</a></li>
         </ul>
     </nav>
 
     <div class="container login-splash-wrapper">
         <div class="auth-card-3d-splash" style="max-width: 540px;">
             <h2 style="text-align: center; margin-bottom: 0.4rem; color: var(--accent-color);">Create Account</h2>
-            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.8rem; font-size: 0.95rem;">
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.8rem; font-size: 0.95rem;"
+               th:if="${selectedPortalRole != null}"
+               th:text="'Registering as ' + ${selectedPortalRole.label}">
+                Register as Patient, Doctor, or Vendor
+            </p>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.8rem; font-size: 0.95rem;"
+               th:if="${selectedPortalRole == null}">
                 Register as Patient, Doctor, or Vendor
             </p>
 
@@ -49,14 +56,17 @@
                 <div class="form-group">
                     <label class="form-label">Role</label>
                     <select id="roleSelect" th:field="*{role}" class="form-control" onchange="toggleVendorType()" required>
-                        <option th:each="r : ${roles}" th:value="${r}" th:text="${r.name() == 'PATIENT' ? 'Patient' : (r.name() == 'DOCTOR' ? 'Doctor' : 'Vendor (Lab / Pharmacy)')}"></option>
+                        <option th:each="r : ${roles}" th:value="${r}"
+                                th:selected="${preselectedRole != null and preselectedRole == r}"
+                                th:text="${r.name() == 'PATIENT' ? 'Patient' : (r.name() == 'DOCTOR' ? 'Doctor' : 'Vendor')}"></option>
                     </select>
                 </div>
 
                 <div class="form-group" id="vendorTypeGroup" style="display: none;">
                     <label class="form-label">Vendor Category</label>
-                    <select name="selectedVendorType" class="form-control">
-                        <option th:each="vt : ${vendorTypes}" th:value="${vt}" th:text="${vt.name() == 'LABORATORY' ? 'Laboratory' : 'Pharmacy'}"></option>
+                    <select name="selectedVendorType" id="vendorTypeSelect" class="form-control">
+                        <option value="LABORATORY" th:selected="${preselectedVendorType != null and preselectedVendorType.name() == 'LABORATORY'}">Laboratory</option>
+                        <option value="PHARMACY" th:selected="${preselectedVendorType != null and preselectedVendorType.name() == 'PHARMACY'}">Pharmacy</option>
                     </select>
                 </div>
 
@@ -64,7 +74,7 @@
             </form>
 
             <p style="text-align: center; margin-top: 1.2rem; font-size: 0.85rem; color: var(--text-muted);">
-                Admin accounts are pre-created by the system. <a href="/login" style="color: var(--accent-color);">Admin login</a>
+                Admin accounts are pre-created. <a href="/login/admin" style="color: var(--accent-color);">Admin login</a>
             </p>
             <p style="text-align: center; margin-top: 0.8rem; font-size: 0.9rem; color: var(--text-muted);">
                 Already have an account? <a href="/login" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Sign In</a>

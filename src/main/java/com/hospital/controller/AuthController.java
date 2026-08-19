@@ -1,6 +1,7 @@
 package com.hospital.controller;
 
 import com.hospital.model.ApprovalStatus;
+import com.hospital.model.PortalRole;
 import com.hospital.model.Role;
 import com.hospital.model.User;
 import com.hospital.model.VendorType;
@@ -21,10 +22,26 @@ public class AuthController {
     private UserService userService;
 
     @GetMapping("/register")
-    public String showRegisterPage(Model model) {
+    public String showRegisterPage(@RequestParam(value = "role", required = false) String roleParam, Model model) {
         model.addAttribute("user", new User());
         model.addAttribute("roles", new Role[]{Role.PATIENT, Role.DOCTOR, Role.VENDOR});
         model.addAttribute("vendorTypes", VendorType.values());
+
+        PortalRole portalRole = PortalRole.fromPath(roleParam);
+        if (portalRole != null && portalRole != PortalRole.ADMIN) {
+            model.addAttribute("selectedPortalRole", portalRole);
+            if (portalRole == PortalRole.PATIENT) {
+                model.addAttribute("preselectedRole", Role.PATIENT);
+            } else if (portalRole == PortalRole.DOCTOR) {
+                model.addAttribute("preselectedRole", Role.DOCTOR);
+            } else if (portalRole == PortalRole.VENDOR) {
+                model.addAttribute("preselectedRole", Role.VENDOR);
+                model.addAttribute("preselectedVendorType", VendorType.LABORATORY);
+            } else if (portalRole == PortalRole.PHARMACY) {
+                model.addAttribute("preselectedRole", Role.VENDOR);
+                model.addAttribute("preselectedVendorType", VendorType.PHARMACY);
+            }
+        }
         return "auth/register";
     }
 
@@ -136,19 +153,44 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public String showLoginPage(Model model) {
+    public String showLoginPortal(Model model) {
+        model.addAttribute("portalRoles", PortalRole.values());
+        return "auth/portal";
+    }
+
+    @GetMapping("/login/{portalRole}")
+    public String showRoleLoginPage(@PathVariable String portalRole, Model model) {
+        PortalRole role = PortalRole.fromPath(portalRole);
+        if (role == null) {
+            return "redirect:/login";
+        }
+        model.addAttribute("portalRole", role);
         return "auth/login";
     }
 
     @PostMapping("/login")
     public String loginUser(@RequestParam("email") String email,
                             @RequestParam("password") String password,
+                            @RequestParam("portalRole") String portalRoleParam,
                             HttpSession session,
                             RedirectAttributes redirectAttributes,
                             Model model) {
+        PortalRole portalRole = PortalRole.fromPath(portalRoleParam);
+        if (portalRole == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid portal role selected.");
+            return "redirect:/login";
+        }
+
         Optional<User> userOptional = userService.loginUser(email, password);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
+
+            if (!portalRole.matchesUser(user)) {
+                model.addAttribute("portalRole", portalRole);
+                model.addAttribute("errorMessage",
+                        "This account is not registered as " + portalRole.getLabel() + ". Please select the correct role portal.");
+                return "auth/login";
+            }
 
             if (!user.isVerified()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Your account is not verified yet. Please complete OTP verification.");
@@ -162,22 +204,24 @@ public class AuthController {
                 }
                 if (user.getApprovalStatus() == ApprovalStatus.PENDING_ADMIN) {
                     redirectAttributes.addFlashAttribute("errorMessage", "Your account is pending admin approval. You will be notified once approved.");
-                    return "redirect:/login";
+                    return "redirect:/login/" + portalRoleParam.toLowerCase();
                 }
                 if (user.getApprovalStatus() == ApprovalStatus.REJECTED) {
                     redirectAttributes.addFlashAttribute("errorMessage", "Your account application was rejected. Contact the administrator.");
-                    return "redirect:/login";
+                    return "redirect:/login/" + portalRoleParam.toLowerCase();
                 }
             }
 
             if (!user.canLogin()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Your account is not active. Contact the administrator.");
-                return "redirect:/login";
+                return "redirect:/login/" + portalRoleParam.toLowerCase();
             }
 
             session.setAttribute("loggedInUser", user);
             return getRedirectUrlForRole(user.getRole());
         }
+
+        model.addAttribute("portalRole", portalRole);
         model.addAttribute("errorMessage", "Invalid email or password!");
         return "auth/login";
     }
