@@ -36,7 +36,7 @@
             </form>
 
             <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
-                <a href="/login" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Back to Login</a>
+                <a th:href="${loginPath != null ? loginPath : '/login'}" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Back to Login</a>
             </p>
         </div>
     </div>
