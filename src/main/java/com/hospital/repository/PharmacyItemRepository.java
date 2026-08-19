@@ -10,4 +10,10 @@ import java.util.List;
 @Repository
 public interface PharmacyItemRepository extends JpaRepository<PharmacyItem, Long> {
     List<PharmacyItem> findByVendor(User vendor);
+
+    long countByStockQuantityGreaterThan(int quantity);
+
+    long countByStockQuantityLessThanEqualAndStockQuantityGreaterThan(int max, int min);
+
+    long countByStockQuantity(int quantity);
 }

@@ -1,5 +1,6 @@
 package com.hospital.controller;
 
+import com.hospital.model.ApprovalStatus;
 import com.hospital.model.Role;
 import com.hospital.model.User;
 import com.hospital.model.VendorType;
@@ -22,7 +23,7 @@ public class AuthController {
     @GetMapping("/register")
     public String showRegisterPage(Model model) {
         model.addAttribute("user", new User());
-        model.addAttribute("roles", Role.values());
+        model.addAttribute("roles", new Role[]{Role.PATIENT, Role.DOCTOR, Role.VENDOR});
         model.addAttribute("vendorTypes", VendorType.values());
         return "auth/register";
     }
@@ -34,6 +35,9 @@ public class AuthController {
                                RedirectAttributes redirectAttributes,
                                Model model) {
         try {
+            if (user.getRole() == Role.ADMIN) {
+                throw new RuntimeException("Admin accounts cannot be self-registered.");
+            }
             if (user.getRole() == Role.VENDOR && selectedVendorType != null) {
                 user.setVendorType(selectedVendorType);
             }
@@ -43,7 +47,7 @@ public class AuthController {
             return "redirect:/verify-otp?userId=" + registeredUser.getId();
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
-            model.addAttribute("roles", Role.values());
+            model.addAttribute("roles", new Role[]{Role.PATIENT, Role.DOCTOR, Role.VENDOR});
             model.addAttribute("vendorTypes", VendorType.values());
             return "auth/register";
         }
@@ -54,6 +58,7 @@ public class AuthController {
         model.addAttribute("userId", userId);
         userService.findById(userId).ifPresent(user -> {
             model.addAttribute("userEmail", user.getEmail());
+            model.addAttribute("userRole", user.getRole());
         });
         return "auth/verify-otp";
     }
@@ -69,17 +74,54 @@ public class AuthController {
             Optional<User> userOptional = userService.findById(userId);
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
-                session.setAttribute("loggedInUser", user);
-                redirectAttributes.addFlashAttribute("successMessage", "Account verified successfully! Welcome.");
-                return getRedirectUrlForRole(user.getRole());
+                if (user.getRole() == Role.PATIENT) {
+                    session.setAttribute("loggedInUser", user);
+                    redirectAttributes.addFlashAttribute("successMessage", "Account activated! Welcome to SmartCare 360.");
+                    return getRedirectUrlForRole(user.getRole());
+                }
+                redirectAttributes.addFlashAttribute("successMessage",
+                        "OTP verified! Please submit your documents for admin approval.");
+                return "redirect:/submit-documents?userId=" + userId;
             }
         }
         userService.findById(userId).ifPresent(user -> {
             model.addAttribute("userEmail", user.getEmail());
+            model.addAttribute("userRole", user.getRole());
         });
         model.addAttribute("errorMessage", "Invalid OTP code. Please try again.");
         model.addAttribute("userId", userId);
         return "auth/verify-otp";
+    }
+
+    @GetMapping("/submit-documents")
+    public String showSubmitDocumentsPage(@RequestParam("userId") Long userId, Model model) {
+        Optional<User> userOptional = userService.findById(userId);
+        if (userOptional.isEmpty()) {
+            return "redirect:/login";
+        }
+        User user = userOptional.get();
+        if (user.getRole() != Role.DOCTOR && user.getRole() != Role.VENDOR) {
+            return "redirect:/login";
+        }
+        model.addAttribute("userId", userId);
+        model.addAttribute("userRole", user.getRole());
+        model.addAttribute("userEmail", user.getEmail());
+        return "auth/submit-documents";
+    }
+
+    @PostMapping("/submit-documents")
+    public String submitDocuments(@RequestParam("userId") Long userId,
+                                  @RequestParam("documentInfo") String documentInfo,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            userService.submitDocuments(userId, documentInfo);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Documents submitted successfully. Your account is pending admin approval.");
+            return "redirect:/login";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/submit-documents?userId=" + userId;
+        }
     }
 
     @GetMapping("/resend-otp")
@@ -107,15 +149,75 @@ public class AuthController {
         Optional<User> userOptional = userService.loginUser(email, password);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
+
             if (!user.isVerified()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Your account is not verified yet. Please complete OTP verification.");
                 return "redirect:/verify-otp?userId=" + user.getId();
             }
+
+            if (user.getRole() == Role.DOCTOR || user.getRole() == Role.VENDOR) {
+                if (user.getApprovalStatus() == ApprovalStatus.PENDING_DOCUMENTS) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Please submit your documents before logging in.");
+                    return "redirect:/submit-documents?userId=" + user.getId();
+                }
+                if (user.getApprovalStatus() == ApprovalStatus.PENDING_ADMIN) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Your account is pending admin approval. You will be notified once approved.");
+                    return "redirect:/login";
+                }
+                if (user.getApprovalStatus() == ApprovalStatus.REJECTED) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Your account application was rejected. Contact the administrator.");
+                    return "redirect:/login";
+                }
+            }
+
+            if (!user.canLogin()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Your account is not active. Contact the administrator.");
+                return "redirect:/login";
+            }
+
             session.setAttribute("loggedInUser", user);
             return getRedirectUrlForRole(user.getRole());
         }
         model.addAttribute("errorMessage", "Invalid email or password!");
         return "auth/login";
+    }
+
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordPage() {
+        return "auth/forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String forgotPassword(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
+        try {
+            userService.initiatePasswordReset(email);
+            redirectAttributes.addFlashAttribute("successMessage", "Password reset OTP sent to your email.");
+            redirectAttributes.addFlashAttribute("resetEmail", email);
+            return "redirect:/reset-password";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/forgot-password";
+        }
+    }
+
+    @GetMapping("/reset-password")
+    public String showResetPasswordPage(Model model) {
+        return "auth/reset-password";
+    }
+
+    @PostMapping("/reset-password")
+    public String resetPassword(@RequestParam("email") String email,
+                                @RequestParam("resetOtp") String resetOtp,
+                                @RequestParam("newPassword") String newPassword,
+                                RedirectAttributes redirectAttributes) {
+        boolean success = userService.resetPassword(email, resetOtp, newPassword);
+        if (success) {
+            redirectAttributes.addFlashAttribute("successMessage", "Password reset successful. Please log in.");
+            return "redirect:/login";
+        }
+        redirectAttributes.addFlashAttribute("errorMessage", "Invalid reset OTP. Please try again.");
+        redirectAttributes.addFlashAttribute("resetEmail", email);
+        return "redirect:/reset-password";
     }
 
     @GetMapping("/logout")

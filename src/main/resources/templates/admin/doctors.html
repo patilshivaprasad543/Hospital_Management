@@ -2,33 +2,74 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Manage Doctors - Admin Portal</title>
+    <title>Doctor Management - SmartCare 360 Admin</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
     <nav class="navbar">
-        <a href="/admin/dashboard" class="navbar-brand">⚙️ Our Hospital - Admin Portal</a>
-
+        <a href="/admin/dashboard" class="navbar-brand">🏥 SmartCare 360 - Admin</a>
         <ul class="nav-links">
             <li><a href="/admin/dashboard">Dashboard</a></li>
-            <li><a href="/admin/users">User Management</a></li>
-            <li><a href="/admin/doctors">Doctor Management</a></li>
-            <li><a href="/admin/vendors">Vendor Management</a></li>
+            <li><a href="/admin/users">Patients</a></li>
+            <li><a href="/admin/doctors">Doctors</a></li>
+            <li><a href="/admin/vendors">Vendors</a></li>
             <li><a href="/admin/appointments">Appointments</a></li>
+            <li><a href="/admin/audit-logs">Audit Logs</a></li>
             <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
         </ul>
     </nav>
 
     <div class="container">
-        <h2>Hospital Specialist Doctors</h2>
+        <h2>Doctor Management</h2>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Verify, approve, or reject doctor registrations</p>
 
-        <div class="grid" style="margin-top: 1.5rem;">
-            <div class="card" th:each="doc : ${doctors}">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <h3 style="margin-bottom: 1rem;">⏳ Pending Admin Approval</h3>
+        <div class="table-container" style="margin-bottom: 2.5rem;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Mobile</th>
+                        <th>Documents</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="doc : ${pendingDoctors}">
+                        <td th:text="${doc.fullName}">Dr. Name</td>
+                        <td th:text="${doc.email}">email</td>
+                        <td th:text="${doc.mobileNumber}">mobile</td>
+                        <td th:text="${doc.documentInfo != null ? doc.documentInfo : 'Not submitted'}">docs</td>
+                        <td>
+                            <form th:action="@{/admin/doctor/{id}/approve(id=${doc.id})}" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-primary btn-sm">Approve</button>
+                            </form>
+                            <form th:action="@{/admin/doctor/{id}/reject(id=${doc.id})}" method="post" style="display:inline; margin-left: 0.4rem;">
+                                <input type="hidden" name="reason" value="Documents did not meet requirements">
+                                <button type="submit" class="btn btn-secondary btn-sm">Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pendingDoctors)}">
+                        <td colspan="5" style="text-align: center; color: var(--text-muted);">No pending doctor approvals.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 style="margin-bottom: 1rem;">✅ Approved Doctors</h3>
+        <div class="grid">
+            <div class="card" th:each="doc : ${doctors}" th:if="${doc.approvalStatus.name() == 'APPROVED'}">
                 <div class="card-title" th:text="${doc.fullName}">Dr. Name</div>
-                <p style="color: var(--primary-color); font-weight: 600;" th:text="${doc.email}">email@hospital.com</p>
-                <div style="margin: 0.8rem 0; font-size: 0.9rem; color: var(--text-muted);">
-                    <p><strong>Mobile:</strong> <span th:text="${doc.mobileNumber}">9876543210</span></p>
-                </div>
+                <p style="color: var(--primary-color); font-weight: 600;" th:text="${doc.email}">email</p>
+                <p style="font-size: 0.9rem; color: var(--text-muted);">
+                    <strong>Mobile:</strong> <span th:text="${doc.mobileNumber}">9876543210</span>
+                </p>
+                <span class="badge badge-confirmed">APPROVED</span>
             </div>
             <div th:if="${#lists.isEmpty(doctors)}" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">
                 No doctors registered.

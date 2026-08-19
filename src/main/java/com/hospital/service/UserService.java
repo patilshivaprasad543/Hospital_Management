@@ -3,8 +3,10 @@ package com.hospital.service;
 import com.hospital.model.*;
 import com.hospital.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -27,22 +29,32 @@ public class UserService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AuditLogService auditLogService;
+
     public User registerUser(User user) {
+        if (user.getRole() == Role.ADMIN) {
+            throw new RuntimeException("Admin accounts cannot be self-registered. Contact system administrator.");
+        }
+
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email address is already registered.");
         }
 
-        // Generate 6-digit OTP
-        String otp = String.format("%06d", new Random().nextInt(900000) + 100000);
+        String otp = generateOtp();
         user.setOtpCode(otp);
         user.setVerified(false);
+        user.setAdminApproved(user.getRole() == Role.PATIENT);
+        user.setApprovalStatus(ApprovalStatus.PENDING_OTP);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         User savedUser = userRepository.save(user);
 
-        // Create initial profiles based on Role
         if (user.getRole() == Role.PATIENT) {
-            PatientProfile patientProfile = new PatientProfile(savedUser);
-            patientProfileRepository.save(patientProfile);
+            patientProfileRepository.save(new PatientProfile(savedUser));
         } else if (user.getRole() == Role.DOCTOR) {
             DoctorProfile doctorProfile = new DoctorProfile(savedUser);
             doctorProfile.setSpecialization("General Physician");
@@ -58,6 +70,7 @@ public class UserService {
         }
 
         emailService.sendOtpEmail(user.getEmail(), otp);
+        auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered, OTP sent");
         return savedUser;
     }
 
@@ -68,35 +81,153 @@ public class UserService {
             if (user.getOtpCode() != null && user.getOtpCode().equals(enteredOtp.trim())) {
                 user.setVerified(true);
                 user.setOtpCode(null);
+
+                if (user.getRole() == Role.PATIENT) {
+                    user.setApprovalStatus(ApprovalStatus.APPROVED);
+                    user.setAdminApproved(true);
+                } else if (user.getRole() == Role.DOCTOR || user.getRole() == Role.VENDOR) {
+                    user.setApprovalStatus(ApprovalStatus.PENDING_DOCUMENTS);
+                    user.setAdminApproved(false);
+                }
+
                 userRepository.save(user);
+                auditLogService.log(user, "OTP_VERIFIED", "AUTH", "Account OTP verified");
                 return true;
             }
         }
         return false;
     }
 
-    public String resendOtp(Long userId) {
-        Optional<User> optionalUser = userRepository.findById(userId);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            String newOtp = String.format("%06d", new Random().nextInt(900000) + 100000);
-            user.setOtpCode(newOtp);
-            userRepository.save(user);
-            emailService.sendOtpEmail(user.getEmail(), newOtp);
-            return newOtp;
+    public void submitDocuments(Long userId, String documentInfo) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getRole() != Role.DOCTOR && user.getRole() != Role.VENDOR) {
+            throw new RuntimeException("Document submission is only required for doctors and vendors.");
         }
-        throw new RuntimeException("User not found for OTP resend.");
+
+        if (!user.isVerified()) {
+            throw new RuntimeException("Please complete OTP verification first.");
+        }
+
+        user.setDocumentInfo(documentInfo);
+        user.setApprovalStatus(ApprovalStatus.PENDING_ADMIN);
+        userRepository.save(user);
+        auditLogService.log(user, "DOCUMENTS_SUBMITTED", "AUTH", "Documents submitted for admin review");
+    }
+
+    public void approveUser(Long userId, User admin) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setAdminApproved(true);
+        user.setApprovalStatus(ApprovalStatus.APPROVED);
+        user.setAccountStatus("ACTIVE");
+        userRepository.save(user);
+
+        auditLogService.log(admin, "USER_APPROVED", "ADMIN",
+                user.getRole().name(), userId, "Approved " + user.getFullName());
+        emailService.sendApprovalEmail(user.getEmail(), user.getFullName(), true);
+    }
+
+    public void rejectUser(Long userId, User admin, String reason) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setAdminApproved(false);
+        user.setApprovalStatus(ApprovalStatus.REJECTED);
+        user.setAccountStatus("BLOCKED");
+        userRepository.save(user);
+
+        auditLogService.log(admin, "USER_REJECTED", "ADMIN",
+                user.getRole().name(), userId, reason != null ? reason : "Rejected by admin");
+        emailService.sendApprovalEmail(user.getEmail(), user.getFullName(), false);
+    }
+
+    public String resendOtp(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found for OTP resend."));
+
+        String newOtp = generateOtp();
+        user.setOtpCode(newOtp);
+        userRepository.save(user);
+        emailService.sendOtpEmail(user.getEmail(), newOtp);
+        return newOtp;
     }
 
     public Optional<User> loginUser(String email, String password) {
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            if (user.getPassword().equals(password)) {
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                user.setLastLoginAt(LocalDateTime.now());
+                userRepository.save(user);
+                auditLogService.log(user, "LOGIN", "AUTH", "User logged in");
                 return Optional.of(user);
             }
         }
         return Optional.empty();
+    }
+
+    public void initiatePasswordReset(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("No account found with this email address."));
+
+        if (user.getRole() == Role.ADMIN) {
+            throw new RuntimeException("Admin password cannot be reset online. Contact system administrator.");
+        }
+
+        String resetOtp = generateOtp();
+        user.setResetOtpCode(resetOtp);
+        userRepository.save(user);
+        emailService.sendPasswordResetEmail(user.getEmail(), resetOtp);
+        auditLogService.log(user, "PASSWORD_RESET_REQUESTED", "AUTH", "Password reset OTP sent");
+    }
+
+    public boolean resetPassword(String email, String resetOtp, String newPassword) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            if (user.getResetOtpCode() != null && user.getResetOtpCode().equals(resetOtp.trim())) {
+                user.setPassword(passwordEncoder.encode(newPassword));
+                user.setResetOtpCode(null);
+                userRepository.save(user);
+                auditLogService.log(user, "PASSWORD_RESET", "AUTH", "Password reset completed");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public User createAdminAccount(String email, String password, String fullName, String mobile) {
+        if (userRepository.existsByEmail(email)) {
+            return userRepository.findByEmail(email).orElseThrow();
+        }
+
+        User admin = new User(fullName, email, mobile, passwordEncoder.encode(password), Role.ADMIN);
+        admin.setVerified(true);
+        admin.setAdminApproved(true);
+        admin.setApprovalStatus(ApprovalStatus.APPROVED);
+        admin.setAccountStatus("ACTIVE");
+        return userRepository.save(admin);
+    }
+
+    public User createSeedUser(String fullName, String email, String mobile, String password, Role role) {
+        if (userRepository.existsByEmail(email)) {
+            return userRepository.findByEmail(email).orElseThrow();
+        }
+
+        User user = new User(fullName, email, mobile, passwordEncoder.encode(password), role);
+        user.setVerified(true);
+        user.setAdminApproved(true);
+        user.setApprovalStatus(ApprovalStatus.APPROVED);
+        user.setAccountStatus("ACTIVE");
+        user.setDocumentInfo("Seed data - pre-verified");
+        return userRepository.save(user);
+    }
+
+    public User saveUser(User user) {
+        return userRepository.save(user);
     }
 
     public Optional<User> findById(Long id) {
@@ -115,6 +246,10 @@ public class UserService {
         return userRepository.findByRole(Role.DOCTOR);
     }
 
+    public List<User> findApprovedDoctors() {
+        return userRepository.findByRoleAndAdminApprovedTrueAndApprovalStatus(Role.DOCTOR, ApprovalStatus.APPROVED);
+    }
+
     public List<User> findPatients() {
         return userRepository.findByRole(Role.PATIENT);
     }
@@ -123,11 +258,22 @@ public class UserService {
         return userRepository.findByRole(Role.VENDOR);
     }
 
-    // Patient Profile Update
+    public List<User> findPendingApprovals() {
+        return userRepository.findByApprovalStatus(ApprovalStatus.PENDING_ADMIN);
+    }
+
+    public List<User> findPendingDoctors() {
+        return userRepository.findByRoleAndApprovalStatus(Role.DOCTOR, ApprovalStatus.PENDING_ADMIN);
+    }
+
+    public List<User> findPendingVendors() {
+        return userRepository.findByRoleAndApprovalStatus(Role.VENDOR, ApprovalStatus.PENDING_ADMIN);
+    }
+
     public PatientProfile updatePatientProfile(Long userId, PatientProfile updatedProfile) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         PatientProfile existingProfile = patientProfileRepository.findByUser(user)
                 .orElseGet(() -> new PatientProfile(user));
 
@@ -140,7 +286,6 @@ public class UserService {
         return patientProfileRepository.save(existingProfile);
     }
 
-    // Doctor Profile Update
     public DoctorProfile updateDoctorProfile(Long userId, DoctorProfile updatedProfile) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -157,7 +302,6 @@ public class UserService {
         return doctorProfileRepository.save(existingProfile);
     }
 
-    // Vendor Profile Update
     public VendorProfile updateVendorProfile(Long userId, VendorProfile updatedProfile) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -188,5 +332,9 @@ public class UserService {
 
     public void deleteUser(Long userId) {
         userRepository.deleteById(userId);
+    }
+
+    private String generateOtp() {
+        return String.format("%06d", new Random().nextInt(900000) + 100000);
     }
 }

@@ -61,7 +61,7 @@ public class PatientController {
         model.addAttribute("patient", patient);
         model.addAttribute("profile", profile);
         model.addAttribute("appointments", appointments);
-        model.addAttribute("doctors", userService.findDoctors());
+        model.addAttribute("doctors", userService.findApprovedDoctors());
         model.addAttribute("unreadNotifications", notificationService.getUnreadCount(patient));
         model.addAttribute("prescriptions", prescriptionService.getPatientPrescriptions(patient));
         model.addAttribute("labRequests", labWorkflowService.getPatientLabRequests(patient));
@@ -89,7 +89,7 @@ public class PatientController {
         User patient = getLoggedInPatient(session);
         if (patient == null) return "redirect:/login";
 
-        model.addAttribute("doctors", userService.findDoctors());
+        model.addAttribute("doctors", userService.findApprovedDoctors());
         return "patient/doctors";
     }
 
@@ -100,7 +100,7 @@ public class PatientController {
         User patient = getLoggedInPatient(session);
         if (patient == null) return "redirect:/login";
 
-        model.addAttribute("doctors", userService.findDoctors());
+        model.addAttribute("doctors", userService.findApprovedDoctors());
         model.addAttribute("selectedDoctorId", doctorId);
         model.addAttribute("department", department != null ? department : "General Consultation");
         return "patient/book-appointment";

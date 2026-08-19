@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Audit Logs - SmartCare 360 Admin</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/admin/dashboard" class="navbar-brand">🏥 SmartCare 360 - Admin</a>
+        <ul class="nav-links">
+            <li><a href="/admin/dashboard">Dashboard</a></li>
+            <li><a href="/admin/users">Patients</a></li>
+            <li><a href="/admin/doctors">Doctors</a></li>
+            <li><a href="/admin/vendors">Vendors</a></li>
+            <li><a href="/admin/appointments">Appointments</a></li>
+            <li><a href="/admin/audit-logs">Audit Logs</a></li>
+            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h2>Audit Logs</h2>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">System activity trail — user, action, module, entity, date/time</p>
+
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date / Time</th>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                        <th>Module</th>
+                        <th>Entity</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="log : ${auditLogs}">
+                        <td th:text="${#temporals.format(log.createdAt, 'dd MMM yyyy HH:mm')}">Date</td>
+                        <td th:text="${log.user != null ? log.user.fullName : 'System'}">User</td>
+                        <td th:text="${log.user != null ? log.user.role : '-'}">Role</td>
+                        <td><span class="badge badge-pending" th:text="${log.action}">ACTION</span></td>
+                        <td th:text="${log.module}">Module</td>
+                        <td th:text="${log.entityType != null ? log.entityType + (log.entityId != null ? ' #' + log.entityId : '') : '-'}">Entity</td>
+                        <td th:text="${log.details}">Details</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(auditLogs)}">
+                        <td colspan="7" style="text-align: center; color: var(--text-muted);">No audit logs recorded yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>
