@@ -28,6 +28,15 @@ public class AppointmentService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private DoctorScheduleService doctorScheduleService;
+
+    @Autowired
+    private BillingService billingService;
+
+    @Autowired
+    private UserService userService;
+
     public Appointment bookAppointment(Long patientId, Long doctorId, LocalDate date, LocalTime time, String reason) {
         return bookAppointmentWithDepartment(patientId, doctorId, date, time, reason, "General Consultation");
     }
@@ -41,6 +50,8 @@ public class AppointmentService {
         if (!doctor.isAdminApproved() || doctor.getApprovalStatus() != com.hospital.model.ApprovalStatus.APPROVED) {
             throw new RuntimeException("This doctor is not yet approved for appointments.");
         }
+
+        doctorScheduleService.validateBooking(doctor, date, time);
 
         boolean slotTaken = appointmentRepository.existsByDoctorAndAppointmentDateAndAppointmentTimeAndStatusIn(
                 doctor, date, time,
@@ -132,6 +143,16 @@ public class AppointmentService {
         // Trigger email & notification when confirmed
         if (newStatus == AppointmentStatus.CONFIRMED && previousStatus != AppointmentStatus.CONFIRMED) {
             emailService.sendAppointmentConfirmationEmail(savedAppointment);
+            userService.getDoctorProfile(savedAppointment.getDoctor()).ifPresent(profile -> {
+                if (profile.getConsultationFee() != null && profile.getConsultationFee() > 0) {
+                    billingService.createInvoice(
+                            savedAppointment.getPatient(),
+                            "CONSULTATION",
+                            "Consultation with Dr. " + savedAppointment.getDoctor().getFullName(),
+                            profile.getConsultationFee(),
+                            savedAppointment.getId());
+                }
+            });
             notificationService.sendNotification(
                 savedAppointment.getPatient(),
                 "✅ Appointment Confirmed!",

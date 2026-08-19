@@ -2,6 +2,7 @@ package com.hospital.config;
 
 import com.hospital.model.*;
 import com.hospital.repository.*;
+import com.hospital.service.DepartmentService;
 import com.hospital.service.UserService;
 import com.hospital.service.VendorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,17 +34,28 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private VendorService vendorService;
 
+    @Autowired
+    private DepartmentService departmentService;
+
     @Override
     public void run(String... args) {
         userService.createAdminAccount(adminEmail, adminPassword, adminName, adminMobile);
+        departmentService.seedDepartmentsIfEmpty();
 
         if (userRepository.count() <= 1) {
+            Department cardiology = departmentService.getAllDepartments().stream()
+                    .filter(d -> d.getName().equals("Cardiology")).findFirst().orElse(null);
+            Department neurology = departmentService.getAllDepartments().stream()
+                    .filter(d -> d.getName().equals("Neurology")).findFirst().orElse(null);
+            Department pediatrics = departmentService.getAllDepartments().stream()
+                    .filter(d -> d.getName().equals("Pediatrics")).findFirst().orElse(null);
+
             User doc1 = createApprovedDoctor("Dr. Sarah Jenkins", "sarah.jenkins@smartcare360.com", "9876543211", "doc123",
-                    "Cardiology", "MD, DM (Cardiology)", 12, 800.0, "Mon - Sat (09:00 AM - 02:00 PM)");
+                    "Cardiology", "MD, DM (Cardiology)", 12, 800.0, "Mon - Sat (09:00 AM - 02:00 PM)", cardiology);
             User doc2 = createApprovedDoctor("Dr. Robert Chen", "robert.chen@smartcare360.com", "9876543212", "doc123",
-                    "Neurology", "MBBS, M.Ch (Neurology)", 9, 1000.0, "Mon - Fri (10:00 AM - 04:00 PM)");
+                    "Neurology", "MBBS, M.Ch (Neurology)", 9, 1000.0, "Mon - Fri (10:00 AM - 04:00 PM)", neurology);
             User doc3 = createApprovedDoctor("Dr. Emily Watson", "emily.watson@smartcare360.com", "9876543213", "doc123",
-                    "Pediatrics", "MBBS, DCH, MD (Pediatrics)", 7, 600.0, "Mon - Sat (11:00 AM - 05:00 PM)");
+                    "Pediatrics", "MBBS, DCH, MD (Pediatrics)", 7, 600.0, "Mon - Sat (11:00 AM - 05:00 PM)", pediatrics);
 
             User patient1 = createApprovedPatient("John Doe", "patient@smartcare360.com", "9876543214", "patient123",
                     34, "O+", "Male", "123 Health Ave, Metro City", "No major chronic conditions.");
@@ -69,7 +81,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private User createApprovedDoctor(String name, String email, String mobile, String password,
                                       String specialization, String qualification, int experience,
-                                      double fee, String schedule) {
+                                      double fee, String schedule, Department department) {
         User doc = userService.createSeedUser(name, email, mobile, password, Role.DOCTOR);
         DoctorProfile profile = new DoctorProfile(doc);
         profile.setSpecialization(specialization);
@@ -77,6 +89,11 @@ public class DataInitializer implements CommandLineRunner {
         profile.setExperienceYears(experience);
         profile.setConsultationFee(fee);
         profile.setAvailabilitySchedule(schedule);
+        profile.setDepartment(department);
+        profile.setWorkingDays("MON,TUE,WED,THU,FRI,SAT");
+        profile.setWorkStartTime("09:00");
+        profile.setWorkEndTime("17:00");
+        profile.setSlotDurationMinutes(30);
         userService.updateDoctorProfile(doc.getId(), profile);
         return doc;
     }
@@ -89,6 +106,8 @@ public class DataInitializer implements CommandLineRunner {
         profile.setBloodGroup(bloodGroup);
         profile.setGender(gender);
         profile.setAddress(address);
+        profile.setEmergencyContactName("Emergency Contact");
+        profile.setEmergencyContactPhone("9999999998");
         profile.setMedicalHistory(history);
         userService.updatePatientProfile(patient.getId(), profile);
         return patient;

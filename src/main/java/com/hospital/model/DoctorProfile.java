@@ -20,6 +20,16 @@ public class DoctorProfile {
     private String availabilitySchedule;
     private Double consultationFee;
 
+    private Integer slotDurationMinutes = 30;
+    private String workingDays = "MON,TUE,WED,THU,FRI,SAT";
+    private String workStartTime = "09:00";
+    private String workEndTime = "17:00";
+    private Integer maxAppointmentsPerDay = 16;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "department_id")
+    private Department department;
+
     public DoctorProfile() {
     }
 
@@ -81,5 +91,53 @@ public class DoctorProfile {
 
     public void setConsultationFee(Double consultationFee) {
         this.consultationFee = consultationFee;
+    }
+
+    public Integer getSlotDurationMinutes() {
+        return slotDurationMinutes;
+    }
+
+    public void setSlotDurationMinutes(Integer slotDurationMinutes) {
+        this.slotDurationMinutes = slotDurationMinutes;
+    }
+
+    public String getWorkingDays() {
+        return workingDays;
+    }
+
+    public void setWorkingDays(String workingDays) {
+        this.workingDays = workingDays;
+    }
+
+    public String getWorkStartTime() {
+        return workStartTime;
+    }
+
+    public void setWorkStartTime(String workStartTime) {
+        this.workStartTime = workStartTime;
+    }
+
+    public String getWorkEndTime() {
+        return workEndTime;
+    }
+
+    public void setWorkEndTime(String workEndTime) {
+        this.workEndTime = workEndTime;
+    }
+
+    public Integer getMaxAppointmentsPerDay() {
+        return maxAppointmentsPerDay;
+    }
+
+    public void setMaxAppointmentsPerDay(Integer maxAppointmentsPerDay) {
+        this.maxAppointmentsPerDay = maxAppointmentsPerDay;
+    }
+
+    public Department getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
     }
 }

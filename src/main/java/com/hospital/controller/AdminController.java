@@ -44,6 +44,12 @@ public class AdminController {
     @Autowired
     private PharmacyOrderRepository pharmacyOrderRepository;
 
+    @Autowired
+    private DepartmentService departmentService;
+
+    @Autowired
+    private BillingService billingService;
+
     private User getLoggedInAdmin(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user != null && user.getRole() == Role.ADMIN) {
@@ -74,13 +80,9 @@ public class AdminController {
         long lowStockMedicines = pharmacyItemRepository
                 .countByStockQuantityLessThanEqualAndStockQuantityGreaterThan(LOW_STOCK_THRESHOLD, 0);
 
-        double totalRevenue = pharmacyOrderRepository.findAll().stream()
-                .filter(o -> "COMPLETED".equals(o.getStatus()))
-                .mapToDouble(o -> o.getTotalPrice() != null ? o.getTotalPrice() : 0.0)
-                .sum();
+        double totalRevenue = billingService.getTotalRevenue();
 
-        long pendingPayments = pharmacyOrderRepository.countByStatus("PLACED")
-                + pharmacyOrderRepository.countByStatus("ACCEPTED");
+        long pendingPayments = billingService.countPendingPayments();
 
         model.addAttribute("admin", admin);
         model.addAttribute("totalUsers", userService.findAllUsers().size());
@@ -275,5 +277,26 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/admin/users";
+    }
+
+    @GetMapping("/departments")
+    public String departments(HttpSession session, Model model) {
+        User admin = getLoggedInAdmin(session);
+        if (admin == null) return "redirect:/login/admin";
+        model.addAttribute("departments", departmentService.getAllDepartments());
+        return "admin/departments";
+    }
+
+    @PostMapping("/departments")
+    public String addDepartment(@RequestParam String name,
+                                @RequestParam(required = false) String description,
+                                HttpSession session,
+                                RedirectAttributes redirectAttributes) {
+        User admin = getLoggedInAdmin(session);
+        if (admin == null) return "redirect:/login/admin";
+        departmentService.save(new Department(name, description));
+        auditLogService.log(admin, "DEPARTMENT_CREATED", "ADMIN", name);
+        redirectAttributes.addFlashAttribute("successMessage", "Department added.");
+        return "redirect:/admin/departments";
     }
 }

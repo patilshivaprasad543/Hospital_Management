@@ -5,6 +5,7 @@ public enum NotificationCategory {
     PRESCRIPTION,
     LABORATORY,
     PHARMACY,
+    BILLING,
     REMINDER,
     SYSTEM
 }
