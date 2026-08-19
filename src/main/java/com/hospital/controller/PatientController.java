@@ -239,9 +239,20 @@ public class PatientController {
         User patient = getLoggedInPatient(session);
         if (patient == null) return "redirect:/login/patient";
 
+        PatientProfile profile = userService.getPatientProfile(patient).orElse(new PatientProfile(patient));
         model.addAttribute("prescriptions", prescriptionService.getPatientPrescriptions(patient));
-        model.addAttribute("pharmacyVendors", userService.findVendors());
+        model.addAttribute("pharmacyVendors", userService.findPharmacyVendors());
+        model.addAttribute("patientProfile", profile);
         return "patient/prescriptions";
+    }
+
+    @GetMapping("/pharmacy-orders")
+    public String viewPharmacyOrders(HttpSession session, Model model) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+
+        model.addAttribute("pharmacyOrders", pharmacyWorkflowService.getPatientOrders(patient));
+        return "patient/pharmacy-orders";
     }
 
     @GetMapping("/lab-reports")
@@ -271,6 +282,7 @@ public class PatientController {
     @PostMapping("/order-pharmacy")
     public String placePharmacyOrder(@RequestParam("prescriptionId") Long prescriptionId,
                                      @RequestParam("pharmacyVendorId") Long pharmacyVendorId,
+                                     @RequestParam(value = "deliveryAddress", required = false) String deliveryAddress,
                                      HttpSession session,
                                      RedirectAttributes redirectAttributes) {
         User patient = getLoggedInPatient(session);
@@ -281,12 +293,33 @@ public class PatientController {
                 .findFirst().orElse(null);
         User vendor = userService.findById(pharmacyVendorId).orElse(null);
 
-        if (rx != null && vendor != null) {
-            String summary = "Prescription #" + rx.getId() + " - Diagnosis: " + rx.getDiagnosis();
-            pharmacyWorkflowService.placeOrder(patient, rx, vendor, 250.00, summary);
-            redirectAttributes.addFlashAttribute("successMessage", "Prescription medicine order placed with Pharmacy Vendor!");
+        if (rx == null || vendor == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid prescription or pharmacy vendor.");
+            return "redirect:/patient/prescriptions";
         }
-        return "redirect:/patient/dashboard";
+
+        if (vendor.getVendorType() != VendorType.PHARMACY) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please select a pharmacy vendor.");
+            return "redirect:/patient/prescriptions";
+        }
+
+        if (deliveryAddress == null || deliveryAddress.isBlank()) {
+            PatientProfile profile = userService.getPatientProfile(patient).orElse(new PatientProfile(patient));
+            deliveryAddress = profile.getAddress();
+        }
+        if (deliveryAddress == null || deliveryAddress.isBlank()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please provide a delivery address.");
+            return "redirect:/patient/prescriptions";
+        }
+
+        try {
+            pharmacyWorkflowService.placeOrder(patient, rx, vendor, deliveryAddress);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Medicine order placed successfully! Track delivery status below.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/patient/pharmacy-orders";
     }
 
     @GetMapping("/appointments")

@@ -268,6 +268,12 @@ public class UserService {
         return userRepository.findByRole(Role.VENDOR);
     }
 
+    public List<User> findPharmacyVendors() {
+        return userRepository.findByRole(Role.VENDOR).stream()
+                .filter(v -> v.getVendorType() == VendorType.PHARMACY)
+                .toList();
+    }
+
     public List<User> findPendingApprovals() {
         return userRepository.findByApprovalStatus(ApprovalStatus.PENDING_ADMIN);
     }

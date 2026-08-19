@@ -1,6 +1,7 @@
 package com.hospital.repository;
 
 import com.hospital.model.PharmacyOrder;
+import com.hospital.model.PharmacyOrderStatus;
 import com.hospital.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,5 +13,5 @@ public interface PharmacyOrderRepository extends JpaRepository<PharmacyOrder, Lo
     List<PharmacyOrder> findByPatientOrderByCreatedAtDesc(User patient);
     List<PharmacyOrder> findByPharmacyVendorOrderByCreatedAtDesc(User pharmacyVendor);
 
-    long countByStatus(String status);
+    long countByStatus(PharmacyOrderStatus status);
 }
