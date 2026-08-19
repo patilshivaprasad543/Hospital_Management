@@ -122,4 +122,29 @@ public class DoctorScheduleService {
         String days = profile.getWorkingDays() != null ? profile.getWorkingDays() : "MON,TUE,WED,THU,FRI,SAT";
         return days.toUpperCase().contains(day.name().substring(0, 3));
     }
+
+    public DoctorLeave addLeave(User doctor, LocalDate date, String reason) {
+        if (date.isBefore(LocalDate.now())) {
+            throw new RuntimeException("Cannot mark leave for past dates.");
+        }
+        if (doctorLeaveRepository.existsByDoctorAndLeaveDate(doctor, date)) {
+            throw new RuntimeException("Leave already marked for this date.");
+        }
+        return doctorLeaveRepository.save(new DoctorLeave(doctor, date, reason));
+    }
+
+    public List<DoctorLeave> getUpcomingLeaves(User doctor) {
+        return doctorLeaveRepository.findByDoctorOrderByLeaveDateDesc(doctor).stream()
+                .filter(l -> !l.getLeaveDate().isBefore(LocalDate.now()))
+                .toList();
+    }
+
+    public void removeLeave(Long leaveId, User doctor) {
+        doctorLeaveRepository.findById(leaveId).ifPresent(leave -> {
+            if (!leave.getDoctor().getId().equals(doctor.getId())) {
+                throw new RuntimeException("Unauthorized.");
+            }
+            doctorLeaveRepository.delete(leave);
+        });
+    }
 }

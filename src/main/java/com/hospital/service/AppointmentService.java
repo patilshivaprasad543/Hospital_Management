@@ -215,4 +215,43 @@ public class AppointmentService {
     public long countCompletedConsultations() {
         return appointmentRepository.countByStatus(AppointmentStatus.COMPLETED);
     }
+
+    public Appointment cancelAppointment(Long appointmentId, User patient) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        if (!appointment.getPatient().getId().equals(patient.getId())) {
+            throw new RuntimeException("Unauthorized cancellation.");
+        }
+        if (appointment.getStatus() == AppointmentStatus.COMPLETED
+                || appointment.getStatus() == AppointmentStatus.REJECTED) {
+            throw new RuntimeException("This appointment cannot be cancelled.");
+        }
+        if (appointment.getState() == AppointmentState.CHECKED_IN
+                || appointment.getState() == AppointmentState.IN_CONSULTATION) {
+            throw new RuntimeException("Cannot cancel after check-in. Contact the hospital desk.");
+        }
+
+        appointment.setStatus(AppointmentStatus.REJECTED);
+        appointment.setState(AppointmentState.CANCELLED);
+        appointment.setNotes("Cancelled by patient");
+        Appointment saved = appointmentRepository.save(appointment);
+
+        notificationService.sendNotification(
+                appointment.getDoctor(),
+                "Appointment Cancelled",
+                "Patient " + patient.getFullName() + " cancelled the appointment on "
+                        + appointment.getAppointmentDate() + " at " + appointment.getAppointmentTime() + ".",
+                NotificationCategory.APPOINTMENT,
+                "/doctor/dashboard"
+        );
+        notificationService.sendNotification(
+                patient,
+                "Appointment Cancelled",
+                "Your appointment with Dr. " + appointment.getDoctor().getFullName() + " has been cancelled.",
+                NotificationCategory.APPOINTMENT,
+                "/patient/appointments"
+        );
+        return saved;
+    }
 }

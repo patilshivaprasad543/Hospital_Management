@@ -48,6 +48,9 @@ public class AdminController {
     private DepartmentService departmentService;
 
     @Autowired
+    private AnnouncementService announcementService;
+
+    @Autowired
     private BillingService billingService;
 
     private User getLoggedInAdmin(HttpSession session) {
@@ -298,5 +301,40 @@ public class AdminController {
         auditLogService.log(admin, "DEPARTMENT_CREATED", "ADMIN", name);
         redirectAttributes.addFlashAttribute("successMessage", "Department added.");
         return "redirect:/admin/departments";
+    }
+
+    @GetMapping("/announcements")
+    public String announcements(HttpSession session, Model model) {
+        User admin = getLoggedInAdmin(session);
+        if (admin == null) return "redirect:/login/admin";
+        model.addAttribute("announcements", announcementService.getAll());
+        return "admin/announcements";
+    }
+
+    @PostMapping("/announcements")
+    public String createAnnouncement(@RequestParam String title,
+                                     @RequestParam String message,
+                                     @RequestParam(defaultValue = "ALL") String audience,
+                                     HttpSession session,
+                                     RedirectAttributes redirectAttributes) {
+        User admin = getLoggedInAdmin(session);
+        if (admin == null) return "redirect:/login/admin";
+        announcementService.create(title, message, audience, admin);
+        redirectAttributes.addFlashAttribute("successMessage", "Announcement published.");
+        return "redirect:/admin/announcements";
+    }
+
+    @PostMapping("/announcements/{id}/toggle")
+    public String toggleAnnouncement(@PathVariable Long id, HttpSession session) {
+        if (getLoggedInAdmin(session) == null) return "redirect:/login/admin";
+        announcementService.toggleActive(id);
+        return "redirect:/admin/announcements";
+    }
+
+    @PostMapping("/announcements/{id}/delete")
+    public String deleteAnnouncement(@PathVariable Long id, HttpSession session) {
+        if (getLoggedInAdmin(session) == null) return "redirect:/login/admin";
+        announcementService.delete(id);
+        return "redirect:/admin/announcements";
     }
 }

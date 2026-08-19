@@ -63,6 +63,15 @@ public class PatientController {
     @Autowired
     private PrescriptionRepository prescriptionRepository;
 
+    @Autowired
+    private AnnouncementService announcementService;
+
+    @Autowired
+    private FeedbackService feedbackService;
+
+    @Autowired
+    private PatientTimelineService patientTimelineService;
+
     private User getLoggedInPatient(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user != null && user.getRole() == Role.PATIENT) {
@@ -87,6 +96,7 @@ public class PatientController {
         model.addAttribute("prescriptions", prescriptionService.getPatientPrescriptions(patient));
         model.addAttribute("labRequests", labWorkflowService.getPatientLabRequests(patient));
         model.addAttribute("pharmacyOrders", pharmacyWorkflowService.getPatientOrders(patient));
+        model.addAttribute("announcements", announcementService.getActiveForRole("PATIENT"));
 
         return "patient/dashboard";
     }
@@ -106,11 +116,47 @@ public class PatientController {
     }
 
     @GetMapping("/doctors")
-    public String viewDoctors(HttpSession session, Model model) {
+    public String viewDoctors(@RequestParam(value = "department", required = false) String department,
+                              @RequestParam(value = "search", required = false) String search,
+                              HttpSession session, Model model) {
         User patient = getLoggedInPatient(session);
         if (patient == null) return "redirect:/login/patient";
 
-        model.addAttribute("doctors", userService.findApprovedDoctors());
+        List<User> doctors = userService.findApprovedDoctors();
+        Map<Long, DoctorProfile> doctorProfiles = new HashMap<>();
+        Map<Long, Double> doctorRatings = new HashMap<>();
+
+        for (User doc : doctors) {
+            userService.getDoctorProfile(doc).ifPresent(p -> doctorProfiles.put(doc.getId(), p));
+            doctorRatings.put(doc.getId(), feedbackService.getDoctorAverageRating(doc));
+        }
+
+        if (department != null && !department.isBlank()) {
+            doctors = doctors.stream().filter(doc -> {
+                DoctorProfile p = doctorProfiles.get(doc.getId());
+                if (p == null) return false;
+                if (p.getDepartment() != null && p.getDepartment().getName().equalsIgnoreCase(department)) {
+                    return true;
+                }
+                return p.getSpecialization() != null && p.getSpecialization().equalsIgnoreCase(department);
+            }).toList();
+        }
+
+        if (search != null && !search.isBlank()) {
+            String q = search.toLowerCase();
+            doctors = doctors.stream().filter(doc -> {
+                DoctorProfile p = doctorProfiles.get(doc.getId());
+                return doc.getFullName().toLowerCase().contains(q)
+                        || (p != null && p.getSpecialization() != null && p.getSpecialization().toLowerCase().contains(q));
+            }).toList();
+        }
+
+        model.addAttribute("doctors", doctors);
+        model.addAttribute("doctorProfiles", doctorProfiles);
+        model.addAttribute("doctorRatings", doctorRatings);
+        model.addAttribute("departments", departmentService.getActiveDepartments());
+        model.addAttribute("selectedDepartment", department);
+        model.addAttribute("searchQuery", search);
         return "patient/doctors";
     }
 
@@ -184,9 +230,7 @@ public class PatientController {
         if (patient == null) return "redirect:/login/patient";
 
         model.addAttribute("patient", patient);
-        model.addAttribute("appointments", appointmentService.getPatientAppointments(patient));
-        model.addAttribute("prescriptions", prescriptionService.getPatientPrescriptions(patient));
-        model.addAttribute("labRequests", labWorkflowService.getPatientLabRequests(patient));
+        model.addAttribute("timelineEvents", patientTimelineService.buildTimeline(patient));
         return "patient/timeline";
     }
 
@@ -251,7 +295,43 @@ public class PatientController {
         if (patient == null) return "redirect:/login/patient";
 
         model.addAttribute("appointments", appointmentService.getPatientAppointments(patient));
+        model.addAttribute("feedbackSubmitted", appointmentService.getPatientAppointments(patient).stream()
+                .map(Appointment::getId)
+                .filter(feedbackService::hasFeedback)
+                .collect(java.util.stream.Collectors.toSet()));
         return "patient/appointments";
+    }
+
+    @PostMapping("/appointments/{id}/cancel")
+    public String cancelAppointment(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+        try {
+            appointmentService.cancelAppointment(id, patient);
+            redirectAttributes.addFlashAttribute("successMessage", "Appointment cancelled successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/patient/appointments";
+    }
+
+    @PostMapping("/appointments/{id}/feedback")
+    public String submitFeedback(@PathVariable Long id,
+                                 @RequestParam int rating,
+                                 @RequestParam(required = false) String comment,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+        try {
+            Appointment app = appointmentService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Appointment not found"));
+            feedbackService.submitFeedback(app, patient, rating, comment);
+            redirectAttributes.addFlashAttribute("successMessage", "Thank you for your feedback!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/patient/appointments";
     }
 
     @GetMapping("/profile")
@@ -309,6 +389,20 @@ public class PatientController {
                         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoice-" + inv.getInvoiceNumber() + ".pdf")
                         .contentType(MediaType.APPLICATION_PDF)
                         .body(pdfService.generateInvoicePdf(inv, patient)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/prescription/{id}/pdf")
+    public ResponseEntity<byte[]> downloadPrescriptionPdf(@PathVariable Long id, HttpSession session) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return ResponseEntity.status(401).build();
+        return prescriptionService.getPatientPrescriptions(patient).stream()
+                .filter(p -> p.getId().equals(id))
+                .findFirst()
+                .map(rx -> ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=prescription-" + rx.getId() + ".pdf")
+                        .contentType(MediaType.APPLICATION_PDF)
+                        .body(pdfService.generatePrescriptionPdf(rx, rx.getDoctor(), patient)))
                 .orElse(ResponseEntity.notFound().build());
     }
 }

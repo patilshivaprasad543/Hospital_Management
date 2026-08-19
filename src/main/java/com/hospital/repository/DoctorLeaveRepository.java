@@ -12,4 +12,5 @@ import java.util.List;
 public interface DoctorLeaveRepository extends JpaRepository<DoctorLeave, Long> {
     boolean existsByDoctorAndLeaveDate(User doctor, LocalDate leaveDate);
     List<DoctorLeave> findByDoctorAndLeaveDateBetween(User doctor, LocalDate start, LocalDate end);
+    List<DoctorLeave> findByDoctorOrderByLeaveDateDesc(User doctor);
 }

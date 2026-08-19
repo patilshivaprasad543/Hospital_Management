@@ -33,6 +33,15 @@ public class DoctorController {
     @Autowired
     private ConsultationService consultationService;
 
+    @Autowired
+    private DoctorScheduleService doctorScheduleService;
+
+    @Autowired
+    private FeedbackService feedbackService;
+
+    @Autowired
+    private AnnouncementService announcementService;
+
     private User getLoggedInDoctor(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user != null && user.getRole() == Role.DOCTOR) {
@@ -61,6 +70,7 @@ public class DoctorController {
         model.addAttribute("confirmedAppointments", confirmedAppointments);
         model.addAttribute("checkedInQueue", checkedInQueue);
         model.addAttribute("prescriptions", prescriptionService.getDoctorPrescriptions(doctor));
+        model.addAttribute("announcements", announcementService.getActiveForRole("DOCTOR"));
 
         return "doctor/dashboard";
     }
@@ -230,7 +240,39 @@ public class DoctorController {
         DoctorProfile profile = userService.getDoctorProfile(doctor).orElse(new DoctorProfile(doctor));
         model.addAttribute("doctor", doctor);
         model.addAttribute("profile", profile);
+        model.addAttribute("upcomingLeaves", doctorScheduleService.getUpcomingLeaves(doctor));
+        model.addAttribute("averageRating", feedbackService.getDoctorAverageRating(doctor));
+        model.addAttribute("ratingCount", feedbackService.getDoctorRatingCount(doctor));
         return "doctor/profile";
+    }
+
+    @PostMapping("/leave/add")
+    public String addLeave(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate leaveDate,
+                           @RequestParam(required = false) String reason,
+                           HttpSession session,
+                           RedirectAttributes redirectAttributes) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return "redirect:/login/doctor";
+        try {
+            doctorScheduleService.addLeave(doctor, leaveDate, reason);
+            redirectAttributes.addFlashAttribute("successMessage", "Leave marked for " + leaveDate);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/doctor/profile";
+    }
+
+    @PostMapping("/leave/{id}/delete")
+    public String deleteLeave(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return "redirect:/login/doctor";
+        try {
+            doctorScheduleService.removeLeave(id, doctor);
+            redirectAttributes.addFlashAttribute("successMessage", "Leave removed.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/doctor/profile";
     }
 
     @PostMapping("/profile")

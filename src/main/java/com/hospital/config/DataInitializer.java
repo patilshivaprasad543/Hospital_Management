@@ -2,6 +2,7 @@ package com.hospital.config;
 
 import com.hospital.model.*;
 import com.hospital.repository.*;
+import com.hospital.service.AnnouncementService;
 import com.hospital.service.DepartmentService;
 import com.hospital.service.UserService;
 import com.hospital.service.VendorService;
@@ -37,10 +38,14 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private DepartmentService departmentService;
 
+    @Autowired
+    private AnnouncementService announcementService;
+
     @Override
     public void run(String... args) {
         userService.createAdminAccount(adminEmail, adminPassword, adminName, adminMobile);
         departmentService.seedDepartmentsIfEmpty();
+        seedAnnouncementsIfEmpty();
 
         if (userRepository.count() <= 1) {
             Department cardiology = departmentService.getAllDepartments().stream()
@@ -127,5 +132,19 @@ public class DataInitializer implements CommandLineRunner {
         profile.setDescription(description);
         userService.updateVendorProfile(vendor.getId(), profile);
         return vendor;
+    }
+
+    private void seedAnnouncementsIfEmpty() {
+        if (announcementService.getAll().isEmpty()) {
+            announcementService.create("Welcome to SmartCare 360",
+                    "Our digital hospital platform is now live. Book appointments, view prescriptions, and access lab reports online.",
+                    "ALL", null);
+            announcementService.create("Free Health Checkup Camp",
+                    "Free general health screening camp on the first Saturday of every month. Register at the reception desk.",
+                    "PATIENT", null);
+            announcementService.create("Doctor Schedule Update",
+                    "Please update your weekly availability and mark leave dates in your profile to avoid booking conflicts.",
+                    "DOCTOR", null);
+        }
     }
 }
