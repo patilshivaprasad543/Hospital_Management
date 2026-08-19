@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('About Us')}"></head>
+<body class="public-page">
+    <nav th:replace="~{fragments/layout :: public-nav}"></nav>
+
+    <section class="public-page-banner">
+        <div class="container">
+            <h1>About SmartCare 360</h1>
+            <p>Transforming hospital operations with intelligent, connected healthcare technology</p>
+        </div>
+    </section>
+
+    <div class="container public-content">
+        <div class="about-grid">
+            <div class="about-text">
+                <h2>Our Mission</h2>
+                <p>SmartCare 360 was built to eliminate the fragmentation in hospital workflows. We connect every stakeholder — patients seeking care, doctors delivering it, labs running diagnostics, and pharmacies dispensing medicines — through a single, secure digital platform.</p>
+                <p>Our goal is to reduce waiting times, improve clinical outcomes, and give healthcare providers the tools they need to focus on what matters most: patient care.</p>
+
+                <h2 class="mt-2">What We Offer</h2>
+                <ul class="about-list">
+                    <li>Role-based portals for Admin, Patient, Doctor, Lab Vendor, and Pharmacy</li>
+                    <li>OTP-verified registration with admin approval workflows</li>
+                    <li>Smart appointment calendar with real-time slot management</li>
+                    <li>Digital prescriptions, lab requests, and pharmacy orders</li>
+                    <li>Billing, invoicing, and PDF report generation</li>
+                    <li>Email and WhatsApp notifications across all workflows</li>
+                    <li>Comprehensive audit logs and department management</li>
+                </ul>
+            </div>
+            <div class="about-stats">
+                <div class="card stat-card">
+                    <div class="card-title">Departments</div>
+                    <div class="stat-number">12+</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="card-title">User Roles</div>
+                    <div class="stat-number accent">5</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="card-title">Modules</div>
+                    <div class="stat-number success">10+</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="card-title">Uptime</div>
+                    <div class="stat-number">99.9%</div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="public-section-title">Our Values</h2>
+        <div class="grid">
+            <div class="card feature-card">
+                <h3>Patient First</h3>
+                <p>Every feature is designed to improve the patient experience — from easy booking to transparent billing.</p>
+            </div>
+            <div class="card feature-card">
+                <h3>Clinical Excellence</h3>
+                <p>Doctors get powerful tools for consultations, prescriptions, and follow-ups without administrative burden.</p>
+            </div>
+            <div class="card feature-card">
+                <h3>Data Security</h3>
+                <p>Healthcare data is protected with encryption, role-based access, and comprehensive audit trails.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

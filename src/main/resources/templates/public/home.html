@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Home')}"></head>
+<body class="public-page">
+    <nav th:replace="~{fragments/layout :: public-nav}"></nav>
+
+    <section class="public-hero">
+        <div class="public-hero-content">
+            <span class="hero-badge">Integrated Hospital Management</span>
+            <h1>Healthcare Made <span class="brand-accent">Simple &amp; Connected</span></h1>
+            <p>SmartCare 360 brings patients, doctors, laboratories, and pharmacies together on one secure platform — from appointment booking to prescriptions, lab reports, and billing.</p>
+            <div class="hero-actions">
+                <a href="/login" class="btn btn-primary">Access Portal</a>
+                <a href="/about" class="btn btn-secondary">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <h2 class="public-section-title">Why SmartCare 360?</h2>
+        <div class="grid">
+            <div class="card feature-card">
+                <div class="feature-icon">📅</div>
+                <h3>Smart Appointments</h3>
+                <p>Book doctor consultations with real-time slot availability, OTP-verified registration, and instant email notifications.</p>
+            </div>
+            <div class="card feature-card">
+                <div class="feature-icon">🩺</div>
+                <h3>Digital Consultations</h3>
+                <p>Doctors manage patient queues, record diagnoses, issue digital prescriptions, and order lab tests seamlessly.</p>
+            </div>
+            <div class="card feature-card">
+                <div class="feature-icon">🧪</div>
+                <h3>Lab &amp; Pharmacy</h3>
+                <p>Integrated vendor portals for diagnostic reports and pharmacy fulfillment with end-to-end patient tracking.</p>
+            </div>
+            <div class="card feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Secure &amp; Compliant</h3>
+                <p>Role-based access, audit logs, encrypted credentials, and HIPAA-ready architecture for healthcare data.</p>
+            </div>
+        </div>
+
+        <section class="cta-banner">
+            <div>
+                <h2>Ready to get started?</h2>
+                <p>Sign in to your role-based portal or contact our team for enterprise deployment.</p>
+            </div>
+            <div class="cta-actions">
+                <a href="/login" class="btn btn-primary">Portal Sign In</a>
+                <a href="/contact" class="btn btn-outline" style="background:#fff;color:var(--primary);">Contact Us</a>
+            </div>
+        </section>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
