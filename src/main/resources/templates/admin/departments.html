@@ -1,21 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Departments - SmartCare 360 Admin</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Departments')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/admin/dashboard" class="navbar-brand">🏥 SmartCare 360 - Admin</a>
-        <ul class="nav-links">
-            <li><a href="/admin/dashboard">Dashboard</a></li>
-            <li><a href="/admin/departments">Departments</a></li>
-            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
-        </ul>
-    </nav>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
 
-    <div class="container">
+<div class="container">
         <h2>Hospital Departments</h2>
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 

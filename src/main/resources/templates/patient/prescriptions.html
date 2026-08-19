@@ -1,25 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Digital Prescriptions - HospitalCare Pro</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Prescriptions')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/patient/dashboard" class="navbar-brand">🏥 HospitalCare Pro - Patient Portal</a>
-        <ul class="nav-links">
-            <li><a href="/patient/dashboard">Dashboard</a></li>
-            <li><a href="/patient/symptom-wizard">Smart Doctor Match</a></li>
-            <li><a href="/patient/appointments">My Appointments</a></li>
-            <li><a href="/patient/timeline">Health Timeline</a></li>
-            <li><a href="/patient/prescriptions">Prescriptions</a></li>
-            <li><a href="/patient/lab-reports">Lab Reports</a></li>
-            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
-        </ul>
-    </nav>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
-    <div class="container">
+<div class="container">
         <h2>💊 Digital Prescriptions</h2>
         <p style="color: var(--text-muted); margin-bottom: 2rem;">View digital prescriptions issued by your doctors and order medicines online from Pharmacy Vendors.</p>
 

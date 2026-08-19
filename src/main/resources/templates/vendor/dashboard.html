@@ -1,22 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Vendor Dashboard - Hospital Management System</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Vendor Dashboard')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/vendor/dashboard" class="navbar-brand">🏢 Our Hospital - Vendor Portal</a>
+    <nav th:replace="~{fragments/layout :: vendor-nav}"></nav>
 
-        <ul class="nav-links">
-            <li><a href="/vendor/dashboard">Dashboard</a></li>
-            <li><a href="/vendor/profile">Vendor Profile</a></li>
-            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
+<div class="container">
         <h2>Vendor Portal Overview</h2>
         <p style="color: var(--text-muted);">Manage laboratory tests or pharmacy inventory</p>
 

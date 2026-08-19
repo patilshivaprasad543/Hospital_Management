@@ -1,27 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Register - SmartCare 360</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <script>
-        function toggleVendorType() {
-            var roleSelect = document.getElementById("roleSelect");
-            var vendorGroup = document.getElementById("vendorTypeGroup");
-            vendorGroup.style.display = roleSelect.value === "VENDOR" ? "block" : "none";
-        }
-        document.addEventListener('DOMContentLoaded', toggleVendorType);
-    </script>
-</head>
-<body>
-    <nav class="navbar">
-        <a href="/" class="navbar-brand">🏥 SmartCare 360</a>
-        <ul class="nav-links">
-            <li><a href="/login">← Back to Portal</a></li>
-        </ul>
-    </nav>
+<head th:replace="~{fragments/layout :: head('Register')}"></head>
+<body class="auth-body">
+    <nav th:replace="~{fragments/layout :: auth-nav}"></nav>
 
-    <div class="container login-splash-wrapper">
+<div class="container login-splash-wrapper">
         <div class="auth-card-3d-splash" style="max-width: 540px;">
             <h2 style="text-align: center; margin-bottom: 0.4rem; color: var(--accent-color);">Create Account</h2>
             <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.8rem; font-size: 0.95rem;"

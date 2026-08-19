@@ -47,10 +47,12 @@ public class VendorController {
         model.addAttribute("profile", profile);
 
         if (vendor.getVendorType() == VendorType.LABORATORY) {
+            model.addAttribute("vendorTag", "Laboratory");
             model.addAttribute("labTests", vendorService.getLabTestsByVendor(vendor));
             model.addAttribute("labRequests", labWorkflowService.getVendorLabRequests(vendor));
             return "vendor/lab-dashboard";
         } else if (vendor.getVendorType() == VendorType.PHARMACY) {
+            model.addAttribute("vendorTag", "Pharmacy");
             model.addAttribute("pharmacyItems", vendorService.getPharmacyItemsByVendor(vendor));
             model.addAttribute("pharmacyOrders", pharmacyWorkflowService.getVendorOrders(vendor));
             return "vendor/pharmacy-dashboard";

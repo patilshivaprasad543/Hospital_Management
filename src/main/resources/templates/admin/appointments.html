@@ -1,25 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Manage Appointments - Admin Portal</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Appointments')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/admin/dashboard" class="navbar-brand">⚙️ Our Hospital - Admin Portal</a>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
 
-        <ul class="nav-links">
-            <li><a href="/admin/dashboard">Dashboard</a></li>
-            <li><a href="/admin/users">User Management</a></li>
-            <li><a href="/admin/doctors">Doctor Management</a></li>
-            <li><a href="/admin/vendors">Vendor Management</a></li>
-            <li><a href="/admin/appointments">Appointments</a></li>
-            <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
+<div class="container">
         <h2>Hospital-Wide Appointments Registry</h2>
         
         <div class="table-container" style="margin-top: 1.5rem;">

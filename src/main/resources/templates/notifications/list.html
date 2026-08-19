@@ -1,19 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Notification Center - HospitalCare Pro</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Notifications')}"></head>
 <body>
-    <nav class="navbar">
-        <a href="/" class="navbar-brand">🏥 HospitalCare Pro - Notifications</a>
-        <ul class="nav-links">
-            <li><a href="javascript:history.back()" class="btn btn-secondary btn-sm">⬅ Back</a></li>
-        </ul>
-    </nav>
+    <nav th:replace="~{fragments/layout :: auth-nav}"></nav>
 
-    <div class="container">
+<div class="container">
         <h2>🔔 Smart Notification Center</h2>
         <p style="color: var(--text-muted); margin-bottom: 2rem;">Real-time alerts for appointments, digital prescriptions, lab reports, and orders.</p>
 
