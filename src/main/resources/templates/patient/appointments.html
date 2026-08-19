@@ -4,55 +4,79 @@
 <body>
     <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
-<div class="container">
+    <div class="container">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h2>My Scheduled Appointments</h2>
-            <a href="/patient/book-appointment" class="btn btn-primary">+ New Appointment</a>
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>My Appointments</h1>
+                <p>View, check in, cancel, or rate your consultations</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="/patient/book-appointment" class="btn btn-primary">Book Appointment</a>
+            </div>
         </div>
 
         <div class="table-container">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Appointment ID</th>
-                        <th>Doctor Name</th>
-                        <th>Date & Time</th>
+                        <th>ID</th>
+                        <th>Doctor</th>
+                        <th>Date &amp; Time</th>
                         <th>Status</th>
-                        <th>Queue Ticket / Action</th>
-                        <th>Reason / Notes</th>
+                        <th>Actions</th>
+                        <th>Notes</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="app : ${appointments}">
                         <td th:text="${'#APP-' + app.id}">#APP-1</td>
                         <td th:text="${app.doctor.fullName}">Dr. Smith</td>
-                        <td th:text="${app.appointmentDate + ' ' + app.appointmentTime}">2026-08-20 10:00 AM</td>
+                        <td th:text="${app.appointmentDate + ' ' + app.appointmentTime}">Date</td>
                         <td>
-                            <span class="badge" 
-                                  th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : 'badge-rejected')}"
-                                  th:text="${app.status}">PENDING</span>
+                            <span class="badge"
+                                  th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : (app.state.name() == 'CANCELLED' ? 'badge-rejected' : 'badge-completed'))}"
+                                  th:text="${app.state.name() == 'CANCELLED' ? 'CANCELLED' : app.status}">PENDING</span>
                         </td>
                         <td>
-                            <form th:if="${app.status.name() == 'CONFIRMED' && app.queueTicket == null}" th:action="@{/patient/check-in/{id}(id=${app.id})}" method="post">
-                                <button type="submit" class="btn btn-success btn-sm">🎟️ Check-In</button>
+                            <form th:if="${app.status.name() == 'CONFIRMED' && app.queueTicket == null}"
+                                  th:action="@{/patient/check-in/{id}(id=${app.id})}" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-success btn-sm">Check-In</button>
                             </form>
-                            <span th:if="${app.queueTicket != null}" class="badge badge-role" th:text="${'Ticket: ' + app.queueTicket}">#A101</span>
-                            <span th:if="${app.status.name() != 'CONFIRMED' && app.queueTicket == null}" style="color: var(--text-muted); font-size: 0.85rem;">Pending Confirmation</span>
+                            <span th:if="${app.queueTicket != null}" class="badge badge-role" th:text="${'Ticket ' + app.queueTicket}">#A101</span>
+                            <form th:if="${app.status.name() != 'COMPLETED' && app.state.name() != 'CANCELLED' && app.queueTicket == null}"
+                                  th:action="@{/patient/appointments/{id}/cancel(id=${app.id})}" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Cancel this appointment?')">Cancel</button>
+                            </form>
                         </td>
                         <td>
                             <span th:text="${app.reason}">Reason</span>
-                            <div th:if="${app.notes != null}" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;" th:text="${'Doctor Note: ' + app.notes}"></div>
+                            <div th:if="${app.status.name() == 'COMPLETED' && !feedbackSubmitted.contains(app.id)}" class="mt-1">
+                                <form th:action="@{/patient/appointments/{id}/feedback(id=${app.id})}" method="post" class="feedback-form">
+                                    <select name="rating" class="form-control" style="width:auto;display:inline-block;" required>
+                                        <option value="">Rate</option>
+                                        <option value="5">★★★★★</option>
+                                        <option value="4">★★★★</option>
+                                        <option value="3">★★★</option>
+                                        <option value="2">★★</option>
+                                        <option value="1">★</option>
+                                    </select>
+                                    <input type="text" name="comment" class="form-control" placeholder="Optional comment" style="width:160px;display:inline-block;">
+                                    <button type="submit" class="btn btn-secondary btn-sm">Submit</button>
+                                </form>
+                            </div>
+                            <span th:if="${feedbackSubmitted.contains(app.id)}" class="text-muted" style="font-size:0.85rem;">Rated ✓</span>
                         </td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(appointments)}">
-                        <td colspan="6" style="text-align: center; color: var(--text-muted);">No appointments booked yet.</td>
+                    <tr th:if="${#lists.isEmpty(appointments)}" class="table-empty">
+                        <td colspan="6">No appointments booked yet.</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
-    <script th:src="@{/js/main.js}"></script>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>
 </html>

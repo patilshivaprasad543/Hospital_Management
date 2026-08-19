@@ -4,23 +4,56 @@
 <body>
     <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
-<div class="container">
-        <h2 style="margin-bottom: 1.5rem;">Available Medical Specialists</h2>
+    <div class="container">
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Find Doctors</h1>
+                <p>Search by department or specialization and book a consultation</p>
+            </div>
+        </div>
+
+        <div class="card mb-2">
+            <form method="get" action="/patient/doctors" style="display:grid;grid-template-columns:1fr 1fr auto;gap:1rem;align-items:end;">
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Department</label>
+                    <select name="department" class="form-control">
+                        <option value="">All Departments</option>
+                        <option th:each="d : ${departments}" th:value="${d.name}" th:text="${d.name}"
+                                th:selected="${selectedDepartment == d.name}">Dept</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control" placeholder="Doctor name or specialization"
+                           th:value="${searchQuery}">
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
 
         <div class="grid">
-            <div class="card" th:each="doc : ${doctors}">
+            <div class="card" th:each="doc : ${doctors}" th:with="prof=${doctorProfiles[doc.id]}, rating=${doctorRatings[doc.id]}">
                 <div class="card-title" th:text="${doc.fullName}">Dr. Name</div>
-                <p style="color: var(--primary-color); font-weight: 600;" th:text="${doc.email}">Specialization</p>
-                <div style="margin: 0.8rem 0; font-size: 0.9rem; color: var(--text-muted);">
-                    <p><strong>Mobile:</strong> <span th:text="${doc.mobileNumber}">9876543210</span></p>
-                </div>
-                <a th:href="@{/patient/book-appointment(doctorId=${doc.id})}" class="btn btn-primary btn-sm" style="width: 100%; margin-top: 0.5rem;">Book Appointment</a>
+                <p style="color:var(--primary);font-weight:700;"
+                   th:text="${prof != null ? prof.specialization : 'General Physician'}">Specialization</p>
+                <p class="text-muted" style="font-size:0.9rem;margin:0.5rem 0;"
+                   th:if="${prof != null && prof.department != null}"
+                   th:text="${'Department: ' + prof.department.name}">Dept</p>
+                <p style="font-size:0.9rem;">
+                    <span class="rating-stars" th:text="${'★ ' + #numbers.formatDecimal(rating != null ? rating : 0, 1, 1)}">★ 4.5</span>
+                    <span class="text-muted"> / 5</span>
+                </p>
+                <p style="font-size:0.9rem;color:var(--text-muted);">
+                    Fee: ₹<span th:text="${prof != null && prof.consultationFee != null ? prof.consultationFee : '500'}">500</span>
+                    · Exp: <span th:text="${prof != null ? prof.experienceYears : '-'}">5</span> yrs
+                </p>
+                <a th:href="@{/patient/book-appointment(doctorId=${doc.id})}" class="btn btn-primary btn-sm btn-block mt-2">Book Appointment</a>
             </div>
-            <div th:if="${#lists.isEmpty(doctors)}" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">
-                No doctors currently registered in the system.
+            <div th:if="${#lists.isEmpty(doctors)}" class="table-empty" style="grid-column:1/-1;padding:2rem;">
+                No doctors found matching your criteria.
             </div>
         </div>
     </div>
-    <script th:src="@{/js/main.js}"></script>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>
 </html>

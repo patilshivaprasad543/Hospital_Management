@@ -26,6 +26,8 @@
                     </ul>
                 </div>
 
+                <a th:href="@{/patient/prescription/{id}/pdf(id=${rx.id})}" class="btn btn-secondary btn-sm" style="margin-bottom:0.75rem;">Download PDF</a>
+
                 <!-- Order from Pharmacy Vendor Form -->
                 <form th:action="@{/patient/order-pharmacy}" method="post">
                     <input type="hidden" name="prescriptionId" th:value="${rx.id}" />

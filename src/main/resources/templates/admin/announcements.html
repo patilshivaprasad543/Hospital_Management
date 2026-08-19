@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Announcements')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Hospital Announcements</h1>
+                <p>Publish notices for patients, doctors, or all portal users</p>
+            </div>
+        </div>
+
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <div class="split-layout">
+            <div class="card">
+                <h3 class="mb-2">New Announcement</h3>
+                <form th:action="@{/admin/announcements}" method="post">
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. Holiday OPD Schedule" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Message</label>
+                        <textarea name="message" class="form-control" rows="4" placeholder="Announcement details..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Audience</label>
+                        <select name="audience" class="form-control">
+                            <option value="ALL">Everyone</option>
+                            <option value="PATIENT">Patients Only</option>
+                            <option value="DOCTOR">Doctors Only</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Publish</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Audience</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="a : ${announcements}">
+                            <td>
+                                <strong th:text="${a.title}">Title</strong>
+                                <div class="text-muted" style="font-size:0.85rem;" th:text="${a.message}">Message</div>
+                            </td>
+                            <td th:text="${a.audience}">ALL</td>
+                            <td>
+                                <span class="badge" th:classappend="${a.active} ? 'badge-confirmed' : 'badge-rejected'"
+                                      th:text="${a.active} ? 'Active' : 'Inactive'">Active</span>
+                            </td>
+                            <td th:text="${#temporals.format(a.createdAt, 'dd MMM yyyy')}">Date</td>
+                            <td>
+                                <form th:action="@{/admin/announcements/{id}/toggle(id=${a.id})}" method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-secondary btn-sm">Toggle</button>
+                                </form>
+                                <form th:action="@{/admin/announcements/{id}/delete(id=${a.id})}" method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(announcements)}" class="table-empty">
+                            <td colspan="5">No announcements yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

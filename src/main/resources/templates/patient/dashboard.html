@@ -17,6 +17,37 @@
             </div>
         </div>
 
+        <div th:if="${!#lists.isEmpty(announcements)}" class="announcement-banner">
+            <div th:each="a : ${announcements}" class="announcement-item">
+                <strong th:text="${a.title}">Notice</strong>
+                <p th:text="${a.message}">Message</p>
+            </div>
+        </div>
+
+        <div class="grid" style="margin-bottom:1.5rem;">
+            <div class="card emergency-card">
+                <h3>Emergency Contacts</h3>
+                <p><strong>Hospital Emergency:</strong> 108 / +91 1800-360-2478</p>
+                <p th:if="${profile.emergencyContactName != null}">
+                    <strong>Your Emergency Contact:</strong>
+                    <span th:text="${profile.emergencyContactName}">Name</span> —
+                    <span th:text="${profile.emergencyContactPhone}">Phone</span>
+                </p>
+                <p th:if="${profile.emergencyContactName == null}" class="text-muted">
+                    <a href="/patient/profile">Add emergency contact</a> in your profile.
+                </p>
+            </div>
+            <div class="card">
+                <h3>Quick Actions</h3>
+                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;">
+                    <a href="/patient/symptom-wizard" class="btn btn-secondary btn-sm">Symptom Checker</a>
+                    <a href="/patient/timeline" class="btn btn-secondary btn-sm">Health Timeline</a>
+                    <a href="/patient/lab-reports" class="btn btn-secondary btn-sm">Lab Reports</a>
+                    <a href="/notifications" class="btn btn-secondary btn-sm">Notifications</a>
+                </div>
+            </div>
+        </div>
+
         <div class="grid">
             <div class="card stat-card">
                 <div class="card-title">Total Appointments</div>
