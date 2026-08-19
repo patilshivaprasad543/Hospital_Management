@@ -47,13 +47,24 @@ public class PharmacyWorkflowService {
         order.setStatus(newStatus);
         PharmacyOrder saved = pharmacyOrderRepository.save(order);
 
-        notificationService.sendNotification(
-            order.getPatient(),
-            "📦 Pharmacy Order Status Update: " + newStatus,
-            "Your medicine order status has changed to " + newStatus,
-            NotificationCategory.PHARMACY,
-            "/patient/dashboard"
-        );
+        if ("READY_FOR_PICKUP".equals(newStatus) || "COMPLETED".equals(newStatus)) {
+            notificationService.sendNotification(
+                order.getPatient(),
+                "💊 Medicine Ready",
+                "Your pharmacy order is " + newStatus.replace("_", " ").toLowerCase()
+                        + ". Please collect your medicines.",
+                NotificationCategory.PHARMACY,
+                "/patient/dashboard"
+            );
+        } else {
+            notificationService.sendNotification(
+                order.getPatient(),
+                "📦 Pharmacy Order Status Update: " + newStatus,
+                "Your medicine order status has changed to " + newStatus,
+                NotificationCategory.PHARMACY,
+                "/patient/dashboard"
+            );
+        }
 
         return saved;
     }

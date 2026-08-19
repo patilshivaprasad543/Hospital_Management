@@ -46,7 +46,8 @@ public class BillingService {
         Payment saved = paymentRepository.save(payment);
 
         notificationService.sendNotification(patient, "💰 Payment Successful",
-                "Payment of ₹" + invoice.getAmount() + " received for " + invoice.getDescription(),
+                "Payment of ₹" + invoice.getAmount() + " received for " + invoice.getDescription()
+                        + ". Invoice: " + invoice.getInvoiceNumber(),
                 NotificationCategory.BILLING, "/patient/bills");
 
         auditLogService.log(patient, "PAYMENT_COMPLETED", "BILLING", "Invoice", invoiceId,

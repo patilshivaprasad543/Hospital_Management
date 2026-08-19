@@ -5,6 +5,7 @@ import com.hospital.model.NotificationCategory;
 import com.hospital.model.User;
 import com.hospital.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,9 +16,52 @@ public class NotificationService {
     @Autowired
     private NotificationRepository notificationRepository;
 
-    public Notification sendNotification(User recipient, String title, String message, NotificationCategory category, String linkUrl) {
-        Notification notification = new Notification(recipient, title, message, category, linkUrl);
-        return notificationRepository.save(notification);
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private WhatsAppService whatsAppService;
+
+    @Value("${smartcare.notifications.email-enabled:true}")
+    private boolean emailEnabled;
+
+    @Value("${smartcare.notifications.whatsapp-enabled:true}")
+    private boolean whatsAppEnabled;
+
+    /**
+     * Sends in-app + email + WhatsApp notification for a system event.
+     */
+    public Notification sendNotification(User recipient, String title, String message,
+                                           NotificationCategory category, String linkUrl) {
+        Notification notification = notificationRepository.save(
+                new Notification(recipient, title, message, category, linkUrl));
+
+        dispatchExternalChannels(recipient, title, message, linkUrl);
+        return notification;
+    }
+
+    public void notifyBoth(User user1, User user2, String title, String message,
+                           NotificationCategory category, String linkUrl1, String linkUrl2) {
+        if (user1 != null) {
+            sendNotification(user1, title, message, category, linkUrl1);
+        }
+        if (user2 != null && (user1 == null || !user1.getId().equals(user2.getId()))) {
+            sendNotification(user2, title, message, category, linkUrl2);
+        }
+    }
+
+    private void dispatchExternalChannels(User recipient, String title, String message, String linkUrl) {
+        if (recipient == null) {
+            return;
+        }
+        String fullMessage = linkUrl != null ? message + "\n\nPortal: " + linkUrl : message;
+
+        if (emailEnabled && recipient.getEmail() != null) {
+            emailService.sendNotificationEmail(recipient.getEmail(), recipient.getFullName(), title, fullMessage);
+        }
+        if (whatsAppEnabled && recipient.getMobileNumber() != null) {
+            whatsAppService.sendMessage(recipient.getMobileNumber(), title, fullMessage);
+        }
     }
 
     public List<Notification> getNotificationsForUser(User recipient) {

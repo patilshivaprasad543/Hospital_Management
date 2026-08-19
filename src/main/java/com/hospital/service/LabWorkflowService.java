@@ -66,6 +66,14 @@ public class LabWorkflowService {
             "/patient/lab-reports"
         );
 
+        notificationService.sendNotification(
+            req.getDoctor(),
+            "📋 Patient Lab Report Ready",
+            "Lab report for patient " + req.getPatient().getFullName() + " (" + req.getTestName() + ") is now available for review.",
+            NotificationCategory.LABORATORY,
+            "/doctor/dashboard"
+        );
+
         return saved;
     }
 

@@ -23,9 +23,6 @@ public class AppointmentService {
     private UserRepository userRepository;
 
     @Autowired
-    private EmailService emailService;
-
-    @Autowired
     private NotificationService notificationService;
 
     @Autowired
@@ -67,11 +64,12 @@ public class AppointmentService {
 
         Appointment saved = appointmentRepository.save(appointment);
 
-        // Send notifications
+        // Notify doctor + patient via in-app, email & WhatsApp
         notificationService.sendNotification(
             doctor,
             "📅 New Appointment Request",
-            "Patient " + patient.getFullName() + " requested an appointment for " + date + " at " + time + " (" + departmentCategory + ").",
+            "Patient " + patient.getFullName() + " requested an appointment for " + date + " at " + time
+                    + " (" + departmentCategory + "). Reason: " + (reason != null ? reason : "General"),
             NotificationCategory.APPOINTMENT,
             "/doctor/dashboard"
         );
@@ -79,7 +77,8 @@ public class AppointmentService {
         notificationService.sendNotification(
             patient,
             "📩 Appointment Request Created",
-            "Your appointment request with Dr. " + doctor.getFullName() + " has been submitted and is pending approval.",
+            "Your appointment with Dr. " + doctor.getFullName() + " on " + date + " at " + time
+                    + " is pending doctor approval.",
             NotificationCategory.APPOINTMENT,
             "/patient/appointments"
         );
@@ -142,7 +141,22 @@ public class AppointmentService {
 
         // Trigger email & notification when confirmed
         if (newStatus == AppointmentStatus.CONFIRMED && previousStatus != AppointmentStatus.CONFIRMED) {
-            emailService.sendAppointmentConfirmationEmail(savedAppointment);
+            notificationService.sendNotification(
+                savedAppointment.getPatient(),
+                "✅ Appointment Confirmed!",
+                "Dr. " + savedAppointment.getDoctor().getFullName() + " confirmed your appointment on "
+                        + savedAppointment.getAppointmentDate() + " at " + savedAppointment.getAppointmentTime() + ".",
+                NotificationCategory.APPOINTMENT,
+                "/patient/appointments"
+            );
+            notificationService.sendNotification(
+                savedAppointment.getDoctor(),
+                "✅ Appointment Confirmed",
+                "You confirmed the appointment with " + savedAppointment.getPatient().getFullName()
+                        + " on " + savedAppointment.getAppointmentDate() + " at " + savedAppointment.getAppointmentTime() + ".",
+                NotificationCategory.APPOINTMENT,
+                "/doctor/dashboard"
+            );
             userService.getDoctorProfile(savedAppointment.getDoctor()).ifPresent(profile -> {
                 if (profile.getConsultationFee() != null && profile.getConsultationFee() > 0) {
                     billingService.createInvoice(
@@ -153,13 +167,6 @@ public class AppointmentService {
                             savedAppointment.getId());
                 }
             });
-            notificationService.sendNotification(
-                savedAppointment.getPatient(),
-                "✅ Appointment Confirmed!",
-                "Dr. " + savedAppointment.getDoctor().getFullName() + " has confirmed your appointment for " + savedAppointment.getAppointmentDate() + " at " + savedAppointment.getAppointmentTime() + ".",
-                NotificationCategory.APPOINTMENT,
-                "/patient/appointments"
-            );
         } else if (newStatus == AppointmentStatus.REJECTED) {
             notificationService.sendNotification(
                 savedAppointment.getPatient(),
