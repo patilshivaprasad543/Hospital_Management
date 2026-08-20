@@ -121,11 +121,21 @@ done
 section "4. Admin module"
 A="${COOKIES[ADMIN]}"
 for path_label in \
-  "/admin/dashboard|Admin dashboard|Dashboard" \
-  "/admin/users|Admin patients list|Patient" \
-  "/admin/doctors|Admin doctors list|Doctor" \
+  "/admin/dashboard|Admin dashboard|Hospital modules" \
+  "/admin/users|Admin patients list|Manage Patients" \
+  "/admin/doctors|Admin doctors list|Doctor Management" \
+  "/admin/pharmacy|Admin pharmacy|Pharmacy Management" \
+  "/admin/laboratories|Admin laboratories|Laboratory Management" \
   "/admin/vendors|Admin vendors list|Vendor" \
   "/admin/appointments|Admin appointments|Appointment" \
+  "/admin/prescriptions|Admin prescriptions|Monitor Prescriptions" \
+  "/admin/pharmacy-orders|Admin pharmacy orders|Monitor Pharmacy Orders" \
+  "/admin/lab-reports|Admin lab reports|Monitor Lab Reports" \
+  "/admin/medicines|Admin medicines|Medicine Inventory" \
+  "/admin/billing|Admin billing|Billing" \
+  "/admin/records|Admin medical records|Medical Records" \
+  "/admin/reports|Admin reports|Reports" \
+  "/admin/settings|Admin settings|System Settings" \
   "/admin/departments|Admin departments|Department" \
   "/admin/announcements|Admin announcements|Announcement" \
   "/admin/notifications|Admin portal notifications|Portal Notifications"; do
@@ -144,7 +154,7 @@ for path_label in \
   "/patient/prescriptions|Patient prescriptions|Prescription" \
   "/patient/pharmacy-orders|Pharmacy orders|Pharmacy" \
   "/patient/lab-reports|Lab reports|Lab" \
-  "/patient/bills|Patient bills|Bill" \
+  "/patient/bills|Patient bills|Bills" \
   "/patient/profile|Patient profile|Profile" \
   "/patient/timeline|Health timeline|Timeline" \
   "/patient/symptom-wizard|Symptom wizard|Symptom"; do
@@ -159,8 +169,13 @@ expect_page "$P" "/notifications" "Patient notifications" "My Notifications"
 section "6. Doctor module"
 D="${COOKIES[DOCTOR]}"
 for path_label in \
-  "/doctor/dashboard|Doctor dashboard|Dashboard" \
+  "/doctor/dashboard|Doctor dashboard|Doctor" \
   "/doctor/appointments|Doctor appointments|Appointment" \
+  "/doctor/patients|Doctor patients|Patient" \
+  "/doctor/prescriptions|Doctor prescriptions|Prescription" \
+  "/doctor/lab-tests|Doctor lab tests|Lab" \
+  "/doctor/earnings|Doctor earnings|Earning" \
+  "/doctor/reports|Doctor reports|Report" \
   "/doctor/profile|Doctor profile|Profile"; do
   IFS='|' read -r path label marker <<< "$path_label"
   expect_page "$D" "$path" "$label" "$marker"
@@ -170,15 +185,18 @@ done
 section "7. Vendor modules"
 L="${COOKIES[LAB]}"
 PH="${COOKIES[PHARMACY]}"
-expect_page "$L" "/vendor/dashboard" "Lab vendor dashboard" "Lab"
-expect_page "$PH" "/vendor/dashboard" "Pharmacy vendor dashboard" "Pharmacy"
+expect_page "$L" "/vendor/dashboard" "Lab vendor dashboard" "Laboratory"
+expect_page "$PH" "/vendor/dashboard" "Pharmacy vendor dashboard" "Pharmacy Dashboard"
+expect_page "$PH" "/vendor/inventory" "Pharmacy inventory" "Medicine Inventory"
+expect_page "$PH" "/vendor/orders" "Pharmacy orders" "Order Management"
+expect_page "$PH" "/vendor/reports" "Pharmacy reports" "Pharmacy Reports"
 expect_page "$L" "/vendor/profile" "Lab vendor profile" "Profile"
 expect_page "$PH" "/vendor/profile" "Pharmacy vendor profile" "Profile"
 
 # ── 8. Appointment lifecycle ─────────────────────────────────
 section "8. Appointment lifecycle"
 BOOK_HTML="$(curl -s -b "$P" "$BASE_URL/patient/book-appointment")"
-DOCTOR_ID="$(echo "$BOOK_HTML" | python3 -c "import re,sys; m=re.search(r'name=\"doctorId\"[^>]*>.*?<option value=\"(\d+)\"', sys.stdin.read(), re.S); print(m.group(1) if m else '')")"
+DOCTOR_ID="$(echo "$BOOK_HTML" | python3 -c "import re,sys; html=sys.stdin.read(); m=re.search(r'name=\"doctorId\"[^>]*value=\"(\d+)\"', html); print(m.group(1) if m else '')")"
 SLOT="$(curl -s "$BASE_URL/patient/api/slots?doctorId=${DOCTOR_ID:-2}&date=$TOMORROW" | python3 -c "import sys,json; s=json.load(sys.stdin); print(next((x['time'] for x in s if x.get('available')), ''))")"
 if [[ -n "$SLOT" ]]; then
   curl -s -b "$P" -o /dev/null -X POST "$BASE_URL/patient/book-appointment" \
@@ -214,7 +232,9 @@ fi
 
 # ── 9. Lab workflow ──────────────────────────────────────────
 section "9. Laboratory workflow"
-PATIENT_ID="5"
+PATIENTS_HTML="$(curl -s -b "$D" "$BASE_URL/doctor/patients")"
+PATIENT_ID="$(echo "$PATIENTS_HTML" | python3 -c "import re,sys; m=re.search(r'/doctor/patients/(\d+)', sys.stdin.read()); print(m.group(1) if m else '')")"
+PATIENT_ID="${PATIENT_ID:-5}"
 curl -s -b "$D" -o /dev/null -X POST "$BASE_URL/doctor/lab-request/create" \
   --data-urlencode "patientId=$PATIENT_ID" \
   --data-urlencode "testName=Complete Blood Count" \
@@ -258,13 +278,15 @@ if [[ -n "$RX_ID" && -n "$VENDOR_ID" ]]; then
   ORDER_ID="$(curl -s -b "$P" "$BASE_URL/patient/pharmacy-orders" | grep -oP '#ORD-\K[0-9]+' | tail -1)"
   if [[ -n "$ORDER_ID" ]]; then
     pass "Patient placed pharmacy order #$ORDER_ID"
-    for status in ACCEPTED PROCESSING DISPATCHED DELIVERED; do
+    curl -s -b "$PH" -o /dev/null -X POST "$BASE_URL/vendor/pharmacy-order/$ORDER_ID/verify-prescription" \
+      --data-urlencode "verified=true" --data-urlencode "notes=System test verification"
+    for status in ACCEPTED PROCESSING READY_FOR_PICKUP DISPATCHED DELIVERED COMPLETED; do
       curl -s -b "$PH" -o /dev/null -X POST "$BASE_URL/vendor/pharmacy-order/$ORDER_ID/update-status" \
         --data-urlencode "status=$status" \
         --data-urlencode "trackingNotes=System test: $status"
     done
     ORDERS_HTML="$(curl -s -b "$P" "$BASE_URL/patient/pharmacy-orders")"
-    echo "$ORDERS_HTML" | grep -q "Delivered" && pass "Pharmacy order delivered end-to-end" || fail "Pharmacy delivery status"
+    echo "$ORDERS_HTML" | grep -q "System test: COMPLETED" && pass "Pharmacy order completed end-to-end" || fail "Pharmacy completion status"
   else
     fail "Pharmacy order not created"
   fi
@@ -292,11 +314,12 @@ fi
 # ── 12. Registration & OTP flow ──────────────────────────────
 section "12. Registration and OTP"
 TEST_EMAIL="fulltest.$(date +%s)@smartcare360.com"
+TEST_MOBILE="$(printf '9%09d' "$(( $(date +%s) % 1000000000 ))")"
 REG_HDR="$(mktemp)"
 curl -s -D "$REG_HDR" -o /dev/null -X POST "$BASE_URL/register/patient" \
   --data-urlencode "fullName=Full Test Patient" \
   --data-urlencode "email=$TEST_EMAIL" \
-  --data-urlencode "mobileNumber=9876512345" \
+  --data-urlencode "mobileNumber=$TEST_MOBILE" \
   --data-urlencode "password=test12345" \
   --data-urlencode "role=PATIENT"
 NEW_UID="$(grep -i '^Location:' "$REG_HDR" | grep -oP 'userId=\K[0-9]+' | head -1)"
@@ -322,7 +345,7 @@ curl -s -b "$PH" -o /dev/null -X POST "$BASE_URL/vendor/pharmacy-item/add" \
   --data-urlencode "price=99.00" \
   --data-urlencode "stockQuantity=50" \
   --data-urlencode "description=System test item"
-PH_HTML="$(curl -s -b "$PH" "$BASE_URL/vendor/dashboard")"
+PH_HTML="$(curl -s -b "$PH" "$BASE_URL/vendor/inventory")"
 echo "$PH_HTML" | grep -q "Test Medicine 500mg" && pass "Pharmacy item added" || fail "Pharmacy item add"
 curl -s -b "$L" -o /dev/null -X POST "$BASE_URL/vendor/lab-test/add" \
   --data-urlencode "testName=System Test Panel" \

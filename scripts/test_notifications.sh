@@ -3,7 +3,7 @@ set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:8080}"
 TEST_EMAIL="notify.test.$(date +%s)@smartcare360.com"
-TEST_MOBILE="9876501234"
+TEST_MOBILE="$(printf '8%09d' "$(( $(date +%s) % 1000000000 ))")"
 TEST_PASS="test12345"
 
 echo "==> SmartCare 360 Notification & OTP Test"
