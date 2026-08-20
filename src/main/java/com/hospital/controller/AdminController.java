@@ -124,7 +124,6 @@ public class AdminController {
         model.addAttribute("doctors", userService.findDoctors());
         model.addAttribute("vendors", userService.findVendors());
         model.addAttribute("labRequests", labWorkflowService.getAllLabRequests());
-        model.addAttribute("recentAuditLogs", auditLogService.getRecentLogs());
 
         return "admin/dashboard";
     }

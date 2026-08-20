@@ -8,30 +8,10 @@
         <div class="auth-card soft-card">
             <div class="auth-icon-circle">✉️</div>
             <h2 style="text-align: center; margin-bottom: 0.5rem;">Verify Your Account</h2>
-            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.25rem;">
-                We sent a 6-digit OTP to your registered email address:
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 0.5rem;">
+                We sent a 6-digit verification code to:
             </p>
-
-            <div class="otp-channel-list">
-                <div class="otp-channel-item">
-                    <span class="otp-channel-icon">📧</span>
-                    <div>
-                        <strong>Email</strong>
-                        <p th:text="${userEmail}">you@email.com</p>
-                    </div>
-                    <span class="badge" th:classappend="${emailConfigured} ? 'badge-confirmed' : 'badge-pending'"
-                          th:text="${emailConfigured} ? 'Live' : 'Dev log'">Status</span>
-                </div>
-                <div class="otp-channel-item" th:if="${whatsAppEnabled}">
-                    <span class="otp-channel-icon">💬</span>
-                    <div>
-                        <strong>WhatsApp</strong>
-                        <p th:text="${userMobile}">••••3214</p>
-                    </div>
-                    <span class="badge" th:classappend="${whatsappConfigured} ? 'badge-confirmed' : 'badge-pending'"
-                          th:text="${whatsappConfigured} ? 'Live' : 'Dev log'">Status</span>
-                </div>
-            </div>
+            <p style="text-align: center; font-weight: 600; margin-bottom: 1.25rem;" th:text="${userEmail}">you@email.com</p>
 
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
             <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>

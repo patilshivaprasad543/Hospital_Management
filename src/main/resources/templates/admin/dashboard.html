@@ -123,33 +123,6 @@
                 </tbody>
             </table>
         </div>
-
-        <h3 class="section-title">Recent Audit Logs</h3>
-        <div class="table-container">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>User</th>
-                        <th>Action</th>
-                        <th>Module</th>
-                        <th>Details</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="log, iterStat : ${recentAuditLogs}" th:if="${iterStat.index < 10}">
-                        <td th:text="${#temporals.format(log.createdAt, 'dd MMM HH:mm')}">Time</td>
-                        <td th:text="${log.user != null ? log.user.fullName : 'System'}">User</td>
-                        <td th:text="${log.action}">Action</td>
-                        <td th:text="${log.module}">Module</td>
-                        <td th:text="${log.details}">Details</td>
-                    </tr>
-                </tbody>
-            </table>
-            <p class="text-right mt-1" style="padding:0 1.25rem 1rem;">
-                <a href="/admin/audit-logs" style="color:var(--primary);font-weight:600;text-decoration:none;">View all audit logs</a>
-            </p>
-        </div>
     </div>
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>

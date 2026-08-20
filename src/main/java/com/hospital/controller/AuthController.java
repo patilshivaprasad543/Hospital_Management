@@ -87,9 +87,6 @@ public class AuthController {
     @GetMapping("/verify-otp")
     public String showVerifyOtpPage(@RequestParam("userId") Long userId, Model model) {
         model.addAttribute("userId", userId);
-        model.addAttribute("emailConfigured", emailService.isSmtpConfigured());
-        model.addAttribute("whatsAppEnabled", notificationChannelService.isWhatsAppEnabled());
-        model.addAttribute("whatsappConfigured", whatsAppService.isTwilioConfigured());
         userService.findById(userId).ifPresent(user -> {
             model.addAttribute("userEmail", user.getEmail());
             model.addAttribute("userMobile", maskMobile(user.getMobileNumber()));
