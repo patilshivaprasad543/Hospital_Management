@@ -1,10 +1,11 @@
 {
   "name": "SmartCare 360 Hospital Management",
   "install": "./gradlew build --no-daemon",
+  "start": "bash .cursor/start-app.sh",
   "terminals": [
     {
       "name": "app",
-      "command": "./gradlew bootRun --no-daemon"
+      "command": "tmux -f /exec-daemon/tmux.portal.conf attach-session -t smartcare-app 2>/dev/null || ./gradlew bootRun --no-daemon"
     }
   ],
   "ports": [8080]
