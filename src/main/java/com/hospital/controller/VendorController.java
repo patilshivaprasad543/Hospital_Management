@@ -2,6 +2,7 @@ package com.hospital.controller;
 
 import com.hospital.model.*;
 import com.hospital.service.LabWorkflowService;
+import com.hospital.service.NotificationService;
 import com.hospital.service.PharmacyWorkflowService;
 import com.hospital.service.UserService;
 import com.hospital.service.VendorService;
@@ -27,6 +28,9 @@ public class VendorController {
 
     @Autowired
     private PharmacyWorkflowService pharmacyWorkflowService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     private User getLoggedInVendor(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
@@ -61,6 +65,23 @@ public class VendorController {
         model.addAttribute("labTests", vendorService.getLabTestsByVendor(vendor));
         model.addAttribute("pharmacyItems", vendorService.getPharmacyItemsByVendor(vendor));
         return "vendor/dashboard";
+    }
+
+    @GetMapping("/notifications")
+    public String notifications(HttpSession session, Model model) {
+        User vendor = getLoggedInVendor(session);
+        if (vendor == null) {
+            return "redirect:/login/vendor";
+        }
+        if (vendor.getVendorType() == VendorType.PHARMACY) {
+            model.addAttribute("vendorTag", "Pharmacy");
+        } else if (vendor.getVendorType() == VendorType.LABORATORY) {
+            model.addAttribute("vendorTag", "Laboratory");
+        }
+        model.addAttribute("notifications", notificationService.getNotificationsForUser(vendor));
+        model.addAttribute("unreadCount", notificationService.getUnreadCount(vendor));
+        model.addAttribute("loggedInUser", vendor);
+        return "vendor/notifications";
     }
 
     @PostMapping("/lab-request/{id}/upload-report")

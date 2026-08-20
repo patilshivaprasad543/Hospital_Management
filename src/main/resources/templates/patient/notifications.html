@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Notifications')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+    <div th:replace="~{fragments/notifications-content :: notifications-content}"></div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

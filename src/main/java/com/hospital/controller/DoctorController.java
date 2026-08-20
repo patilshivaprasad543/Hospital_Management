@@ -42,6 +42,9 @@ public class DoctorController {
     @Autowired
     private AnnouncementService announcementService;
 
+    @Autowired
+    private NotificationService notificationService;
+
     private User getLoggedInDoctor(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user != null && user.getRole() == Role.DOCTOR) {
@@ -73,6 +76,18 @@ public class DoctorController {
         model.addAttribute("announcements", announcementService.getActiveForRole("DOCTOR"));
 
         return "doctor/dashboard";
+    }
+
+    @GetMapping("/notifications")
+    public String notifications(HttpSession session, Model model) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) {
+            return "redirect:/login/doctor";
+        }
+        model.addAttribute("notifications", notificationService.getNotificationsForUser(doctor));
+        model.addAttribute("unreadCount", notificationService.getUnreadCount(doctor));
+        model.addAttribute("loggedInUser", doctor);
+        return "doctor/notifications";
     }
 
     @PostMapping("/appointment/{id}/start-consultation")

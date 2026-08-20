@@ -101,6 +101,18 @@ public class PatientController {
         return "patient/dashboard";
     }
 
+    @GetMapping("/notifications")
+    public String notifications(HttpSession session, Model model) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) {
+            return "redirect:/login/patient";
+        }
+        model.addAttribute("notifications", notificationService.getNotificationsForUser(patient));
+        model.addAttribute("unreadCount", notificationService.getUnreadCount(patient));
+        model.addAttribute("loggedInUser", patient);
+        return "patient/notifications";
+    }
+
     @GetMapping("/symptom-wizard")
     public String symptomWizard(@RequestParam(value = "category", required = false) String category,
                                 HttpSession session, Model model) {
