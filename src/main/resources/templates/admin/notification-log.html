@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Notification Log')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-header-content">
+            <h1>Notification Delivery Log</h1>
+            <p>Recent email and WhatsApp messages — useful for testing OTP and alerts in development.</p>
+        </div>
+    </div>
+
+    <div class="grid" style="margin-bottom:1.5rem;">
+        <div class="card stat-card">
+            <div class="card-title">SMTP Email</div>
+            <div class="stat-number" th:classappend="${smtpConfigured} ? 'success' : 'warning'"
+                 th:text="${smtpConfigured} ? 'Configured' : 'Console only'">Status</div>
+        </div>
+        <div class="card stat-card">
+            <div class="card-title">WhatsApp (Twilio)</div>
+            <div class="stat-number" th:classappend="${whatsappConfigured} ? 'success' : 'warning'"
+                 th:text="${whatsappConfigured} ? 'Configured' : 'Console only'">Status</div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Channel</th>
+                    <th>Recipient</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="entry : ${entries}">
+                    <td th:text="${#temporals.format(entry.timestamp, 'dd MMM HH:mm:ss')}">Time</td>
+                    <td><span class="badge badge-role" th:text="${entry.channel}">EMAIL</span></td>
+                    <td th:text="${entry.recipient}">user@email.com</td>
+                    <td th:text="${entry.subject}">Subject</td>
+                    <td>
+                        <span class="badge" th:classappend="${entry.delivered} ? 'badge-confirmed' : 'badge-pending'"
+                              th:text="${entry.delivered} ? 'Delivered' : 'Logged'">Status</span>
+                    </td>
+                    <td>
+                        <details>
+                            <summary style="cursor:pointer;color:var(--primary);">View</summary>
+                            <pre class="notification-log-body" th:text="${entry.body}"></pre>
+                            <p th:if="${entry.note != null}" class="text-muted" style="font-size:0.85rem;margin-top:0.5rem;"
+                               th:text="${entry.note}">Note</p>
+                        </details>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(entries)}">
+                    <td colspan="6" style="text-align:center;color:var(--text-muted);">
+                        No notifications logged yet. Register a user or trigger an appointment to see entries.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

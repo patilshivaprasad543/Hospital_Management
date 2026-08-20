@@ -1,16 +1,43 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Verify Email')}"></head>
+<head th:replace="~{fragments/layout :: head('Verify Account')}"></head>
 <body class="auth-body">
     <nav th:replace="~{fragments/layout :: auth-nav}"></nav>
 
 <div class="container login-splash-wrapper">
-        <div class="auth-card">
-            <h2 style="text-align: center; margin-bottom: 0.5rem;">🔒 Email OTP Verification</h2>
-            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">
-                A 6-digit OTP has been sent to your registered email address.<br>
-                <strong th:if="${userEmail != null}" th:text="${userEmail}" style="color: var(--cyan-accent);">you@email.com</strong>
+        <div class="auth-card soft-card">
+            <div class="auth-icon-circle">✉️</div>
+            <h2 style="text-align: center; margin-bottom: 0.5rem;">Verify Your Account</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.25rem;">
+                We sent a 6-digit OTP to your registered channels:
             </p>
+
+            <div class="otp-channel-list">
+                <div class="otp-channel-item">
+                    <span class="otp-channel-icon">📧</span>
+                    <div>
+                        <strong>Email</strong>
+                        <p th:text="${userEmail}">you@email.com</p>
+                    </div>
+                    <span class="badge" th:classappend="${emailConfigured} ? 'badge-confirmed' : 'badge-pending'"
+                          th:text="${emailConfigured} ? 'Live' : 'Dev log'">Status</span>
+                </div>
+                <div class="otp-channel-item">
+                    <span class="otp-channel-icon">💬</span>
+                    <div>
+                        <strong>WhatsApp</strong>
+                        <p th:text="${userMobile}">••••3214</p>
+                    </div>
+                    <span class="badge" th:classappend="${whatsappConfigured} ? 'badge-confirmed' : 'badge-pending'"
+                          th:text="${whatsappConfigured} ? 'Live' : 'Dev log'">Status</span>
+                </div>
+            </div>
+
+            <div th:if="${devOtp != null}" class="dev-otp-panel">
+                <strong>Development OTP</strong>
+                <p class="dev-otp-code" th:text="${devOtp}">123456</p>
+                <p class="text-muted" style="font-size:0.85rem;">Shown when SMTP is not configured. OTP is also in server logs and Admin → Notification Log.</p>
+            </div>
 
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
             <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
@@ -18,18 +45,16 @@
             <form th:action="@{/verify-otp}" method="post">
                 <input type="hidden" name="userId" th:value="${userId}" />
                 <div class="form-group">
-                    <label class="form-label" style="text-align: center;">Enter 6-Digit OTP Code</label>
-                    <input type="text" name="otp" class="form-control" placeholder="••••••" maxlength="6"
-                           style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem; font-weight: 700;"
-                           required autofocus autocomplete="off">
+                    <label class="form-label" style="text-align: center;">Enter 6-Digit OTP</label>
+                    <input type="text" name="otp" class="form-control otp-input" placeholder="• • • • • •" maxlength="6"
+                           pattern="[0-9]{6}" inputmode="numeric" required autofocus autocomplete="one-time-code">
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Verify &amp; Activate Account</button>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1rem;">Verify &amp; Continue</button>
             </form>
 
             <div style="text-align: center; margin-top: 1.2rem;">
-                <a th:href="@{/resend-otp(userId=${userId})}"
-                   style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem; text-decoration: none;">
-                    🔄 Didn't receive OTP? Resend to registered email
+                <a th:href="@{/resend-otp(userId=${userId})}" class="soft-link">
+                    Didn't receive the code? Resend OTP
                 </a>
             </div>
         </div>

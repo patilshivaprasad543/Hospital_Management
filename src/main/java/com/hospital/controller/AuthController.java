@@ -6,8 +6,12 @@ import com.hospital.model.Role;
 import com.hospital.model.User;
 import com.hospital.model.VendorType;
 import com.hospital.service.UserService;
+import com.hospital.service.EmailService;
+import com.hospital.service.NotificationLogService;
+import com.hospital.service.WhatsAppService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +24,18 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private NotificationLogService notificationLogService;
+
+    @Autowired
+    private WhatsAppService whatsAppService;
+
+    @Value("${smartcare.dev.expose-otp:true}")
+    private boolean exposeOtp;
 
     @GetMapping("/register")
     public String redirectRegisterPortal() {
@@ -75,9 +91,16 @@ public class AuthController {
     @GetMapping("/verify-otp")
     public String showVerifyOtpPage(@RequestParam("userId") Long userId, Model model) {
         model.addAttribute("userId", userId);
+        model.addAttribute("emailConfigured", emailService.isSmtpConfigured());
+        model.addAttribute("whatsappConfigured", whatsAppService.isTwilioConfigured());
         userService.findById(userId).ifPresent(user -> {
             model.addAttribute("userEmail", user.getEmail());
+            model.addAttribute("userMobile", maskMobile(user.getMobileNumber()));
             model.addAttribute("userRole", user.getRole());
+            if (!emailService.isSmtpConfigured() || exposeOtp) {
+                notificationLogService.findLatestOtpForEmail(user.getEmail())
+                        .ifPresent(otp -> model.addAttribute("devOtp", otp));
+            }
             if (user.getRole() == Role.VENDOR) {
                 model.addAttribute("portalRole", user.getVendorType() == VendorType.PHARMACY
                         ? PortalRole.PHARMACY : PortalRole.VENDOR);
@@ -88,6 +111,13 @@ public class AuthController {
             }
         });
         return "auth/verify-otp";
+    }
+
+    private String maskMobile(String mobile) {
+        if (mobile == null || mobile.length() < 4) {
+            return "registered mobile";
+        }
+        return "••••" + mobile.substring(mobile.length() - 4);
     }
 
     @PostMapping("/verify-otp")
@@ -116,7 +146,7 @@ public class AuthController {
             model.addAttribute("userEmail", user.getEmail());
             model.addAttribute("userRole", user.getRole());
         });
-        model.addAttribute("errorMessage", "Invalid OTP code. Please try again.");
+        model.addAttribute("errorMessage", "Invalid or expired OTP. Please try again or request a new code.");
         model.addAttribute("userId", userId);
         return "auth/verify-otp";
     }
@@ -164,7 +194,8 @@ public class AuthController {
     public String resendOtp(@RequestParam("userId") Long userId, RedirectAttributes redirectAttributes) {
         try {
             userService.resendOtp(userId);
-            redirectAttributes.addFlashAttribute("successMessage", "A new OTP code has been generated and sent to your email.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "A new OTP has been sent to your registered email and mobile number.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Could not resend OTP: " + e.getMessage());
         }

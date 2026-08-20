@@ -22,15 +22,15 @@ public class NotificationService {
     @Autowired
     private WhatsAppService whatsAppService;
 
+    @Autowired
+    private NotificationChannelService notificationChannelService;
+
     @Value("${smartcare.notifications.email-enabled:true}")
     private boolean emailEnabled;
 
     @Value("${smartcare.notifications.whatsapp-enabled:true}")
     private boolean whatsAppEnabled;
 
-    /**
-     * Sends in-app + email + WhatsApp notification for a system event.
-     */
     public Notification sendNotification(User recipient, String title, String message,
                                            NotificationCategory category, String linkUrl) {
         Notification notification = notificationRepository.save(
@@ -54,12 +54,16 @@ public class NotificationService {
         if (recipient == null) {
             return;
         }
-        String fullMessage = linkUrl != null ? message + "\n\nPortal: " + linkUrl : message;
 
-        if (emailEnabled && recipient.getEmail() != null) {
+        String portalLink = notificationChannelService.buildPortalLink(linkUrl);
+        String fullMessage = linkUrl != null
+                ? message + "\n\nOpen in portal: " + portalLink
+                : message;
+
+        if (emailEnabled && recipient.getEmail() != null && !recipient.getEmail().isBlank()) {
             emailService.sendNotificationEmail(recipient.getEmail(), recipient.getFullName(), title, fullMessage);
         }
-        if (whatsAppEnabled && recipient.getMobileNumber() != null) {
+        if (whatsAppEnabled && recipient.getMobileNumber() != null && !recipient.getMobileNumber().isBlank()) {
             whatsAppService.sendMessage(recipient.getMobileNumber(), title, fullMessage);
         }
     }
@@ -73,10 +77,14 @@ public class NotificationService {
         return notificationRepository.countByRecipientAndIsReadFalse(recipient);
     }
 
-    public void markAsRead(Long notificationId) {
-        notificationRepository.findById(notificationId).ifPresent(n -> {
-            n.setRead(true);
-            notificationRepository.save(n);
-        });
+    public boolean markAsRead(Long notificationId, User recipient) {
+        return notificationRepository.findById(notificationId)
+                .filter(n -> n.getRecipient().getId().equals(recipient.getId()))
+                .map(n -> {
+                    n.setRead(true);
+                    notificationRepository.save(n);
+                    return true;
+                })
+                .orElse(false);
     }
 }

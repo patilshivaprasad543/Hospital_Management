@@ -19,8 +19,14 @@ public class EmailService {
     @Autowired(required = false)
     private JavaMailSender mailSender;
 
+    @Autowired
+    private NotificationLogService notificationLogService;
+
     @Value("${spring.mail.username:}")
     private String fromEmail;
+
+    @Value("${smartcare.notifications.email-enabled:true}")
+    private boolean emailEnabled;
 
     @Async
     public void sendNotificationEmail(String recipientEmail, String recipientName, String subject, String body) {
@@ -40,7 +46,7 @@ public class EmailService {
         String details = appointment.getReason() != null ? appointment.getReason() : "Regular Consultation";
 
         String subject = "SmartCare 360 - Appointment Confirmed";
-        
+
         String body = String.format(
             "Dear %s,\n\n" +
             "Your appointment has been successfully confirmed!\n\n" +
@@ -91,19 +97,23 @@ public class EmailService {
                 "Dear User,\n\n" +
                 "Thank you for registering with SmartCare 360.\n\n" +
                 "Your email verification OTP is: %s\n\n" +
+                "This OTP is valid for 10 minutes.\n" +
                 "Enter this code on the verification page to activate your account.\n" +
                 "Do not share this OTP with anyone.\n\n" +
                 "If you did not register, please ignore this email.\n\n" +
                 "— SmartCare 360 Team",
                 otpCode);
-        
+
         sendEmail(recipientEmail, subject, body, "OTP");
     }
 
     @Async
     public void sendPasswordResetEmail(String recipientEmail, String resetOtp) {
         String subject = "SmartCare 360 - Password Reset OTP";
-        String body = "Dear User,\n\nYour password reset OTP is: " + resetOtp + "\n\nThis code expires after use. Do not share it with anyone.";
+        String body = String.format(
+                "Dear User,\n\nYour password reset OTP is: %s\n\n" +
+                "This OTP is valid for 10 minutes. Do not share it with anyone.\n\n— SmartCare 360 Team",
+                resetOtp);
 
         sendEmail(recipientEmail, subject, body, "PASSWORD RESET");
     }
@@ -120,6 +130,10 @@ public class EmailService {
         sendEmail(recipientEmail, subject, body, "APPROVAL");
     }
 
+    public boolean isSmtpConfigured() {
+        return mailSender != null && fromEmail != null && !fromEmail.isBlank();
+    }
+
     private void sendEmail(String to, String subject, String body, String type) {
         logger.info("\n=======================================================");
         logger.info("EMAIL [{}] TO: {}", type, to);
@@ -127,20 +141,34 @@ public class EmailService {
         logger.info("BODY:\n{}", body);
         logger.info("=======================================================\n");
 
-        if (mailSender != null && to != null && !to.isBlank()) {
-            try {
-                SimpleMailMessage message = new SimpleMailMessage();
-                if (fromEmail != null && !fromEmail.isBlank()) {
-                    message.setFrom(fromEmail);
-                }
-                message.setTo(to);
-                message.setSubject(subject);
-                message.setText(body);
-                mailSender.send(message);
-                logger.info("Email successfully dispatched to {}", to);
-            } catch (Exception e) {
-                logger.warn("Could not send SMTP email to {}: {}", to, e.getMessage());
-            }
+        if (!emailEnabled) {
+            notificationLogService.log("EMAIL", to, subject, body, false, "Email channel disabled in settings");
+            return;
+        }
+
+        if (to == null || to.isBlank()) {
+            notificationLogService.log("EMAIL", to, subject, body, false, "Recipient email is blank");
+            return;
+        }
+
+        if (mailSender == null || fromEmail == null || fromEmail.isBlank()) {
+            notificationLogService.log("EMAIL", to, subject, body, false,
+                    "SMTP not configured — logged to console and notification log");
+            return;
+        }
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(body);
+            mailSender.send(message);
+            logger.info("Email successfully dispatched to {}", to);
+            notificationLogService.log("EMAIL", to, subject, body, true, "Sent via SMTP");
+        } catch (Exception e) {
+            logger.warn("Could not send SMTP email to {}: {}", to, e.getMessage());
+            notificationLogService.log("EMAIL", to, subject, body, false, e.getMessage());
         }
     }
 }

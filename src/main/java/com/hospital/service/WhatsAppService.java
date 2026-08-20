@@ -2,6 +2,7 @@ package com.hospital.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
@@ -20,8 +21,14 @@ public class WhatsAppService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Autowired
+    private NotificationLogService notificationLogService;
+
     @Value("${smartcare.whatsapp.enabled:false}")
     private boolean enabled;
+
+    @Value("${smartcare.notifications.whatsapp-enabled:true}")
+    private boolean whatsAppNotificationsEnabled;
 
     @Value("${smartcare.whatsapp.account-sid:}")
     private String accountSid;
@@ -37,12 +44,29 @@ public class WhatsAppService {
         String body = "*" + title + "*\n\n" + message + "\n\n— SmartCare 360";
         logMessage(mobileNumber, body);
 
-        if (!isConfigured()) {
+        if (!whatsAppNotificationsEnabled) {
+            notificationLogService.log("WHATSAPP", mobileNumber, title, body, false, "WhatsApp channel disabled in settings");
+            return;
+        }
+
+        if (mobileNumber == null || mobileNumber.isBlank()) {
+            notificationLogService.log("WHATSAPP", mobileNumber, title, body, false, "Recipient mobile number is blank");
+            return;
+        }
+
+        if (!isTwilioConfigured()) {
+            notificationLogService.log("WHATSAPP", mobileNumber, title, body, false,
+                    "Twilio not configured — logged to console and notification log");
             return;
         }
 
         try {
             String to = formatWhatsAppNumber(mobileNumber);
+            if (to.isBlank()) {
+                notificationLogService.log("WHATSAPP", mobileNumber, title, body, false, "Invalid mobile number format");
+                return;
+            }
+
             String url = "https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json";
 
             HttpHeaders headers = new HttpHeaders();
@@ -56,18 +80,20 @@ public class WhatsAppService {
 
             restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(form, headers), String.class);
             logger.info("WhatsApp message sent to {}", to);
+            notificationLogService.log("WHATSAPP", mobileNumber, title, body, true, "Sent via Twilio");
         } catch (Exception e) {
             logger.warn("Could not send WhatsApp to {}: {}", mobileNumber, e.getMessage());
+            notificationLogService.log("WHATSAPP", mobileNumber, title, body, false, e.getMessage());
         }
     }
 
     @Async
     public void sendOtp(String mobileNumber, String otpCode) {
         sendMessage(mobileNumber, "SmartCare 360 OTP",
-                "Your verification OTP is: " + otpCode + "\nDo not share this code with anyone.");
+                "Your verification OTP is: " + otpCode + "\nValid for 10 minutes. Do not share this code.");
     }
 
-    private boolean isConfigured() {
+    public boolean isTwilioConfigured() {
         return enabled && accountSid != null && !accountSid.isBlank()
                 && authToken != null && !authToken.isBlank();
     }

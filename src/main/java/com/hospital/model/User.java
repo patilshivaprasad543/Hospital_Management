@@ -33,6 +33,8 @@ public class User {
 
     private String otpCode;
 
+    private java.time.LocalDateTime otpExpiresAt;
+
     private String accountStatus = "ACTIVE"; // PENDING, ACTIVE, BLOCKED
 
     @Enumerated(EnumType.STRING)
@@ -43,6 +45,8 @@ public class User {
     private String documentInfo;
 
     private String resetOtpCode;
+
+    private java.time.LocalDateTime resetOtpExpiresAt;
 
     private java.time.LocalDateTime lastLoginAt;
 
@@ -130,6 +134,14 @@ public class User {
         this.otpCode = otpCode;
     }
 
+    public java.time.LocalDateTime getOtpExpiresAt() {
+        return otpExpiresAt;
+    }
+
+    public void setOtpExpiresAt(java.time.LocalDateTime otpExpiresAt) {
+        this.otpExpiresAt = otpExpiresAt;
+    }
+
     public String getAccountStatus() {
         return accountStatus;
     }
@@ -176,6 +188,14 @@ public class User {
 
     public void setResetOtpCode(String resetOtpCode) {
         this.resetOtpCode = resetOtpCode;
+    }
+
+    public java.time.LocalDateTime getResetOtpExpiresAt() {
+        return resetOtpExpiresAt;
+    }
+
+    public void setResetOtpExpiresAt(java.time.LocalDateTime resetOtpExpiresAt) {
+        this.resetOtpExpiresAt = resetOtpExpiresAt;
     }
 
     public boolean canLogin() {

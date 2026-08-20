@@ -8,65 +8,66 @@
     /* Typography */
     --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
-    /* Brand */
-    --brand-navy: #0c2340;
-    --brand-blue: #1e5a96;
-    --brand-blue-light: #2b7bc4;
-    --brand-teal: #0d9488;
+    /* Brand — softer healthcare palette */
+    --brand-navy: #1a2f4a;
+    --brand-blue: #5b8fd9;
+    --brand-blue-light: #7eb3e8;
+    --brand-teal: #5ec4b8;
+    --brand-lavender: #e8eef8;
 
     /* Surfaces */
-    --bg-page: #f0f4f8;
+    --bg-page: #f6f8fc;
     --bg-surface: #ffffff;
-    --bg-subtle: #f8fafc;
-    --bg-muted: #eef2f6;
+    --bg-subtle: #fafbfd;
+    --bg-muted: #f0f3f9;
 
     /* Semantic */
-    --primary: #1e5a96;
-    --primary-color: #1e5a96;
-    --primary-hover: #164a7c;
-    --primary-soft: #e8f1f8;
+    --primary: #5b8fd9;
+    --primary-color: #5b8fd9;
+    --primary-hover: #4a7ec8;
+    --primary-soft: #eaf2fc;
 
-    --accent-color: #0d9488;
-    --cyan-accent: #0d9488;
-    --teal-accent: #0d9488;
+    --accent-color: #5ec4b8;
+    --cyan-accent: #5ec4b8;
+    --teal-accent: #5ec4b8;
 
-    --success: #059669;
-    --success-color: #059669;
-    --warning: #d97706;
-    --warning-color: #d97706;
-    --danger: #dc2626;
-    --danger-color: #dc2626;
+    --success: #3cb58a;
+    --success-color: #3cb58a;
+    --warning: #e8a84b;
+    --warning-color: #e8a84b;
+    --danger: #e57373;
+    --danger-color: #e57373;
 
-    /* Text — higher contrast for clarity */
-    --text-heading: #0b1220;
-    --text-body: #334155;
-    --text-muted: #64748b;
+    /* Text */
+    --text-heading: #1e293b;
+    --text-body: #475569;
+    --text-muted: #7b8ba3;
     --text-inverse: #ffffff;
 
-    /* Borders & shadows */
-    --border: #e2e8f0;
-    --border-strong: #cbd5e1;
-    --glass-border: #e2e8f0;
-    --glass-border-hover: #94a3b8;
+    /* Borders & shadows — softer */
+    --border: #e8edf4;
+    --border-strong: #d5dde8;
+    --glass-border: #e8edf4;
+    --glass-border-hover: #b8c5d6;
 
-    --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
-    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
-    --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.1);
+    --shadow-xs: 0 1px 3px rgba(30, 50, 90, 0.04);
+    --shadow-sm: 0 2px 8px rgba(30, 50, 90, 0.06);
+    --shadow-md: 0 8px 24px rgba(30, 50, 90, 0.08);
+    --shadow-lg: 0 16px 40px rgba(30, 50, 90, 0.1);
     --shadow-glass: var(--shadow-sm);
     --shadow-card: var(--shadow-md);
-    --shadow-accent: 0 4px 14px rgba(30, 90, 150, 0.25);
+    --shadow-accent: 0 6px 20px rgba(91, 143, 217, 0.22);
 
-    --accent-gradient: linear-gradient(135deg, #1e5a96 0%, #0d9488 100%);
+    --accent-gradient: linear-gradient(135deg, #7eb3e8 0%, #5ec4b8 100%);
 
     /* Layout */
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 20px;
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
 
-    --nav-height: 64px;
-    --transition: 0.2s ease;
+    --nav-height: 68px;
+    --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
     /* Legacy aliases */
     --bg-dark: var(--bg-page);
@@ -92,8 +93,8 @@ html {
 body {
     font-family: var(--font-body);
     font-size: 1rem;
-    font-weight: 500;
-    background: var(--bg-page);
+    font-weight: 400;
+    background: linear-gradient(180deg, #f8fafd 0%, var(--bg-page) 100%);
     color: var(--text-body);
     line-height: 1.7;
     min-height: 100vh;
@@ -117,7 +118,7 @@ body.auth-body::before {
     position: fixed;
     inset: 0;
     background:
-        linear-gradient(135deg, rgba(12, 35, 64, 0.92) 0%, rgba(30, 90, 150, 0.85) 100%),
+        linear-gradient(145deg, rgba(26, 47, 74, 0.88) 0%, rgba(91, 143, 217, 0.75) 45%, rgba(94, 196, 184, 0.65) 100%),
         url('/images/hospital_bg.jpg') center / cover no-repeat;
     z-index: -1;
 }
@@ -429,16 +430,16 @@ p, li, label, td, th {
 .card {
     background: var(--bg-surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 1.5rem;
-    box-shadow: var(--shadow-xs);
-    transition: box-shadow var(--transition), border-color var(--transition);
+    border-radius: var(--radius-lg);
+    padding: 1.6rem;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
 }
 
 .card:hover {
     box-shadow: var(--shadow-md);
-    border-color: var(--border-strong);
-    transform: none;
+    border-color: rgba(91, 143, 217, 0.25);
+    transform: translateY(-1px);
 }
 
 .card-title {
@@ -485,13 +486,29 @@ p, li, label, td, th {
 /* ── Forms ───────────────────────────────────────────────────── */
 
 .auth-card {
-    max-width: 440px;
+    max-width: 460px;
     margin: 2rem auto;
     background: var(--bg-surface);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     padding: 2.5rem;
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255, 255, 255, 0.6);
     box-shadow: var(--shadow-lg);
+}
+
+.soft-card {
+    backdrop-filter: blur(12px);
+}
+
+.auth-icon-circle {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
 }
 
 .portal-body .auth-card,
@@ -1478,4 +1495,83 @@ footer, .site-footer {
 @media (max-width: 480px) {
     .portal-grid { grid-template-columns: 1fr; }
     .auth-card { padding: 1.75rem 1.25rem; }
+}
+
+/* ── OTP & notification UI ─────────────────────────────────── */
+
+.otp-channel-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.otp-channel-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.otp-channel-item p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.otp-channel-icon {
+    font-size: 1.25rem;
+}
+
+.otp-input {
+    text-align: center;
+    font-size: 1.5rem;
+    letter-spacing: 0.45rem;
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    padding: 0.85rem;
+}
+
+.dev-otp-panel {
+    background: linear-gradient(135deg, #f0f7ff 0%, #eefaf8 100%);
+    border: 1px dashed rgba(91, 143, 217, 0.4);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.dev-otp-code {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 0.35rem;
+    color: var(--primary);
+    margin: 0.35rem 0;
+}
+
+.soft-link {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.92rem;
+    text-decoration: none;
+}
+
+.soft-link:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.notification-log-body {
+    white-space: pre-wrap;
+    font-size: 0.82rem;
+    background: var(--bg-subtle);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    margin-top: 0.5rem;
+    max-height: 200px;
+    overflow: auto;
 }

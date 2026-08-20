@@ -29,8 +29,11 @@ public class NotificationController {
 
     @PostMapping("/notifications/{id}/read")
     @ResponseBody
-    public String markNotificationRead(@PathVariable("id") Long id) {
-        notificationService.markAsRead(id);
-        return "OK";
+    public String markNotificationRead(@PathVariable("id") Long id, HttpSession session) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "UNAUTHORIZED";
+        }
+        return notificationService.markAsRead(id, loggedInUser) ? "OK" : "FORBIDDEN";
     }
 }
