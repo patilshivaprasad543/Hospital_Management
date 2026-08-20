@@ -130,7 +130,7 @@ public class PharmacyWorkflowService {
             deductStockForSale(order);
         }
 
-        PharmacyOrder saved = pharmacyOrderRepository.save(order);
+        PharmacyOrder saved = pharmacyOrderRepository.saveAndFlush(order);
         notifyPatientOfStatusChange(saved);
         return saved;
     }

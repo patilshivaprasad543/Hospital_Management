@@ -38,6 +38,8 @@ public class SchemaRepair implements CommandLineRunner {
         addColumnIfMissing("pharmacy_orders", "invoice_id", "BIGINT");
         addColumnIfMissing("pharmacy_orders", "payment_status", "VARCHAR(50)");
         addColumnIfMissing("pharmacy_orders", "pharmacy_notes", "VARCHAR(500)");
+        widenVarchar("pharmacy_orders", "status", 40);
+        widenVarchar("pharmacy_orders", "payment_status", 40);
     }
 
     private void addColumnIfMissing(String table, String column, String definition) {
@@ -47,9 +49,26 @@ public class SchemaRepair implements CommandLineRunner {
                     Integer.class, table.toUpperCase(), column.toUpperCase());
             if (count != null && count == 0) {
                 jdbcTemplate.execute("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
+                System.out.println(">>> SchemaRepair added " + table + "." + column);
             }
         } catch (Exception ignored) {
             // Database dialects without INFORMATION_SCHEMA still rely on Hibernate ddl-auto=update.
+        }
+    }
+
+    private void widenVarchar(String table, String column, int length) {
+        try {
+            jdbcTemplate.execute("ALTER TABLE " + table + " ALTER COLUMN " + column
+                    + " SET DATA TYPE VARCHAR(" + length + ")");
+            System.out.println(">>> SchemaRepair widened " + table + "." + column + " to VARCHAR(" + length + ")");
+        } catch (Exception e) {
+            try {
+                jdbcTemplate.execute("ALTER TABLE " + table + " ALTER COLUMN " + column
+                        + " VARCHAR(" + length + ")");
+                System.out.println(">>> SchemaRepair altered " + table + "." + column + " to VARCHAR(" + length + ")");
+            } catch (Exception ignored2) {
+                System.out.println(">>> SchemaRepair could not widen " + table + "." + column + ": " + e.getMessage());
+            }
         }
     }
 }

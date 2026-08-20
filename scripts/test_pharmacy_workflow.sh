@@ -45,7 +45,7 @@ pass "Patient logged in"
 
 step "2. Patient books appointment"
 BOOK_HTML="$(curl -s -b "$P_COOKIE" "$BASE_URL/patient/book-appointment")"
-DOCTOR_ID="$(echo "$BOOK_HTML" | python3 -c "import re,sys; html=sys.stdin.read(); m=re.search(r'name=\"doctorId\"[^>]*>.*?<option value=\"(\d+)\"', html, re.S); print(m.group(1) if m else '')")"
+DOCTOR_ID="$(echo "$BOOK_HTML" | python3 -c "import re,sys; html=sys.stdin.read(); m=re.search(r'name=\"doctorId\"[^>]*value=\"(\d+)\"', html) or re.search(r'name=\\\"doctorId\\\"[^>]*>.*?<option value=\\\"(\d+)\\\"', html, re.S); print(m.group(1) if m else '')")"
 [[ -n "$DOCTOR_ID" ]] || fail "Could not find doctor ID on book-appointment page"
 
 SLOTS_JSON="$(curl -s "$BASE_URL/patient/api/slots?doctorId=$DOCTOR_ID&date=$APPT_DATE")"
