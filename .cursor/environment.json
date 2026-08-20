@@ -1,0 +1,11 @@
+{
+  "name": "SmartCare 360 Hospital Management",
+  "install": "./gradlew build --no-daemon",
+  "terminals": [
+    {
+      "name": "app",
+      "command": "./gradlew bootRun --no-daemon"
+    }
+  ],
+  "ports": [8080]
+}
