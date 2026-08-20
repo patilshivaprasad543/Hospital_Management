@@ -81,3 +81,5 @@ data/
 
 .env.*
 
+!.env.example
+
