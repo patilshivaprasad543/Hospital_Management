@@ -8,30 +8,28 @@
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-        <h2>User & Role Management</h2>
+        <h2>Patients</h2>
         
         <div class="table-container" style="margin-top: 1.5rem;">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>User ID</th>
-                        <th>Full Name</th>
+                        <th>Name</th>
                         <th>Email</th>
                         <th>Mobile</th>
-                        <th>Role</th>
-                        <th>Verified</th>
+                        <th>Account Type</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="usr : ${users}">
-                        <td th:text="${usr.id}">1</td>
                         <td th:text="${usr.fullName}">Name</td>
                         <td th:text="${usr.email}">email@example.com</td>
                         <td th:text="${usr.mobileNumber}">9876543210</td>
-                        <td><span class="badge badge-role" th:text="${usr.role}">ROLE</span></td>
+                        <td><span class="badge badge-role" th:text="${usr.role.label}">Patient</span></td>
                         <td>
-                            <span class="badge" th:classappend="${usr.verified ? 'badge-confirmed' : 'badge-pending'}" th:text="${usr.verified ? 'VERIFIED' : 'PENDING'}">VERIFIED</span>
+                            <span class="badge" th:classappend="${usr.verified ? 'badge-confirmed' : 'badge-pending'}" th:text="${usr.verified ? 'Verified' : 'Pending verification'}">Verified</span>
                         </td>
                         <td>
                             <form th:if="${usr.role.name() != 'ADMIN'}" th:action="@{/admin/user/{id}/delete(id=${usr.id})}" method="post">

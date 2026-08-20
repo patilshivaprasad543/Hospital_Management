@@ -54,7 +54,7 @@
                 <p style="font-size: 0.9rem; color: var(--text-muted);" th:text="${ven.email}">vendor@email.com</p>
                 <span class="badge"
                       th:classappend="${ven.approvalStatus.name() == 'APPROVED' ? 'badge-confirmed' : 'badge-pending'}"
-                      th:text="${ven.approvalStatus}">STATUS</span>
+                      th:text="${ven.approvalStatus.label}">Status</span>
             </div>
         </div>
 

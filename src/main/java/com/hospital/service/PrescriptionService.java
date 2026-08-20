@@ -29,7 +29,7 @@ public class PrescriptionService {
         }
         Prescription saved = prescriptionRepository.save(prescription);
 
-        notificationService.sendNotification(
+        notificationService.sendPortalNotification(
             patient,
             "💊 Digital Prescription Issued",
             "Dr. " + doctor.getFullName() + " has generated a digital prescription for your consultation. View diagnosis and prescribed medicines.",
@@ -39,7 +39,7 @@ public class PrescriptionService {
 
         userService.findVendors().stream()
                 .filter(v -> v.getVendorType() == VendorType.PHARMACY)
-                .forEach(vendor -> notificationService.sendNotification(
+                .forEach(vendor -> notificationService.sendPortalNotification(
                         vendor,
                         "💊 New Prescription Received",
                         "A new prescription for patient " + patient.getFullName() + " is available. Prepare medicines.",

@@ -45,7 +45,7 @@ public class BillingService {
         Payment payment = new Payment(invoice, patient, invoice.getAmount(), "TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         Payment saved = paymentRepository.save(payment);
 
-        notificationService.sendNotification(patient, "💰 Payment Successful",
+        notificationService.sendPortalNotification(patient, "💰 Payment Successful",
                 "Payment of ₹" + invoice.getAmount() + " received for " + invoice.getDescription()
                         + ". Invoice: " + invoice.getInvoiceNumber(),
                 NotificationCategory.BILLING, "/patient/bills");

@@ -32,7 +32,7 @@ public class PharmacyWorkflowService {
         PharmacyOrder saved = pharmacyOrderRepository.save(order);
 
         if (pharmacyVendor != null) {
-            notificationService.sendNotification(
+            notificationService.sendPortalNotification(
                 pharmacyVendor,
                 "💊 New Prescription Medicine Order",
                 "New order #" + saved.getId() + " from " + patient.getFullName()
@@ -42,7 +42,7 @@ public class PharmacyWorkflowService {
             );
         }
 
-        notificationService.sendNotification(
+        notificationService.sendPortalNotification(
             patient,
             "📦 Pharmacy Order Placed",
             "Your medicine order #" + saved.getId() + " has been sent to the pharmacy.",
@@ -169,7 +169,7 @@ public class PharmacyWorkflowService {
             message += " Note: " + order.getTrackingNotes();
         }
 
-        notificationService.sendNotification(
+        notificationService.sendPortalNotification(
             order.getPatient(),
             "💊 Pharmacy Order: " + status.getDisplayName(),
             message,

@@ -19,7 +19,7 @@
             <form th:action="@{/verify-otp}" method="post">
                 <input type="hidden" name="userId" th:value="${userId}" />
                 <div class="form-group">
-                    <label class="form-label" style="text-align: center;">Enter 6-Digit OTP</label>
+                    <label class="form-label" style="text-align: center;">Enter 6-Digit Code</label>
                     <input type="text" name="otp" class="form-control otp-input" placeholder="• • • • • •" maxlength="6"
                            pattern="[0-9]{6}" inputmode="numeric" required autofocus autocomplete="one-time-code">
                 </div>
@@ -28,7 +28,7 @@
 
             <div style="text-align: center; margin-top: 1.2rem;">
                 <a th:href="@{/resend-otp(userId=${userId})}" class="soft-link">
-                    Didn't receive the code? Resend OTP
+                    Didn't receive the code? Resend
                 </a>
             </div>
         </div>

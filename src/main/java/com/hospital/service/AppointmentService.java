@@ -68,7 +68,7 @@ public class AppointmentService {
         Appointment saved = appointmentRepository.save(appointment);
 
         // Notify doctor + patient via in-app, email & WhatsApp
-        notificationService.sendNotification(
+        notificationService.sendPortalNotification(
             doctor,
             "📅 New Appointment Request",
             "Patient " + patient.getFullName() + " requested an appointment for " + date + " at " + time
@@ -77,7 +77,7 @@ public class AppointmentService {
             "/doctor/dashboard"
         );
 
-        notificationService.sendNotification(
+        notificationService.sendPortalNotification(
             patient,
             "📩 Appointment Request Created",
             "Your appointment with Dr. " + doctor.getFullName() + " on " + date + " at " + time
@@ -105,7 +105,7 @@ public class AppointmentService {
 
         Appointment saved = appointmentRepository.save(appointment);
 
-        notificationService.sendNotification(
+        notificationService.sendPortalNotification(
             appointment.getDoctor(),
             "🧑‍🦽 Patient Checked In (" + saved.getQueueTicket() + ")",
             "Patient " + saved.getPatient().getFullName() + " has arrived and checked in. Ticket: " + saved.getQueueTicket(),
@@ -113,7 +113,7 @@ public class AppointmentService {
             "/doctor/dashboard"
         );
 
-        notificationService.sendNotification(
+        notificationService.sendPortalNotification(
             saved.getPatient(),
             "🎟️ Digital Queue Ticket Issued",
             "You have successfully checked in! Your Queue Ticket number is " + saved.getQueueTicket() + ". Please wait to be called.",
@@ -146,7 +146,7 @@ public class AppointmentService {
 
         // Trigger email & notification when confirmed
         if (newStatus == AppointmentStatus.CONFIRMED && previousStatus != AppointmentStatus.CONFIRMED) {
-            notificationService.sendNotification(
+            notificationService.sendPortalNotification(
                 savedAppointment.getPatient(),
                 "✅ Appointment Confirmed!",
                 "Dr. " + savedAppointment.getDoctor().getFullName() + " confirmed your appointment on "
@@ -154,7 +154,7 @@ public class AppointmentService {
                 NotificationCategory.APPOINTMENT,
                 "/patient/appointments"
             );
-            notificationService.sendNotification(
+            notificationService.sendPortalNotification(
                 savedAppointment.getDoctor(),
                 "✅ Appointment Confirmed",
                 "You confirmed the appointment with " + savedAppointment.getPatient().getFullName()
@@ -174,7 +174,7 @@ public class AppointmentService {
                 }
             });
         } else if (newStatus == AppointmentStatus.REJECTED) {
-            notificationService.sendNotification(
+            notificationService.sendPortalNotification(
                 savedAppointment.getPatient(),
                 "❌ Appointment Rejected",
                 "Your appointment request with Dr. " + savedAppointment.getDoctor().getFullName() + " could not be confirmed.",
@@ -243,7 +243,7 @@ public class AppointmentService {
         appointment.setNotes("Cancelled by patient");
         Appointment saved = appointmentRepository.save(appointment);
 
-        notificationService.sendNotification(
+        notificationService.sendPortalNotification(
                 appointment.getDoctor(),
                 "Appointment Cancelled",
                 "Patient " + patient.getFullName() + " cancelled the appointment on "
@@ -251,7 +251,7 @@ public class AppointmentService {
                 NotificationCategory.APPOINTMENT,
                 "/doctor/dashboard"
         );
-        notificationService.sendNotification(
+        notificationService.sendPortalNotification(
                 patient,
                 "Appointment Cancelled",
                 "Your appointment with Dr. " + appointment.getDoctor().getFullName() + " has been cancelled.",

@@ -203,7 +203,7 @@
                         <td th:text="${app.patient.fullName}">John Doe</td>
                         <td th:text="${app.appointmentDate}">2026-08-20</td>
                         <td th:text="${app.appointmentTime}">10:00 AM</td>
-                        <td><span class="badge badge-confirmed">CONFIRMED</span></td>
+                        <td><span class="badge badge-confirmed">Confirmed</span></td>
                         <td th:text="${app.notes != null ? app.notes : 'None'}">Notes</td>
                         <td>
                             <form th:action="@{/doctor/appointment/{id}/complete(id=${app.id})}" method="post">

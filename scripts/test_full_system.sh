@@ -128,7 +128,6 @@ for path_label in \
   "/admin/appointments|Admin appointments|Appointment" \
   "/admin/departments|Admin departments|Department" \
   "/admin/announcements|Admin announcements|Announcement" \
-  "/admin/audit-logs|Admin audit logs|Audit" \
   "/admin/notifications|Admin portal notifications|Portal Notifications"; do
   IFS='|' read -r path label marker <<< "$path_label"
   expect_page "$A" "$path" "$label" "$marker"
@@ -154,7 +153,7 @@ for path_label in \
 done
 code="$(curl -s -b "$P" -o /dev/null -w "%{http_code}" "$BASE_URL/patient/api/slots?doctorId=2&date=$TOMORROW")"
 [[ "$code" == "200" ]] && pass "Patient API: appointment slots" || fail "Patient API: slots (HTTP $code)"
-expect_page "$P" "/notifications" "Patient notifications" "Notification"
+expect_page "$P" "/notifications" "Patient notifications" "My Notifications"
 
 # ── 6. Doctor module ─────────────────────────────────────────
 section "6. Doctor module"
@@ -304,7 +303,7 @@ NEW_UID="$(grep -i '^Location:' "$REG_HDR" | grep -oP 'userId=\K[0-9]+' | head -
 if [[ -n "$NEW_UID" ]]; then
   pass "New patient registration → verify-otp redirect"
   VERIFY_HTML="$(curl -s "$BASE_URL/verify-otp?userId=$NEW_UID")"
-  echo "$VERIFY_HTML" | grep -q "Enter 6-Digit OTP" && pass "OTP verification page loads" || fail "OTP page layout"
+  echo "$VERIFY_HTML" | grep -q "Enter 6-Digit Code" && pass "OTP verification page loads" || fail "OTP page layout"
   echo "$VERIFY_HTML" | grep -q "dev-otp-code" && fail "OTP must not be displayed in portal"
   skip "OTP verification (codes sent by email only, not shown in portal)"
   curl -s -o /dev/null "$BASE_URL/resend-otp?userId=$NEW_UID"

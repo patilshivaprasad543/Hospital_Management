@@ -38,7 +38,7 @@
                         <td>
                             <span class="badge"
                                   th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : (app.state.name() == 'CANCELLED' ? 'badge-rejected' : 'badge-completed'))}"
-                                  th:text="${app.state.name() == 'CANCELLED' ? 'CANCELLED' : app.status}">PENDING</span>
+                                  th:text="${app.state.name() == 'CANCELLED' ? 'Cancelled' : app.status.label}">Pending</span>
                         </td>
                         <td>
                             <form th:if="${app.status.name() == 'CONFIRMED' && app.queueTicket == null}"

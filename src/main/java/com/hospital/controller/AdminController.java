@@ -254,12 +254,11 @@ public class AdminController {
     }
 
     @GetMapping("/audit-logs")
-    public String auditLogs(HttpSession session, Model model) {
-        User admin = getLoggedInAdmin(session);
-        if (admin == null) return "redirect:/login";
-
-        model.addAttribute("auditLogs", auditLogService.getRecentLogs());
-        return "admin/audit-logs";
+    public String auditLogs(HttpSession session) {
+        if (getLoggedInAdmin(session) == null) {
+            return "redirect:/login/admin";
+        }
+        return "redirect:/admin/dashboard";
     }
 
     @PostMapping("/user/{id}/delete")

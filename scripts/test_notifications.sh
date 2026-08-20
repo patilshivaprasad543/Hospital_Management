@@ -29,7 +29,7 @@ echo "Registered user #$USER_ID"
 # 2. Open verify-otp page (OTP is never shown in the portal)
 echo "==> 2. Verify OTP page loads"
 VERIFY_HTML=$(curl -s "$BASE_URL/verify-otp?userId=$USER_ID")
-echo "$VERIFY_HTML" | grep -q "Enter 6-Digit OTP" || { echo "FAIL: verify-otp page missing"; exit 1; }
+echo "$VERIFY_HTML" | grep -q "Enter 6-Digit Code" || { echo "FAIL: verify-otp page missing"; exit 1; }
 echo "$VERIFY_HTML" | grep -q "dev-otp-code" && { echo "FAIL: OTP must not be displayed in portal"; exit 1; }
 echo "OTP page OK (code sent to email only)"
 

@@ -47,10 +47,10 @@ public class NotificationService {
     public void notifyBoth(User user1, User user2, String title, String message,
                            NotificationCategory category, String linkUrl1, String linkUrl2) {
         if (user1 != null) {
-            sendNotification(user1, title, message, category, linkUrl1);
+            sendPortalNotification(user1, title, message, category, linkUrl1);
         }
         if (user2 != null && (user1 == null || !user1.getId().equals(user2.getId()))) {
-            sendNotification(user2, title, message, category, linkUrl2);
+            sendPortalNotification(user2, title, message, category, linkUrl2);
         }
     }
 

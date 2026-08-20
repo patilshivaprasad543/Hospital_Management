@@ -31,7 +31,7 @@
                         <td>
                             <span class="badge" 
                                   th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : (app.status.name() == 'COMPLETED' ? 'badge-completed' : 'badge-rejected'))}"
-                                  th:text="${app.status}">STATUS</span>
+                                  th:text="${app.status.label}">Status</span>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(appointments)}">

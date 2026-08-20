@@ -10,7 +10,7 @@
 
         <div class="card" style="margin-top: 1.5rem;">
             <div class="card-title" th:text="${profile.businessName != null ? profile.businessName : vendor.fullName}">Vendor Business</div>
-            <p><strong>Vendor Category:</strong> <span th:text="${profile.vendorType}">LABORATORY / PHARMACY</span></p>
+            <p><strong>Business Type:</strong> <span th:text="${profile.vendorType.label}">Laboratory</span></p>
             <p><strong>Contact Email:</strong> <span th:text="${vendor.email}">email@vendor.com</span></p>
             <a href="/vendor/profile" class="btn btn-primary" style="margin-top: 1rem;">Update Business Profile</a>
         </div>

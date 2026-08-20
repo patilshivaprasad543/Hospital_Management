@@ -20,7 +20,7 @@ public class LabWorkflowService {
         LabRequest labRequest = new LabRequest(doctor, patient, testName, notes);
         LabRequest saved = labRequestRepository.save(labRequest);
 
-        notificationService.sendNotification(
+        notificationService.sendPortalNotification(
             patient,
             "🔬 Diagnostic Test Requested",
             "Dr. " + doctor.getFullName() + " recommended a diagnostic lab test (" + testName + "). Select a laboratory vendor to proceed.",
@@ -39,7 +39,7 @@ public class LabWorkflowService {
         LabRequest saved = labRequestRepository.save(req);
 
         if (labVendor != null) {
-            notificationService.sendNotification(
+            notificationService.sendPortalNotification(
                 labVendor,
                 "🧪 New Lab Sample Request",
                 "New test booking (" + req.getTestName() + ") assigned for Patient " + req.getPatient().getFullName(),
@@ -58,7 +58,7 @@ public class LabWorkflowService {
         req.setStatus("REPORT_READY");
         LabRequest saved = labRequestRepository.save(req);
 
-        notificationService.sendNotification(
+        notificationService.sendPortalNotification(
             req.getPatient(),
             "📋 Diagnostic Report Ready",
             "Your lab test report for (" + req.getTestName() + ") is now ready. View and download online.",
@@ -66,7 +66,7 @@ public class LabWorkflowService {
             "/patient/lab-reports"
         );
 
-        notificationService.sendNotification(
+        notificationService.sendPortalNotification(
             req.getDoctor(),
             "📋 Patient Lab Report Ready",
             "Lab report for patient " + req.getPatient().getFullName() + " (" + req.getTestName() + ") is now available for review.",

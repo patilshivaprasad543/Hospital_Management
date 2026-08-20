@@ -30,7 +30,7 @@
                         <td>
                             <span class="badge" 
                                   th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : 'badge-rejected')}"
-                                  th:text="${app.status}">STATUS</span>
+                                  th:text="${app.status.label}">Status</span>
                         </td>
                         <td th:text="${#temporals.format(app.createdAt, 'dd-MMM-yyyy HH:mm')}">Time</td>
                     </tr>

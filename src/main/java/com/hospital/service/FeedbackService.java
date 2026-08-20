@@ -38,7 +38,7 @@ public class FeedbackService {
         feedback.setComment(comment);
         ConsultationFeedback saved = feedbackRepository.save(feedback);
 
-        notificationService.sendNotification(
+        notificationService.sendPortalNotification(
                 appointment.getDoctor(),
                 "New Patient Rating",
                 patient.getFullName() + " rated your consultation " + rating + "/5 stars.",

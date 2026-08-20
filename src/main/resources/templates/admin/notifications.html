@@ -88,7 +88,7 @@
                         <td th:text="${#temporals.format(n.createdAt, 'dd MMM yyyy HH:mm')}">Date</td>
                         <td>
                             <strong th:text="${n.recipient.fullName}">User</strong>
-                            <div class="text-muted" style="font-size:0.85rem;" th:text="${n.recipient.role}">ROLE</div>
+                            <div class="text-muted" style="font-size:0.85rem;" th:text="${n.recipient.role.label}">Role</div>
                         </td>
                         <td>
                             <strong th:text="${n.title}">Title</strong>
@@ -97,7 +97,7 @@
                                 Link: <span th:text="${n.linkUrl}">/page</span>
                             </div>
                         </td>
-                        <td><span class="badge badge-role" th:text="${n.category}">SYSTEM</span></td>
+                        <td><span class="badge badge-role" th:text="${n.category.label}">General</span></td>
                         <td>
                             <span class="badge" th:classappend="${n.read} ? 'badge-confirmed' : 'badge-pending'"
                                   th:text="${n.read} ? 'Yes' : 'No'">No</span>

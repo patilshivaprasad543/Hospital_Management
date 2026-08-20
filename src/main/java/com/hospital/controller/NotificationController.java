@@ -20,10 +20,14 @@ public class NotificationController {
     @GetMapping("/notifications")
     public String viewNotifications(HttpSession session, Model model) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
-        if (loggedInUser == null) return "redirect:/login";
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
 
         List<Notification> notifications = notificationService.getNotificationsForUser(loggedInUser);
         model.addAttribute("notifications", notifications);
+        model.addAttribute("unreadCount", notificationService.getUnreadCount(loggedInUser));
+        model.addAttribute("loggedInUser", loggedInUser);
         return "notifications/list";
     }
 

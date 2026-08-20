@@ -122,7 +122,7 @@ public class UserService {
         auditLogService.log(user, "DOCUMENTS_SUBMITTED", "AUTH", "Documents submitted for admin review");
 
         userRepository.findByRole(Role.ADMIN).forEach(admin ->
-                notificationService.sendNotification(
+                notificationService.sendPortalNotification(
                         admin,
                         "New registration pending approval",
                         user.getFullName() + " (" + user.getRole() + ") submitted documents for review.",
