@@ -2,7 +2,7 @@
 # Ping SmartCare 360 so a Render Free instance does not sleep.
 set -u
 
-timeout_secs="${KEEPALIVE_TIMEOUT:-90}"
+timeout_secs="${KEEPALIVE_TIMEOUT:-60}"
 ok=0
 tried=0
 
