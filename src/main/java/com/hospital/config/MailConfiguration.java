@@ -1,6 +1,7 @@
 package com.hospital.config;
 
 import com.hospital.service.mail.BrevoMailTransport;
+import com.hospital.service.mail.ChainedMailTransport;
 import com.hospital.service.mail.MailTransport;
 import com.hospital.service.mail.SmtpMailTransport;
 import org.slf4j.Logger;
@@ -16,22 +17,23 @@ public class MailConfiguration {
 
     @Bean
     public MailTransport mailTransport(
-            @Value("${smartcare.mail.provider:smtp}") String provider,
+            @Value("${smartcare.mail.provider:auto}") String provider,
             SmtpMailTransport smtpMailTransport,
             BrevoMailTransport brevoMailTransport) {
-        String selected = provider == null ? "smtp" : provider.trim().toLowerCase();
+        String selected = provider == null ? "auto" : provider.trim().toLowerCase();
         MailTransport transport = switch (selected) {
             case "brevo", "sendinblue" -> brevoMailTransport;
-            default -> smtpMailTransport;
+            case "smtp", "gmail" -> smtpMailTransport;
+            case "auto" -> new ChainedMailTransport(brevoMailTransport, smtpMailTransport);
+            default -> new ChainedMailTransport(brevoMailTransport, smtpMailTransport);
         };
 
         if (transport.isConfigured()) {
-            logger.info("Email provider: {} (configured)", transport.providerName());
+            logger.info("Email provider ready: {}", transport.providerName());
         } else {
-            logger.warn("Email provider: {} is NOT configured — OTP and password-reset emails will fail. "
-                            + "For Render free hosting, use SMARTCARE_MAIL_PROVIDER=brevo with a Brevo API key "
-                            + "(Gmail SMTP is blocked on free Render).",
-                    transport.providerName());
+            logger.warn("Email is NOT configured — registration OTP will fail until mail settings are added. "
+                            + "Local: SMARTCARE_MAIL_USERNAME + SMARTCARE_MAIL_PASSWORD. "
+                            + "Render free: SMARTCARE_BREVO_API_KEY + SMARTCARE_BREVO_SENDER_EMAIL.");
         }
         return transport;
     }

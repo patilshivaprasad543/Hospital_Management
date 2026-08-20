@@ -5,6 +5,7 @@ import com.hospital.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,12 +42,19 @@ public class UserService {
     @Autowired
     private OtpService otpService;
 
+    @Transactional
     public User registerUser(User user) {
         if (user.getRole() == Role.ADMIN) {
             throw new RuntimeException("Admin accounts cannot be self-registered. Contact system administrator.");
         }
 
-        if (userRepository.existsByEmail(user.getEmail())) {
+        String email = normalizeEmail(user.getEmail());
+        if (email.isBlank()) {
+            throw new RuntimeException("Email address is required.");
+        }
+        user.setEmail(email);
+
+        if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email address is already registered.");
         }
 
@@ -77,8 +85,8 @@ public class UserService {
         otpService.store(savedUser.getEmail(), otp, OtpPurpose.REGISTRATION);
         if (!notificationChannelService.sendOtp(savedUser.getEmail(), savedUser.getMobileNumber(), otp)) {
             throw new RuntimeException(
-                    "Registration was saved but we could not send a verification code to your email. "
-                            + "Use Resend on the verification page or contact support.");
+                    "We could not send a verification code to " + savedUser.getEmail()
+                            + ". Ask the administrator to configure email (Gmail locally, or Brevo on Render).");
         }
         auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered, OTP sent via email");
         return savedUser;
@@ -375,5 +383,9 @@ public class UserService {
 
     private String generateOtp() {
         return String.format("%06d", new Random().nextInt(900000) + 100000);
+    }
+
+    private static String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase();
     }
 }

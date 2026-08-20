@@ -74,8 +74,8 @@ public class AuthController {
             User registeredUser = userService.registerUser(user);
             session.setAttribute("pendingVerificationUser", registeredUser);
             redirectAttributes.addFlashAttribute("successMessage",
-                    "Registration successful! A verification code was sent to " + registeredUser.getEmail()
-                            + ". Check your inbox and spam folder.");
+                    "A 6-digit verification code was sent to " + registeredUser.getEmail()
+                            + ". Check your inbox and spam folder, then enter the code below.");
             return "redirect:/verify-otp?userId=" + registeredUser.getId();
         } catch (Exception e) {
             Optional<User> existingUser = userService.findByEmail(user.getEmail());

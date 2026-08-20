@@ -31,7 +31,7 @@ services:
       - key: SMARTCARE_MAIL_PASSWORD
         sync: false
       - key: SMARTCARE_MAIL_PROVIDER
-        value: brevo
+        value: auto
       - key: SMARTCARE_BREVO_API_KEY
         sync: false
       - key: SMARTCARE_BREVO_SENDER_EMAIL
