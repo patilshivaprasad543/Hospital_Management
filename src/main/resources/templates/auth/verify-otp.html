@@ -11,7 +11,21 @@
             <p style="text-align: center; color: var(--text-muted); margin-bottom: 0.5rem;">
                 We sent a 6-digit verification code to:
             </p>
-            <p style="text-align: center; font-weight: 600; margin-bottom: 1.25rem;" th:text="${userEmail}">you@email.com</p>
+            <p style="text-align: center; font-weight: 600; margin-bottom: 1rem;" th:text="${userEmail}">you@email.com</p>
+
+            <div th:unless="${emailReady}" class="alert alert-danger" style="font-size:0.9rem;">
+                Email delivery is not configured on this server. Please contact the hospital administrator.
+            </div>
+
+            <div th:if="${emailReady}" class="alert alert-success" style="font-size:0.9rem;background:var(--bg-secondary);border:none;color:var(--text-muted);">
+                <strong>Didn't receive it?</strong>
+                <ul style="margin:0.5rem 0 0 1rem;padding:0;">
+                    <li>Check <strong>Spam</strong>, <strong>Promotions</strong>, and <strong>Updates</strong> folders</li>
+                    <li>Wait 1–2 minutes for delivery</li>
+                    <li>Codes expire after 10 minutes — click <strong>Resend</strong> below for a new one</li>
+                    <li>Use the same email you registered with</li>
+                </ul>
+            </div>
 
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
             <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
@@ -31,6 +45,10 @@
                     Didn't receive the code? Resend
                 </a>
             </div>
+
+            <p style="text-align:center;margin-top:1rem;font-size:0.85rem;color:var(--text-muted);">
+                Note: Sign in only works <em>after</em> you verify your email. Registration sends the code — login does not.
+            </p>
         </div>
     </div>
     <script th:src="@{/js/main.js}"></script>

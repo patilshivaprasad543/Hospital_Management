@@ -74,7 +74,8 @@ public class AuthController {
             User registeredUser = userService.registerUser(user);
             session.setAttribute("pendingVerificationUser", registeredUser);
             redirectAttributes.addFlashAttribute("successMessage",
-                    "Registration successful! Enter the OTP sent to " + registeredUser.getEmail());
+                    "Registration successful! A verification code was sent to " + registeredUser.getEmail()
+                            + ". Check your inbox and spam folder.");
             return "redirect:/verify-otp?userId=" + registeredUser.getId();
         } catch (Exception e) {
             role.applyToUser(user);
@@ -87,6 +88,7 @@ public class AuthController {
     @GetMapping("/verify-otp")
     public String showVerifyOtpPage(@RequestParam("userId") Long userId, Model model) {
         model.addAttribute("userId", userId);
+        model.addAttribute("emailReady", emailService.isSmtpConfigured());
         userService.findById(userId).ifPresent(user -> {
             model.addAttribute("userEmail", user.getEmail());
             model.addAttribute("userMobile", maskMobile(user.getMobileNumber()));
@@ -185,7 +187,7 @@ public class AuthController {
         try {
             userService.resendOtp(userId);
             redirectAttributes.addFlashAttribute("successMessage",
-                    "A new OTP has been sent to your registered email address.");
+                    "A new verification code was sent to your registered email. Check inbox and spam.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Could not resend OTP: " + e.getMessage());
         }
@@ -233,8 +235,15 @@ public class AuthController {
             }
 
             if (!user.isVerified()) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Your account is not verified yet. Please complete OTP verification.");
-                redirectAttributes.addFlashAttribute("successMessage", "Check your registered email for the OTP code.");
+                try {
+                    userService.resendOtp(user.getId());
+                    redirectAttributes.addFlashAttribute("successMessage",
+                            "A new verification code was sent to " + user.getEmail()
+                                    + ". Check your inbox and spam folder.");
+                } catch (Exception ex) {
+                    redirectAttributes.addFlashAttribute("errorMessage",
+                            "Your account is not verified yet. We could not send a new code — use Resend on the next page or contact support.");
+                }
                 return "redirect:/verify-otp?userId=" + user.getId();
             }
 
