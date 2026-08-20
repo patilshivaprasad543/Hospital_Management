@@ -2,7 +2,7 @@
 
 Integrated digital hospital platform: patient appointments, doctor consultations, laboratory workflows, pharmacy orders, billing, email/WhatsApp notifications, and role-based portals.
 
-**Live demo:** [https://smartcare360.onrender.com](https://smartcare360.onrender.com)
+**24/7 free:** Oracle Cloud Always Free VM + `scripts/install-always-free.sh` (see [DEPLOYMENT.md](DEPLOYMENT.md)). Render Free sleeps when idle.
 
 ## Public demo accounts
 
@@ -34,9 +34,13 @@ Register new patients, doctors, and vendors from the portal login page.
 
 Open http://localhost:8080 — uses `dev` profile with local defaults.
 
-**Free 24/7 with Docker** (PC left on, or a free VM):
+**Free 24/7 with Docker** (PC left on, or Oracle Always Free VM):
 
 ```bash
+# On an Ubuntu VM as root:
+sudo bash scripts/install-always-free.sh
+
+# Or locally:
 cp .env.example .env
 docker compose up -d --build
 ```

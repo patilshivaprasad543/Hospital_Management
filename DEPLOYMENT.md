@@ -2,6 +2,26 @@
 
 This guide publishes the app on a public URL **without exposing admin credentials**.
 
+## 24/7 free (Always Free VM)
+
+**Render Free is not 24/7.** Idle services sleep after about 15 minutes. GitHub keep-alive helps but cannot guarantee a never-sleeping free Render instance.
+
+The free way to stay up all day is an **always-on Linux VM** (Oracle Cloud Always Free Ampere, or a PC you leave on) with Docker:
+
+1. Create a free Oracle Cloud account: [cloud.oracle.com](https://cloud.oracle.com) → Always Free **VM.Standard.A1.Flex** (or AMD micro) Ubuntu 22.04.
+2. Open **ingress TCP 22, 80, and 8080** on the VCN security list / NSG.
+3. SSH into the VM and run:
+
+```bash
+sudo bash -c 'curl -fsSL https://raw.githubusercontent.com/patilshivaprasad543/Hospital_Management/main/scripts/install-always-free.sh | bash'
+```
+
+The script installs Docker, builds the app, and prints the public URL plus a generated admin password. First build takes several minutes. Then open `http://YOUR_VM_PUBLIC_IP`.
+
+This environment cannot create an Oracle account or click your cloud console for you. After the VM exists, that one command is the full install.
+
+---
+
 ## Fix: `Couldn't find a package.json file`
 
 This error means Render is trying to deploy as **Node.js**, but SmartCare 360 is a **Java / Spring Boot** app.
@@ -155,7 +175,7 @@ docker run -d --restart unless-stopped --name smartcare360 \
   smartcare360
 ```
 
-A free always-on host is your own computer left running, or an Oracle Cloud Always Free VM with Docker installed (see previous steps: open ports 22 and 8080, then run the same `docker compose up -d --build`).
+A free always-on host is your own computer left running, or an Oracle Cloud Always Free VM. On Ubuntu as root: `bash scripts/install-always-free.sh` (opens ports 80 and 8080, builds Docker, prints the public URL). Also open TCP 80/8080 in the Oracle VCN security list.
 
 ## 6. After deployment
 

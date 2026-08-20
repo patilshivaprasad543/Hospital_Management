@@ -1,0 +1,9 @@
+# Extra ports for a public VM (Oracle Always Free, home server).
+# Used by scripts/install-always-free.sh
+#
+#   docker compose -f docker-compose.yml -f docker-compose.public.yml up -d --build
+
+services:
+  smartcare360:
+    ports:
+      - "80:8080"
