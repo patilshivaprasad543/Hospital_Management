@@ -9,7 +9,7 @@
             <div class="auth-icon-circle">✉️</div>
             <h2 style="text-align: center; margin-bottom: 0.5rem;">Verify Your Account</h2>
             <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.25rem;">
-                We sent a 6-digit OTP to your registered channels:
+                We sent a 6-digit OTP to your registered email address:
             </p>
 
             <div class="otp-channel-list">
@@ -22,7 +22,7 @@
                     <span class="badge" th:classappend="${emailConfigured} ? 'badge-confirmed' : 'badge-pending'"
                           th:text="${emailConfigured} ? 'Live' : 'Dev log'">Status</span>
                 </div>
-                <div class="otp-channel-item">
+                <div class="otp-channel-item" th:if="${whatsAppEnabled}">
                     <span class="otp-channel-icon">💬</span>
                     <div>
                         <strong>WhatsApp</strong>
