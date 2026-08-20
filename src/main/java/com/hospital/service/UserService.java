@@ -195,7 +195,7 @@ public class UserService {
     }
 
     public Optional<User> loginUser(String email, String password) {
-        Optional<User> userOptional = userRepository.findByEmail(email);
+        Optional<User> userOptional = userRepository.findByEmail(normalizeEmail(email));
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             if (passwordEncoder.matches(password, user.getPassword())) {
@@ -209,7 +209,7 @@ public class UserService {
     }
 
     public void initiatePasswordReset(String email) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(normalizeEmail(email))
                 .orElseThrow(() -> new RuntimeException("No account found with this email address."));
 
         if (user.getRole() == Role.ADMIN) {
@@ -226,10 +226,11 @@ public class UserService {
     }
 
     public boolean resetPassword(String email, String resetOtp, String newPassword) {
-        Optional<User> userOptional = userRepository.findByEmail(email);
+        String normalizedEmail = normalizeEmail(email);
+        Optional<User> userOptional = userRepository.findByEmail(normalizedEmail);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            if (!otpService.validate(email, resetOtp, OtpPurpose.PASSWORD_RESET)) {
+            if (!otpService.validate(normalizedEmail, resetOtp, OtpPurpose.PASSWORD_RESET)) {
                 return false;
             }
             user.setPassword(passwordEncoder.encode(newPassword));
@@ -241,11 +242,15 @@ public class UserService {
     }
 
     public User createAdminAccount(String email, String password, String fullName, String mobile) {
-        if (userRepository.existsByEmail(email)) {
-            return userRepository.findByEmail(email).orElseThrow();
+        String normalizedEmail = normalizeEmail(email);
+        Optional<User> existing = userRepository.findByEmail(normalizedEmail);
+        if (existing.isPresent()) {
+            User admin = existing.get();
+            syncBootstrapAccount(admin, password);
+            return userRepository.save(admin);
         }
 
-        User admin = new User(fullName, email, mobile, passwordEncoder.encode(password), Role.ADMIN);
+        User admin = new User(fullName, normalizedEmail, mobile, passwordEncoder.encode(password), Role.ADMIN);
         admin.setVerified(true);
         admin.setAdminApproved(true);
         admin.setApprovalStatus(ApprovalStatus.APPROVED);
@@ -254,17 +259,31 @@ public class UserService {
     }
 
     public User createSeedUser(String fullName, String email, String mobile, String password, Role role) {
-        if (userRepository.existsByEmail(email)) {
-            return userRepository.findByEmail(email).orElseThrow();
+        String normalizedEmail = normalizeEmail(email);
+        Optional<User> existing = userRepository.findByEmail(normalizedEmail);
+        if (existing.isPresent()) {
+            User user = existing.get();
+            syncBootstrapAccount(user, password);
+            return userRepository.save(user);
         }
 
-        User user = new User(fullName, email, mobile, passwordEncoder.encode(password), role);
+        User user = new User(fullName, normalizedEmail, mobile, passwordEncoder.encode(password), role);
         user.setVerified(true);
         user.setAdminApproved(true);
         user.setApprovalStatus(ApprovalStatus.APPROVED);
         user.setAccountStatus("ACTIVE");
         user.setDocumentInfo("Seed data - pre-verified");
         return userRepository.save(user);
+    }
+
+    private void syncBootstrapAccount(User user, String plainPassword) {
+        if (!passwordEncoder.matches(plainPassword, user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(plainPassword));
+        }
+        user.setVerified(true);
+        user.setAdminApproved(true);
+        user.setApprovalStatus(ApprovalStatus.APPROVED);
+        user.setAccountStatus("ACTIVE");
     }
 
     public User saveUser(User user) {
@@ -276,7 +295,7 @@ public class UserService {
     }
 
     public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
+        return userRepository.findByEmail(normalizeEmail(email));
     }
 
     public List<User> findAllUsers() {
