@@ -90,8 +90,7 @@ public class EmailService {
                 "SmartCare 360 - New Appointment Request", doctorBody, "APPOINTMENT BOOKED (DOCTOR)");
     }
 
-    @Async
-    public void sendOtpEmail(String recipientEmail, String otpCode) {
+    public boolean sendOtpEmail(String recipientEmail, String otpCode) {
         String subject = "SmartCare 360 - Email Verification OTP";
         String body = String.format(
                 "Dear User,\n\n" +
@@ -104,18 +103,17 @@ public class EmailService {
                 "— SmartCare 360 Team",
                 otpCode);
 
-        sendEmail(recipientEmail, subject, body, "OTP");
+        return sendEmail(recipientEmail, subject, body, "OTP");
     }
 
-    @Async
-    public void sendPasswordResetEmail(String recipientEmail, String resetOtp) {
+    public boolean sendPasswordResetEmail(String recipientEmail, String resetOtp) {
         String subject = "SmartCare 360 - Password Reset OTP";
         String body = String.format(
                 "Dear User,\n\nYour password reset OTP is: %s\n\n" +
                 "This OTP is valid for 10 minutes. Do not share it with anyone.\n\n— SmartCare 360 Team",
                 resetOtp);
 
-        sendEmail(recipientEmail, subject, body, "PASSWORD RESET");
+        return sendEmail(recipientEmail, subject, body, "PASSWORD RESET");
     }
 
     @Async
@@ -134,7 +132,7 @@ public class EmailService {
         return mailSender != null && fromEmail != null && !fromEmail.isBlank();
     }
 
-    private void sendEmail(String to, String subject, String body, String type) {
+    private boolean sendEmail(String to, String subject, String body, String type) {
         logger.info("\n=======================================================");
         logger.info("EMAIL [{}] TO: {}", type, to);
         logger.info("SUBJECT: {}", subject);
@@ -143,18 +141,18 @@ public class EmailService {
 
         if (!emailEnabled) {
             notificationLogService.log("EMAIL", to, subject, body, false, "Email channel disabled in settings");
-            return;
+            return false;
         }
 
         if (to == null || to.isBlank()) {
             notificationLogService.log("EMAIL", to, subject, body, false, "Recipient email is blank");
-            return;
+            return false;
         }
 
         if (mailSender == null || fromEmail == null || fromEmail.isBlank()) {
             notificationLogService.log("EMAIL", to, subject, body, false,
                     "SMTP not configured — logged to console and notification log");
-            return;
+            return false;
         }
 
         try {
@@ -166,9 +164,11 @@ public class EmailService {
             mailSender.send(message);
             logger.info("Email successfully dispatched to {}", to);
             notificationLogService.log("EMAIL", to, subject, body, true, "Sent via SMTP");
+            return true;
         } catch (Exception e) {
             logger.warn("Could not send SMTP email to {}: {}", to, e.getMessage());
             notificationLogService.log("EMAIL", to, subject, body, false, e.getMessage());
+            return false;
         }
     }
 }

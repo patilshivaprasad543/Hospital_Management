@@ -26,23 +26,29 @@ public class NotificationChannelService {
         return whatsAppEnabled && whatsAppService.isTwilioConfigured();
     }
 
-    public void sendOtp(String email, String mobile, String otpCode) {
+    public boolean sendOtp(String email, String mobile, String otpCode) {
+        boolean delivered = false;
         if (emailEnabled) {
-            emailService.sendOtpEmail(email, otpCode);
+            delivered = emailService.sendOtpEmail(email, otpCode);
         }
         if (isWhatsAppEnabled()) {
             whatsAppService.sendOtp(mobile, otpCode);
+            delivered = true;
         }
+        return delivered;
     }
 
-    public void sendPasswordResetOtp(String email, String mobile, String otpCode) {
+    public boolean sendPasswordResetOtp(String email, String mobile, String otpCode) {
+        boolean delivered = false;
         if (emailEnabled) {
-            emailService.sendPasswordResetEmail(email, otpCode);
+            delivered = emailService.sendPasswordResetEmail(email, otpCode);
         }
         if (isWhatsAppEnabled()) {
             whatsAppService.sendMessage(mobile, "SmartCare 360 Password Reset",
                     "Your password reset OTP is: " + otpCode + "\nDo not share this code with anyone.");
+            delivered = true;
         }
+        return delivered;
     }
 
     public void sendApprovalNotice(String email, String mobile, String fullName, boolean approved) {

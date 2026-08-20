@@ -74,8 +74,12 @@ public class UserService {
             vendorProfileRepository.save(vendorProfile);
         }
 
-        notificationChannelService.sendOtp(user.getEmail(), user.getMobileNumber(), otp);
         otpService.store(savedUser.getEmail(), otp, OtpPurpose.REGISTRATION);
+        if (!notificationChannelService.sendOtp(savedUser.getEmail(), savedUser.getMobileNumber(), otp)) {
+            throw new RuntimeException(
+                    "Registration was saved but we could not send a verification code to your email. "
+                            + "Use Resend on the verification page or contact support.");
+        }
         auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered, OTP sent via email");
         return savedUser;
     }
@@ -166,7 +170,10 @@ public class UserService {
 
         String newOtp = generateOtp();
         otpService.store(user.getEmail(), newOtp, OtpPurpose.REGISTRATION);
-        notificationChannelService.sendOtp(user.getEmail(), user.getMobileNumber(), newOtp);
+        if (!notificationChannelService.sendOtp(user.getEmail(), user.getMobileNumber(), newOtp)) {
+            throw new RuntimeException(
+                    "Could not send a verification code. Check that email is configured and try again.");
+        }
     }
 
     public Optional<User> loginUser(String email, String password) {
@@ -193,7 +200,10 @@ public class UserService {
 
         String resetOtp = generateOtp();
         otpService.store(user.getEmail(), resetOtp, OtpPurpose.PASSWORD_RESET);
-        notificationChannelService.sendPasswordResetOtp(user.getEmail(), user.getMobileNumber(), resetOtp);
+        if (!notificationChannelService.sendPasswordResetOtp(user.getEmail(), user.getMobileNumber(), resetOtp)) {
+            throw new RuntimeException(
+                    "Could not send a password reset code to your email. Please try again later or contact support.");
+        }
         auditLogService.log(user, "PASSWORD_RESET_REQUESTED", "AUTH", "Password reset OTP sent via email");
     }
 

@@ -78,6 +78,11 @@ public class AuthController {
                             + ". Check your inbox and spam folder.");
             return "redirect:/verify-otp?userId=" + registeredUser.getId();
         } catch (Exception e) {
+            Optional<User> existingUser = userService.findByEmail(user.getEmail());
+            if (existingUser.isPresent() && !existingUser.get().isVerified()) {
+                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/verify-otp?userId=" + existingUser.get().getId();
+            }
             role.applyToUser(user);
             model.addAttribute("portalRole", role);
             model.addAttribute("errorMessage", e.getMessage());
@@ -235,15 +240,9 @@ public class AuthController {
             }
 
             if (!user.isVerified()) {
-                try {
-                    userService.resendOtp(user.getId());
-                    redirectAttributes.addFlashAttribute("successMessage",
-                            "A new verification code was sent to " + user.getEmail()
-                                    + ". Check your inbox and spam folder.");
-                } catch (Exception ex) {
-                    redirectAttributes.addFlashAttribute("errorMessage",
-                            "Your account is not verified yet. We could not send a new code — use Resend on the next page or contact support.");
-                }
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        "Your account is not verified yet. Enter the code sent to your email during registration, "
+                                + "or use Resend on the verification page to request a new code.");
                 return "redirect:/verify-otp?userId=" + user.getId();
             }
 
