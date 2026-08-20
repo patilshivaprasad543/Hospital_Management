@@ -12,7 +12,7 @@ SMARTCARE_ADMIN_MOBILE=9999999999
 # Registration OTP — Render FREE blocks Gmail SMTP (port 587). Use Brevo:
 SMARTCARE_MAIL_PROVIDER=auto
 SMARTCARE_BREVO_API_KEY=your-brevo-api-key
-SMARTCARE_BREVO_SENDER_EMAIL=your-verified-sender@email.com
+SMARTCARE_BREVO_SENDER_EMAIL=gillshubhaman46@gmail.com
 SMARTCARE_BREVO_SENDER_NAME=SmartCare 360
 
 # Optional fallback (only works on paid Render plans):
