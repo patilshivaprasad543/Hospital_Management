@@ -22,8 +22,8 @@ expect_page() {
   local path="$1" needle="$2"
   local html
   html="$(curl -s -b "$COOKIE" -w "\nHTTP:%{http_code}" "$BASE_URL$path")"
-  echo "$html" | tail -1 | grep -q "HTTP:200" || fail "$path did not return 200"
-  echo "$html" | grep -q "$needle" || fail "$path missing expected content: $needle"
+  [[ "$html" == *$'\n'HTTP:200 ]] || fail "$path did not return 200"
+  [[ "$html" == *"$needle"* ]] || fail "$path missing expected content: $needle"
   pass "$path"
 }
 
