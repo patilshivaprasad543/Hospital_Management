@@ -15,4 +15,5 @@ RUN mkdir -p /app/data && chown -R smartcare:smartcare /app
 USER smartcare
 ENV SPRING_PROFILES_ACTIVE=prod
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Render sets PORT; Spring Boot reads server.port=${PORT:8080}
+ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT:-8080}"]
