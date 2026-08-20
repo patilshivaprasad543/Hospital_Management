@@ -1,6 +1,10 @@
 # Render Blueprint — SmartCare 360 (Spring Boot / Java)
 # IMPORTANT: Use runtime docker (NOT Node). If you see "Couldn't find package.json",
 # delete the service and redeploy with Language = Docker, or use this Blueprint.
+#
+# Always-on: Render "free" sleeps after idle (~15 min) and shows "waking up".
+# Change plan to "starter" (paid) in the Render dashboard for 24/7 uptime.
+# Keep healthCheckPath at /health so Render and uptime pings stay cheap.
 
 services:
   - type: web
@@ -10,7 +14,7 @@ services:
     region: singapore
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    healthCheckPath: /
+    healthCheckPath: /health
     disk:
       name: smartcare-data
       mountPath: /app/data

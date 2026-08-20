@@ -15,5 +15,5 @@ RUN mkdir -p /app/data && chown -R smartcare:smartcare /app
 USER smartcare
 ENV SPRING_PROFILES_ACTIVE=prod
 EXPOSE 8080
-# Render sets PORT; Spring Boot reads server.port=${PORT:8080}
-ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT:-8080}"]
+# Faster cold start when a free instance wakes from sleep.
+ENTRYPOINT ["sh", "-c", "java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:TieredStopAtLevel=1 -jar app.jar --server.port=${PORT:-8080}"]

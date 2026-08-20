@@ -38,6 +38,8 @@ Open http://localhost:8080 — uses `dev` profile with local defaults.
 
 See **[DEPLOYMENT.md](DEPLOYMENT.md)** for publishing to Render or Docker.
 
+To keep the public URL live without “waking up” pauses, upgrade Render from Free to **Starter**, or add a 5-minute uptime ping to `/health` (details in DEPLOYMENT.md §7).
+
 Required secrets (set in hosting dashboard, never in code):
 
 - `SMARTCARE_ADMIN_EMAIL` / `SMARTCARE_ADMIN_PASSWORD` — **private admin login**

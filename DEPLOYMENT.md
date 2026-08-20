@@ -140,6 +140,39 @@ docker run -p 8080:8080 \
 - Share your public URL and the **demo accounts** from README (not admin).
 - Test registration OTP, appointment booking, and notification log at `/admin/notification-log` (admin login only).
 
+## 7. Keep the site live 24/7 (no “waking up”)
+
+Render **free** web services **sleep after about 15 minutes with no traffic**. The next visitor sees a host “service waking up” page for 30–90 seconds. That is the host, not an application crash.
+
+### What you should do (pick one)
+
+| Option | Cost | Result |
+|--------|------|--------|
+| **A. Upgrade Render to Starter (recommended)** | Paid monthly | Instance stays running. This is the only reliable always-on option. |
+| **B. External uptime ping + GitHub keep-alive** | Free | Pings `/health` every few minutes so free instances usually do not sleep. GitHub cron can be late; use UptimeRobot as well. |
+| **C. Your own VPS / Railway / Fly.io paid VM** | Varies | You control uptime; use the Docker run command in section 5. |
+
+### Option A — Render paid (do this if you need it always live)
+
+1. Open the **smartcare360** service on Render.
+2. **Settings → Instance type** → change **Free** to **Starter** (or higher).
+3. Keep the persistent disk mounted at `/app/data`.
+4. Confirm health check path is `/health`.
+
+Do not leave `plan: free` in the dashboard if you need zero sleep. Blueprint YAML still says `free` so new Blueprint deploys stay free until you upgrade.
+
+### Option B — Free keep-alive (reduce sleep)
+
+1. Confirm `GET https://YOUR-URL/health` returns `{"status":"ok"}`.
+2. **UptimeRobot** (or cron-job.org): create an HTTPS monitor every **5 minutes** to `https://YOUR-URL/health`.
+3. **GitHub Actions:** repo **Settings → Secrets and variables → Actions** → add secret `SMARTCARE_APP_URL` = `https://YOUR-URL` (no trailing slash). The workflow `.github/workflows/keep-alive.yml` pings `/health` every 10 minutes.
+
+Pings cannot help if Render pauses the service for other reasons (account limits, deploy in progress, disk/build failure).
+
+### After you upgrade or add pings
+
+Redeploy so `/health` and faster JVM startup from this update are live. First request after a deploy can still take a minute while the container starts.
+
 ## Send me your credentials
 
 When you are ready, provide email and WhatsApp details **only through your hosting provider’s secret environment variable UI** (Render dashboard), not in chat or in code. Use `.env.example` as the checklist.
