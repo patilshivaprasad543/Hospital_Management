@@ -44,6 +44,7 @@
                                   th:text="${usr.accountStatus}">ACTIVE</span>
                         </td>
                         <td>
+                            <a class="btn btn-outline btn-sm" th:href="@{/admin/record/{id}(id=${usr.id})}">View</a>
                             <form th:action="@{/admin/user/{id}/toggle-status(id=${usr.id})}" method="post" style="display:inline;">
                                 <input type="hidden" name="returnTo" value="/admin/users">
                                 <button type="submit" class="btn btn-secondary btn-sm"

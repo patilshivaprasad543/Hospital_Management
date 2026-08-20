@@ -503,6 +503,26 @@ public class AdminController {
         return "admin/settings";
     }
 
+    @GetMapping("/record/{id}")
+    public String viewStoredRecord(@PathVariable("id") Long id, HttpSession session, Model model) {
+        if (getLoggedInAdmin(session) == null) return "redirect:/login/admin";
+        User person = userService.findById(id).orElse(null);
+        if (person == null || person.getRole() == Role.ADMIN) {
+            return "redirect:/admin/users";
+        }
+        model.addAttribute("person", person);
+        model.addAttribute("patientProfile", userService.getPatientProfile(person).orElse(null));
+        model.addAttribute("doctorProfile", userService.getDoctorProfile(person).orElse(null));
+        model.addAttribute("vendorProfile", userService.getVendorProfile(person).orElse(null));
+        if (person.getRole() == Role.VENDOR && person.getVendorType() == VendorType.PHARMACY) {
+            model.addAttribute("pharmacyItems", vendorService.getPharmacyItemsByVendor(person));
+        }
+        if (person.getRole() == Role.VENDOR && person.getVendorType() == VendorType.LABORATORY) {
+            model.addAttribute("labTests", vendorService.getLabTestsByVendor(person));
+        }
+        return "admin/record";
+    }
+
     @PostMapping("/settings")
     public String saveSettings(@RequestParam String hospitalName,
                                @RequestParam(required = false) String hospitalAddress,

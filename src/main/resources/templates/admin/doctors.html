@@ -78,7 +78,8 @@
                         <td th:text="${doc.approvalStatus.label}">status</td>
                         <td th:text="${doc.accountStatus}">ACTIVE</td>
                         <td>
-                            <form th:action="@{/admin/user/{id}/toggle-status(id=${doc.id})}" method="post">
+                            <a class="btn btn-outline btn-sm" th:href="@{/admin/record/{id}(id=${doc.id})}">View</a>
+                            <form th:action="@{/admin/user/{id}/toggle-status(id=${doc.id})}" method="post" style="display:inline;">
                                 <input type="hidden" name="returnTo" value="/admin/doctors">
                                 <button type="submit" class="btn btn-sm btn-secondary"
                                         th:text="${doc.accountStatus == 'BLOCKED'} ? 'Activate' : 'Block'">Block</button>

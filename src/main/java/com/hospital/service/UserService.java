@@ -182,12 +182,12 @@ public class UserService {
         userRepository.save(user);
 
         if (user.getRole() == Role.DOCTOR && licenseFileName != null) {
-            DoctorProfile profile = doctorProfileRepository.findByUser(user).orElseGet(() -> new DoctorProfile(user));
+            DoctorProfile profile = doctorProfileRepository.findByUserId(user.getId()).orElseGet(() -> new DoctorProfile(user));
             profile.setLicenseFileName(licenseFileName);
             doctorProfileRepository.save(profile);
         }
         if (user.getRole() == Role.VENDOR && licenseFileName != null) {
-            VendorProfile profile = vendorProfileRepository.findByUser(user).orElseGet(() -> new VendorProfile(user));
+            VendorProfile profile = vendorProfileRepository.findByUserId(user.getId()).orElseGet(() -> new VendorProfile(user));
             profile.setLicenseFileName(licenseFileName);
             vendorProfileRepository.save(profile);
         }
@@ -437,7 +437,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        PatientProfile existingProfile = patientProfileRepository.findByUser(user)
+        PatientProfile existingProfile = patientProfileRepository.findByUserId(userId)
                 .orElseGet(() -> new PatientProfile(user));
 
         existingProfile.setAge(updatedProfile.getAge());
@@ -460,7 +460,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        DoctorProfile existingProfile = doctorProfileRepository.findByUser(user)
+        DoctorProfile existingProfile = doctorProfileRepository.findByUserId(userId)
                 .orElseGet(() -> new DoctorProfile(user));
 
         existingProfile.setSpecialization(updatedProfile.getSpecialization());
@@ -487,7 +487,7 @@ public class UserService {
     public void applyDoctorRegistrationDetails(User doctor, String specialization, String qualification,
                                                Integer experienceYears, String hospitalName, String clinicAddress,
                                                String licenseNumber) {
-        DoctorProfile profile = doctorProfileRepository.findByUser(doctor).orElseGet(() -> new DoctorProfile(doctor));
+        DoctorProfile profile = doctorProfileRepository.findByUserId(doctor.getId()).orElseGet(() -> new DoctorProfile(doctor));
         if (specialization != null && !specialization.isBlank()) {
             profile.setSpecialization(specialization.trim());
         }
@@ -507,7 +507,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        VendorProfile existingProfile = vendorProfileRepository.findByUser(user)
+        VendorProfile existingProfile = vendorProfileRepository.findByUserId(userId)
                 .orElseGet(() -> new VendorProfile(user));
 
         existingProfile.setBusinessName(updatedProfile.getBusinessName());
@@ -533,7 +533,7 @@ public class UserService {
     public void applyVendorRegistrationDetails(User vendor, String businessName, String ownerName,
                                                String address, String licenseNumber,
                                                String workingHours, String deliveryArea, String description) {
-        VendorProfile profile = vendorProfileRepository.findByUser(vendor).orElseGet(() -> new VendorProfile(vendor));
+        VendorProfile profile = vendorProfileRepository.findByUserId(vendor.getId()).orElseGet(() -> new VendorProfile(vendor));
         profile.setVendorType(vendor.getVendorType());
         if (businessName != null && !businessName.isBlank()) {
             profile.setBusinessName(businessName.trim());
@@ -561,15 +561,24 @@ public class UserService {
     }
 
     public Optional<PatientProfile> getPatientProfile(User user) {
-        return patientProfileRepository.findByUser(user);
+        if (user == null || user.getId() == null) {
+            return Optional.empty();
+        }
+        return patientProfileRepository.findByUserId(user.getId());
     }
 
     public Optional<DoctorProfile> getDoctorProfile(User user) {
-        return doctorProfileRepository.findByUser(user);
+        if (user == null || user.getId() == null) {
+            return Optional.empty();
+        }
+        return doctorProfileRepository.findByUserId(user.getId());
     }
 
     public Optional<VendorProfile> getVendorProfile(User user) {
-        return vendorProfileRepository.findByUser(user);
+        if (user == null || user.getId() == null) {
+            return Optional.empty();
+        }
+        return vendorProfileRepository.findByUserId(user.getId());
     }
 
     public void deleteUser(Long userId) {

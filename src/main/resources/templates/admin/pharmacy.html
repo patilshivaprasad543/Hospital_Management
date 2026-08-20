@@ -58,6 +58,7 @@
                 <p class="text-muted" th:text="${vendorProfiles.get(ven.id) != null ? vendorProfiles.get(ven.id).licenseNumber : ''}">license</p>
                 <span class="badge" th:classappend="${ven.approvalStatus.name() == 'APPROVED' ? 'badge-confirmed' : 'badge-pending'}"
                       th:text="${ven.approvalStatus.label}">Status</span>
+                <p style="margin-top:0.75rem;"><a class="btn btn-outline btn-sm" th:href="@{/admin/record/{id}(id=${ven.id})}">View stored details</a></p>
             </div>
         </div>
     </div>

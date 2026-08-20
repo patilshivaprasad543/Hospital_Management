@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Account Record')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+<div class="container">
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1 th:text="${person.fullName}">Name</h1>
+                <p>Stored account details</p>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom:1.5rem;">
+            <div class="card-title">Account</div>
+            <p><strong>Role:</strong> <span th:text="${person.role.label}">Patient</span></p>
+            <p><strong>Email:</strong> <span th:text="${person.email}">email</span></p>
+            <p><strong>Mobile:</strong> <span th:text="${person.mobileNumber}">mobile</span></p>
+            <p><strong>Status:</strong> <span th:text="${person.accountStatus}">ACTIVE</span></p>
+            <p><strong>Approval:</strong> <span th:text="${person.approvalStatus.label}">Approved</span></p>
+        </div>
+
+        <div class="card" style="margin-bottom:1.5rem;" th:if="${patientProfile != null}">
+            <div class="card-title">Patient profile</div>
+            <p><strong>Age / gender / blood group:</strong>
+                <span th:text="${patientProfile.age}">—</span> ·
+                <span th:text="${patientProfile.gender}">—</span> ·
+                <span th:text="${patientProfile.bloodGroup}">—</span></p>
+            <p><strong>Date of birth:</strong> <span th:text="${patientProfile.dateOfBirth}">—</span></p>
+            <p><strong>Address:</strong> <span th:text="${patientProfile.address}">—</span></p>
+            <p><strong>Emergency contact:</strong>
+                <span th:text="${patientProfile.emergencyContactName}">—</span>
+                <span th:text="${patientProfile.emergencyContactPhone}">—</span></p>
+            <p><strong>Allergies:</strong> <span th:text="${patientProfile.allergies}">—</span></p>
+            <p><strong>Medical history:</strong> <span th:text="${patientProfile.medicalHistory}">—</span></p>
+        </div>
+
+        <div class="card" style="margin-bottom:1.5rem;" th:if="${doctorProfile != null}">
+            <div class="card-title">Doctor profile</div>
+            <p><strong>Specialization:</strong> <span th:text="${doctorProfile.specialization}">—</span></p>
+            <p><strong>Qualification:</strong> <span th:text="${doctorProfile.qualification}">—</span></p>
+            <p><strong>Experience:</strong> <span th:text="${doctorProfile.experienceYears}">—</span></p>
+            <p><strong>Hospital:</strong> <span th:text="${doctorProfile.hospitalName}">—</span></p>
+            <p><strong>License:</strong> <span th:text="${doctorProfile.licenseNumber}">—</span></p>
+            <p><strong>Schedule:</strong> <span th:text="${doctorProfile.availabilitySchedule}">—</span></p>
+        </div>
+
+        <div class="card" style="margin-bottom:1.5rem;" th:if="${vendorProfile != null}">
+            <div class="card-title" th:text="${person.vendorType != null and person.vendorType.name() == 'PHARMACY'} ? 'Pharmacy profile' : 'Vendor profile'">Vendor</div>
+            <p><strong>Business:</strong> <span th:text="${vendorProfile.businessName}">—</span></p>
+            <p><strong>Owner:</strong> <span th:text="${vendorProfile.ownerName}">—</span></p>
+            <p><strong>License:</strong> <span th:text="${vendorProfile.licenseNumber}">—</span></p>
+            <p><strong>Phone:</strong> <span th:text="${vendorProfile.contactPhone}">—</span></p>
+            <p><strong>Address:</strong> <span th:text="${vendorProfile.address}">—</span></p>
+            <p><strong>Hours:</strong> <span th:text="${vendorProfile.workingHours}">—</span></p>
+            <p><strong>Delivery area:</strong> <span th:text="${vendorProfile.deliveryArea}">—</span></p>
+            <p><strong>Description:</strong> <span th:text="${vendorProfile.description}">—</span></p>
+        </div>
+
+        <div class="card" style="margin-bottom:1.5rem;" th:if="${pharmacyItems != null}">
+            <div class="card-title">Pharmacy inventory</div>
+            <table class="table">
+                <thead><tr><th>Medicine</th><th>Stock</th><th>Price</th></tr></thead>
+                <tbody>
+                    <tr th:each="item : ${pharmacyItems}">
+                        <td th:text="${item.itemName}">Med</td>
+                        <td th:text="${item.stockQuantity}">0</td>
+                        <td th:text="${item.price}">0</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pharmacyItems)}">
+                        <td colspan="3" class="text-muted">No medicines stored yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" style="margin-bottom:1.5rem;" th:if="${labTests != null}">
+            <div class="card-title">Lab catalog</div>
+            <table class="table">
+                <thead><tr><th>Test</th><th>Category</th><th>Price</th></tr></thead>
+                <tbody>
+                    <tr th:each="test : ${labTests}">
+                        <td th:text="${test.testName}">Test</td>
+                        <td th:text="${test.category}">Cat</td>
+                        <td th:text="${test.price}">0</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(labTests)}">
+                        <td colspan="3" class="text-muted">No lab tests stored yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p><a href="/admin/users" class="btn btn-secondary">Back</a></p>
+    </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>
