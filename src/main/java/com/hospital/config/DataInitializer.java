@@ -4,6 +4,7 @@ import com.hospital.model.*;
 import com.hospital.repository.*;
 import com.hospital.service.AnnouncementService;
 import com.hospital.service.DepartmentService;
+import com.hospital.service.HospitalSettingService;
 import com.hospital.service.UserService;
 import com.hospital.service.VendorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +39,14 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private AnnouncementService announcementService;
 
+    @Autowired
+    private HospitalSettingService hospitalSettingService;
+
     @Override
     public void run(String... args) {
         userService.createAdminAccount(adminEmail, adminPassword, adminName, adminMobile);
         departmentService.seedDepartmentsIfEmpty();
+        hospitalSettingService.ensureDefaults();
         seedAnnouncementsIfEmpty();
         seedDemoAccountsIfMissing();
 

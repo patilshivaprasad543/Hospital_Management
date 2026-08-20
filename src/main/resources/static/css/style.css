@@ -1605,3 +1605,43 @@ footer, .site-footer {
     margin-bottom: 0.35rem;
 }
 
+.admin-module-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 2rem;
+}
+
+.admin-module-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 1rem 0.9rem;
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-xs);
+    text-decoration: none;
+    color: inherit;
+    min-height: 110px;
+}
+
+.admin-module-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.admin-module-card span {
+    font-size: 1.4rem;
+}
+
+.admin-module-card strong {
+    color: var(--text-heading);
+}
+
+.admin-module-card small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+

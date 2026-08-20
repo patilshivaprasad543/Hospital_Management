@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Lab Reports')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+<div class="container">
+        <h2>Monitor Lab Reports</h2>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Test</th><th>Lab</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="req : ${labRequests}">
+                        <td th:text="${'#LAB-' + req.id}">1</td>
+                        <td th:text="${req.patient != null ? req.patient.fullName : '—'}">P</td>
+                        <td th:text="${req.doctor != null ? req.doctor.fullName : '—'}">D</td>
+                        <td th:text="${req.testName}">test</td>
+                        <td th:text="${req.labVendor != null ? req.labVendor.fullName : 'Unassigned'}">Lab</td>
+                        <td th:text="${req.status}">STATUS</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(labRequests)}">
+                        <td colspan="6" style="text-align:center;color:var(--text-muted);">No lab requests.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

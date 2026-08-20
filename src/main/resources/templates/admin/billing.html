@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Billing')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+<div class="container">
+        <h2>Billing &amp; Payments</h2>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        <div class="grid">
+            <div class="card stat-card"><div class="card-title">Revenue (paid)</div><div class="stat-number" th:text="${'₹' + #numbers.formatDecimal(totalRevenue, 1, 2)}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Pending invoices</div><div class="stat-number warning" th:text="${pendingPayments}">0</div></div>
+        </div>
+        <h3>Invoices</h3>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr><th>Number</th><th>Patient</th><th>Type</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="inv : ${invoices}">
+                        <td th:text="${inv.invoiceNumber}">INV</td>
+                        <td th:text="${inv.patient.fullName}">P</td>
+                        <td th:text="${inv.chargeType}">TYPE</td>
+                        <td th:text="${'₹' + inv.amount}">0</td>
+                        <td th:text="${inv.paymentStatus}">PENDING</td>
+                        <td th:text="${#temporals.format(inv.createdAt, 'dd MMM yyyy')}">d</td>
+                        <td>
+                            <form th:if="${inv.paymentStatus.name() != 'PAID'}"
+                                  th:action="@{/admin/billing/{id}/record-payment(id=${inv.id})}" method="post">
+                                <button type="submit" class="btn btn-primary btn-sm">Record payment</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(invoices)}">
+                        <td colspan="7" style="text-align:center;color:var(--text-muted);">No invoices yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <h3>Payments</h3>
+        <div class="table-container">
+            <table class="table">
+                <thead><tr><th>Ref</th><th>Patient</th><th>Amount</th><th>Paid at</th></tr></thead>
+                <tbody>
+                    <tr th:each="pay : ${payments}">
+                        <td th:text="${pay.transactionRef}">TXN</td>
+                        <td th:text="${pay.patient.fullName}">P</td>
+                        <td th:text="${'₹' + pay.amount}">0</td>
+                        <td th:text="${#temporals.format(pay.paidAt, 'dd MMM yyyy HH:mm')}">d</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

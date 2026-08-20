@@ -205,6 +205,10 @@ public class PharmacyWorkflowService {
         return pharmacyOrderRepository.findByPharmacyVendorOrderByCreatedAtDesc(vendor);
     }
 
+    public List<PharmacyOrder> getAllOrders() {
+        return pharmacyOrderRepository.findAllDetailed();
+    }
+
     public Map<PharmacyOrderStatus, Long> countOrdersByStatus(User vendor) {
         Map<PharmacyOrderStatus, Long> counts = new EnumMap<>(PharmacyOrderStatus.class);
         for (PharmacyOrderStatus status : PharmacyOrderStatus.values()) {

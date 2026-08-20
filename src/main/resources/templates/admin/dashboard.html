@@ -8,8 +8,29 @@
         <div class="page-header">
             <div class="page-header-content">
                 <h1>Admin Dashboard</h1>
-                <p>Welcome, <span th:text="${admin.fullName}">Admin</span> — system overview and analytics</p>
+                <p>Welcome, <span th:text="${admin.fullName}">Admin</span>
+                    — <span th:text="${hospitalName}">SmartCare 360 Hospital</span></p>
             </div>
+        </div>
+
+        <h3 class="section-title">Hospital modules</h3>
+        <div class="admin-module-grid">
+            <a class="admin-module-card" href="/admin/dashboard"><span>📊</span><strong>Dashboard</strong><small>Hospital statistics</small></a>
+            <a class="admin-module-card" href="/admin/users"><span>👥</span><strong>Patients</strong><small th:text="${totalPatients + ' registered'}">0</small></a>
+            <a class="admin-module-card" href="/admin/doctors"><span>👨‍⚕️</span><strong>Doctors</strong><small th:text="${pendingDoctorApprovals + ' pending verify'}">0 pending</small></a>
+            <a class="admin-module-card" href="/admin/pharmacy"><span>💊</span><strong>Pharmacy</strong><small th:text="${pendingPharmacyApprovals + ' licenses pending'}">0 pending</small></a>
+            <a class="admin-module-card" href="/admin/laboratories"><span>🧪</span><strong>Laboratory</strong><small th:text="${pendingLabApprovals + ' licenses pending'}">0 pending</small></a>
+            <a class="admin-module-card" href="/admin/appointments"><span>📅</span><strong>Appointments</strong><small th:text="${todayAppointments + ' today'}">0 today</small></a>
+            <a class="admin-module-card" href="/admin/prescriptions"><span>📝</span><strong>Prescriptions</strong><small th:text="${prescriptionCount + ' issued'}">0</small></a>
+            <a class="admin-module-card" href="/admin/medicines"><span>📦</span><strong>Medicines</strong><small th:text="${lowStockMedicines + ' low stock'}">0 low</small></a>
+            <a class="admin-module-card" href="/admin/pharmacy-orders"><span>🚚</span><strong>Pharmacy Orders</strong><small th:text="${pharmacyOrderCount + ' orders'}">0</small></a>
+            <a class="admin-module-card" href="/admin/lab-reports"><span>🔬</span><strong>Lab Reports</strong><small th:text="${pendingTests + ' in process'}">0</small></a>
+            <a class="admin-module-card" href="/admin/billing"><span>💳</span><strong>Billing</strong><small th:text="${pendingPayments + ' unpaid'}">0 unpaid</small></a>
+            <a class="admin-module-card" href="/admin/records"><span>📋</span><strong>Medical Records</strong><small th:text="${consultationCount + ' consultations'}">0</small></a>
+            <a class="admin-module-card" href="/admin/notifications"><span>🔔</span><strong>Notifications</strong><small>Send and manage alerts</small></a>
+            <a class="admin-module-card" href="/admin/reports"><span>📈</span><strong>Reports</strong><small>Hospital analytics</small></a>
+            <a class="admin-module-card" href="/admin/settings"><span>⚙️</span><strong>Settings</strong><small>System configuration</small></a>
+            <a class="admin-module-card" href="/logout"><span>🚪</span><strong>Logout</strong><small>Secure sign out</small></a>
         </div>
 
         <div class="grid">
@@ -22,8 +43,12 @@
                 <div class="stat-number success" th:text="${totalDoctors}">0</div>
             </div>
             <div class="card stat-card">
-                <div class="card-title">Vendors</div>
-                <div class="stat-number warning" th:text="${totalVendors}">0</div>
+                <div class="card-title">Pharmacies</div>
+                <div class="stat-number warning" th:text="${pharmacyCount}">0</div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">Laboratories</div>
+                <div class="stat-number warning" th:text="${labCount}">0</div>
             </div>
             <div class="card stat-card">
                 <div class="card-title">Today's Appointments</div>
@@ -64,12 +89,17 @@
             <div class="card" th:if="${pendingDoctorApprovals > 0}">
                 <div class="card-title">Doctors Awaiting Approval</div>
                 <div class="stat-number warning" th:text="${pendingDoctorApprovals}">0</div>
-                <a href="/admin/doctors" class="btn btn-primary btn-sm mt-2">Review Doctors</a>
+                <a href="/admin/doctors" class="btn btn-primary btn-sm mt-2">Verify Doctors</a>
             </div>
-            <div class="card" th:if="${pendingVendorApprovals > 0}">
-                <div class="card-title">Vendors Awaiting Approval</div>
-                <div class="stat-number warning" th:text="${pendingVendorApprovals}">0</div>
-                <a href="/admin/vendors" class="btn btn-primary btn-sm mt-2">Review Vendors</a>
+            <div class="card" th:if="${pendingPharmacyApprovals > 0}">
+                <div class="card-title">Pharmacy Licenses</div>
+                <div class="stat-number warning" th:text="${pendingPharmacyApprovals}">0</div>
+                <a href="/admin/pharmacy" class="btn btn-primary btn-sm mt-2">Verify Licenses</a>
+            </div>
+            <div class="card" th:if="${pendingLabApprovals > 0}">
+                <div class="card-title">Lab Licenses</div>
+                <div class="stat-number warning" th:text="${pendingLabApprovals}">0</div>
+                <a href="/admin/laboratories" class="btn btn-primary btn-sm mt-2">Verify Licenses</a>
             </div>
             <div class="card" th:if="${pendingDoctorApprovals == 0 and pendingVendorApprovals == 0}">
                 <p class="text-muted" style="margin:0;">No pending doctor or vendor approvals.</p>

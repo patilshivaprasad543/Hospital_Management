@@ -90,6 +90,6 @@ public class LabWorkflowService {
     }
 
     public List<LabRequest> getAllLabRequests() {
-        return labRequestRepository.findAll();
+        return labRequestRepository.findAllDetailed();
     }
 }

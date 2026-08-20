@@ -3,21 +3,22 @@
 <head th:replace="~{fragments/layout :: head('Patients')}"></head>
 <body>
     <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
-
 <div class="container">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
-
-        <h2>Patients</h2>
-        
-        <div class="table-container" style="margin-top: 1.5rem;">
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Manage Patients</h1>
+                <p>View patient accounts, contact details, and activate or block access.</p>
+            </div>
+        </div>
+        <div class="table-container">
             <table class="table">
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Email</th>
-                        <th>Mobile</th>
-                        <th>Account Type</th>
+                        <th>Email / Mobile</th>
+                        <th>Profile</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -25,17 +26,37 @@
                 <tbody>
                     <tr th:each="usr : ${users}">
                         <td th:text="${usr.fullName}">Name</td>
-                        <td th:text="${usr.email}">email@example.com</td>
-                        <td th:text="${usr.mobileNumber}">9876543210</td>
-                        <td><span class="badge badge-role" th:text="${usr.role.label}">Patient</span></td>
                         <td>
-                            <span class="badge" th:classappend="${usr.verified ? 'badge-confirmed' : 'badge-pending'}" th:text="${usr.verified ? 'Verified' : 'Pending verification'}">Verified</span>
+                            <div th:text="${usr.email}">email</div>
+                            <small th:text="${usr.mobileNumber}">mobile</small>
                         </td>
                         <td>
-                            <form th:if="${usr.role.name() != 'ADMIN'}" th:action="@{/admin/user/{id}/delete(id=${usr.id})}" method="post">
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?')">Delete</button>
+                            <span th:if="${profiles.get(usr.id) != null}">
+                                Age <span th:text="${profiles.get(usr.id).age}">—</span>
+                                · <span th:text="${profiles.get(usr.id).gender}">—</span>
+                                · <span th:text="${profiles.get(usr.id).bloodGroup}">—</span>
+                                <div class="text-muted" th:text="${profiles.get(usr.id).address}">addr</div>
+                            </span>
+                            <span th:if="${profiles.get(usr.id) == null}" class="text-muted">No profile yet</span>
+                        </td>
+                        <td>
+                            <span class="badge" th:classappend="${usr.accountStatus == 'ACTIVE' ? 'badge-confirmed' : 'badge-pending'}"
+                                  th:text="${usr.accountStatus}">ACTIVE</span>
+                        </td>
+                        <td>
+                            <form th:action="@{/admin/user/{id}/toggle-status(id=${usr.id})}" method="post" style="display:inline;">
+                                <input type="hidden" name="returnTo" value="/admin/users">
+                                <button type="submit" class="btn btn-secondary btn-sm"
+                                        th:text="${usr.accountStatus == 'BLOCKED'} ? 'Activate' : 'Block'">Block</button>
+                            </form>
+                            <form th:action="@{/admin/user/{id}/delete(id=${usr.id})}" method="post" style="display:inline;">
+                                <input type="hidden" name="returnTo" value="/admin/users">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this patient?')">Delete</button>
                             </form>
                         </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(users)}">
+                        <td colspan="5" style="text-align:center;color:var(--text-muted);">No patients registered.</td>
                     </tr>
                 </tbody>
             </table>

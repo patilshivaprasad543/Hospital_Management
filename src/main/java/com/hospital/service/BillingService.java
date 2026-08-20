@@ -81,6 +81,42 @@ public class BillingService {
         return paymentRepository.findByPatientOrderByPaidAtDesc(patient);
     }
 
+    public List<Invoice> getAllInvoices() {
+        return invoiceRepository.findAllWithPatient();
+    }
+
+    public List<Payment> getAllPayments() {
+        return paymentRepository.findAllDetailed();
+    }
+
+    public Payment recordPaymentAsAdmin(Long invoiceId, User admin) {
+        Invoice invoice = invoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+        if (invoice.getPaymentStatus() == PaymentStatus.PAID) {
+            throw new RuntimeException("Invoice is already paid.");
+        }
+        invoice.setPaymentStatus(PaymentStatus.PAID);
+        invoiceRepository.save(invoice);
+        Payment payment = new Payment(invoice, invoice.getPatient(), invoice.getAmount(),
+                "ADMIN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        Payment saved = paymentRepository.save(payment);
+
+        if ("PHARMACY".equalsIgnoreCase(invoice.getChargeType()) && invoice.getReferenceId() != null) {
+            pharmacyOrderRepository.findById(invoice.getReferenceId()).ifPresent(order -> {
+                order.setPaymentStatus(PaymentStatus.PAID);
+                pharmacyOrderRepository.save(order);
+            });
+        }
+
+        notificationService.sendPortalNotification(invoice.getPatient(), "💰 Payment recorded",
+                "Payment of ₹" + invoice.getAmount() + " was recorded for " + invoice.getDescription()
+                        + ". Invoice: " + invoice.getInvoiceNumber(),
+                NotificationCategory.BILLING, "/patient/bills");
+        auditLogService.log(admin, "PAYMENT_RECORDED", "BILLING", "Invoice", invoiceId,
+                "Admin recorded ₹" + invoice.getAmount());
+        return saved;
+    }
+
     public double getTotalRevenue() {
         return invoiceRepository.findAll().stream()
                 .filter(i -> i.getPaymentStatus() == PaymentStatus.PAID)

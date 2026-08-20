@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Medicines')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+<div class="container">
+        <h2>Medicine Inventory Monitor</h2>
+        <div class="alert alert-danger" th:if="${!#lists.isEmpty(lowStockItems)}">
+            Low stock: <span th:text="${lowStockItems.size()}">0</span> item(s)
+        </div>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr><th>Medicine</th><th>Category</th><th>Manufacturer</th><th>Batch</th><th>Expiry</th><th>Qty</th><th>Price</th><th>Pharmacy</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${pharmacyItems}">
+                        <td th:text="${item.itemName}">Med</td>
+                        <td th:text="${item.category}">Cat</td>
+                        <td th:text="${item.manufacturer}">Mfr</td>
+                        <td th:text="${item.batchNumber}">B</td>
+                        <td th:text="${item.expiryDate}">d</td>
+                        <td th:text="${item.stockQuantity}">0</td>
+                        <td th:text="${'₹' + item.price}">0</td>
+                        <td th:text="${item.vendor != null ? item.vendor.fullName : 'N/A'}">V</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
