@@ -27,13 +27,13 @@ services:
       - key: SMARTCARE_APP_URL
         value: https://smartcare360-java.onrender.com
       - key: SMARTCARE_ADMIN_EMAIL
-        sync: false
+        value: admin@smartcare360.local
       - key: SMARTCARE_ADMIN_PASSWORD
-        sync: false
+        generateValue: true
       - key: SMARTCARE_ADMIN_NAME
         value: System Administrator
       - key: SMARTCARE_ADMIN_MOBILE
-        sync: false
+        value: "9999999999"
       - key: SMARTCARE_MAIL_USERNAME
         sync: false
       - key: SMARTCARE_MAIL_PASSWORD

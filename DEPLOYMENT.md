@@ -20,6 +20,12 @@ The script installs Docker, builds the app, and prints the public URL plus a gen
 
 This environment cannot create an Oracle account or click your cloud console for you. After the VM exists, that one command is the full install.
 
+### Render 502 / 505 / “Application failed”
+
+Those pages mean the Java process never stayed up (or there is no successful deploy). A common cause was missing `SMARTCARE_ADMIN_*` env vars, which used to crash startup. Current `main` generates admin credentials on first boot and writes them to the service logs (and `/app/data/admin-credentials.txt` on the disk).
+
+`https://hospital-management.onrender.com` currently returns Render **502 no-deploy** — create/redeploy as **Language = Docker**, not Node. After a green deploy, open `/health` (should be `{"status":"ok"}`) then `/login`.
+
 ---
 
 ## Fix: `Couldn't find a package.json file`

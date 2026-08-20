@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCare 360</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="auth-body">
+<nav class="navbar navbar-auth">
+    <a href="/" class="navbar-brand">
+        <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
+    </a>
+</nav>
+<div class="container login-splash-wrapper">
+    <div class="auth-card">
+        <h2 th:text="${status != null} ? (${status} + ' — please retry') : 'Something went wrong'">Something went wrong</h2>
+        <p class="auth-subtitle">
+            If you just opened a free Render URL, wait a minute and refresh — the service may still be starting.
+            Demo logins (patient / doctor / pharmacy / lab) are on the home page.
+        </p>
+        <p>
+            <a class="btn btn-primary" href="/">Home</a>
+            <a class="btn btn-outline" href="/login">Portal Sign In</a>
+            <a class="btn btn-outline" href="/health">Health check</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>
