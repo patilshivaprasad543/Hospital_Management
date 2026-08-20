@@ -53,6 +53,15 @@ public class AdminController {
     @Autowired
     private BillingService billingService;
 
+    @Autowired
+    private NotificationLogService notificationLogService;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private WhatsAppService whatsAppService;
+
     private User getLoggedInAdmin(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user != null && user.getRole() == Role.ADMIN) {
@@ -336,5 +345,16 @@ public class AdminController {
         if (getLoggedInAdmin(session) == null) return "redirect:/login/admin";
         announcementService.delete(id);
         return "redirect:/admin/announcements";
+    }
+
+    @GetMapping("/notification-log")
+    public String notificationLog(HttpSession session, Model model) {
+        User admin = getLoggedInAdmin(session);
+        if (admin == null) return "redirect:/login/admin";
+
+        model.addAttribute("entries", notificationLogService.getRecentEntries());
+        model.addAttribute("smtpConfigured", emailService.isSmtpConfigured());
+        model.addAttribute("whatsappConfigured", whatsAppService.isTwilioConfigured());
+        return "admin/notification-log";
     }
 }

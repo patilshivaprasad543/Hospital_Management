@@ -3,6 +3,7 @@ package com.hospital.service;
 import com.hospital.model.*;
 import com.hospital.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,10 @@ public class UserService {
     private VendorProfileRepository vendorProfileRepository;
 
     @Autowired
-    private EmailService emailService;
+    private NotificationChannelService notificationChannelService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -37,6 +41,9 @@ public class UserService {
 
     @Autowired
     private WhatsAppService whatsAppService;
+
+    @Value("${smartcare.otp.expiry-minutes:10}")
+    private int otpExpiryMinutes;
 
     public User registerUser(User user) {
         if (user.getRole() == Role.ADMIN) {
@@ -49,6 +56,7 @@ public class UserService {
 
         String otp = generateOtp();
         user.setOtpCode(otp);
+        user.setOtpExpiresAt(LocalDateTime.now().plusMinutes(otpExpiryMinutes));
         user.setVerified(false);
         user.setAdminApproved(user.getRole() == Role.PATIENT);
         user.setApprovalStatus(ApprovalStatus.PENDING_OTP);
@@ -72,8 +80,7 @@ public class UserService {
             vendorProfileRepository.save(vendorProfile);
         }
 
-        emailService.sendOtpEmail(user.getEmail(), otp);
-        whatsAppService.sendOtp(user.getMobileNumber(), otp);
+        notificationChannelService.sendOtp(user.getEmail(), user.getMobileNumber(), otp);
         auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered, OTP sent via email & WhatsApp");
         return savedUser;
     }
@@ -82,9 +89,16 @@ public class UserService {
         Optional<User> optionalUser = userRepository.findById(userId);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if (user.getOtpCode() != null && user.getOtpCode().equals(enteredOtp.trim())) {
+            if (user.getOtpCode() == null) {
+                return false;
+            }
+            if (user.getOtpExpiresAt() != null && LocalDateTime.now().isAfter(user.getOtpExpiresAt())) {
+                return false;
+            }
+            if (user.getOtpCode().equals(enteredOtp.trim())) {
                 user.setVerified(true);
                 user.setOtpCode(null);
+                user.setOtpExpiresAt(null);
 
                 if (user.getRole() == Role.PATIENT) {
                     user.setApprovalStatus(ApprovalStatus.APPROVED);
@@ -118,6 +132,16 @@ public class UserService {
         user.setApprovalStatus(ApprovalStatus.PENDING_ADMIN);
         userRepository.save(user);
         auditLogService.log(user, "DOCUMENTS_SUBMITTED", "AUTH", "Documents submitted for admin review");
+
+        userRepository.findByRole(Role.ADMIN).forEach(admin ->
+                notificationService.sendNotification(
+                        admin,
+                        "New registration pending approval",
+                        user.getFullName() + " (" + user.getRole() + ") submitted documents for review.",
+                        NotificationCategory.SYSTEM,
+                        "/admin/doctors"
+                )
+        );
     }
 
     public void approveUser(Long userId, User admin) {
@@ -131,9 +155,7 @@ public class UserService {
 
         auditLogService.log(admin, "USER_APPROVED", "ADMIN",
                 user.getRole().name(), userId, "Approved " + user.getFullName());
-        emailService.sendApprovalEmail(user.getEmail(), user.getFullName(), true);
-        whatsAppService.sendMessage(user.getMobileNumber(), "Account Approved",
-                "Your SmartCare 360 account has been approved. You can now log in.");
+        notificationChannelService.sendApprovalNotice(user.getEmail(), user.getMobileNumber(), user.getFullName(), true);
     }
 
     public void rejectUser(Long userId, User admin, String reason) {
@@ -147,21 +169,18 @@ public class UserService {
 
         auditLogService.log(admin, "USER_REJECTED", "ADMIN",
                 user.getRole().name(), userId, reason != null ? reason : "Rejected by admin");
-        emailService.sendApprovalEmail(user.getEmail(), user.getFullName(), false);
-        whatsAppService.sendMessage(user.getMobileNumber(), "Account Update",
-                "Your SmartCare 360 account application was not approved. Contact the administrator.");
+        notificationChannelService.sendApprovalNotice(user.getEmail(), user.getMobileNumber(), user.getFullName(), false);
     }
 
-    public String resendOtp(Long userId) {
+    public void resendOtp(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found for OTP resend."));
 
         String newOtp = generateOtp();
         user.setOtpCode(newOtp);
+        user.setOtpExpiresAt(LocalDateTime.now().plusMinutes(otpExpiryMinutes));
         userRepository.save(user);
-        emailService.sendOtpEmail(user.getEmail(), newOtp);
-        whatsAppService.sendOtp(user.getMobileNumber(), newOtp);
-        return newOtp;
+        notificationChannelService.sendOtp(user.getEmail(), user.getMobileNumber(), newOtp);
     }
 
     public Optional<User> loginUser(String email, String password) {
@@ -188,9 +207,9 @@ public class UserService {
 
         String resetOtp = generateOtp();
         user.setResetOtpCode(resetOtp);
+        user.setResetOtpExpiresAt(LocalDateTime.now().plusMinutes(otpExpiryMinutes));
         userRepository.save(user);
-        emailService.sendPasswordResetEmail(user.getEmail(), resetOtp);
-        whatsAppService.sendOtp(user.getMobileNumber(), resetOtp);
+        notificationChannelService.sendPasswordResetOtp(user.getEmail(), user.getMobileNumber(), resetOtp);
         auditLogService.log(user, "PASSWORD_RESET_REQUESTED", "AUTH", "Password reset OTP sent via email & WhatsApp");
     }
 
@@ -198,9 +217,16 @@ public class UserService {
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            if (user.getResetOtpCode() != null && user.getResetOtpCode().equals(resetOtp.trim())) {
+            if (user.getResetOtpCode() == null) {
+                return false;
+            }
+            if (user.getResetOtpExpiresAt() != null && LocalDateTime.now().isAfter(user.getResetOtpExpiresAt())) {
+                return false;
+            }
+            if (user.getResetOtpCode().equals(resetOtp.trim())) {
                 user.setPassword(passwordEncoder.encode(newPassword));
                 user.setResetOtpCode(null);
+                user.setResetOtpExpiresAt(null);
                 userRepository.save(user);
                 auditLogService.log(user, "PASSWORD_RESET", "AUTH", "Password reset completed");
                 return true;

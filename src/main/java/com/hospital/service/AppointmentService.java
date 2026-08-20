@@ -34,6 +34,9 @@ public class AppointmentService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EmailService emailService;
+
     public Appointment bookAppointment(Long patientId, Long doctorId, LocalDate date, LocalTime time, String reason) {
         return bookAppointmentWithDepartment(patientId, doctorId, date, time, reason, "General Consultation");
     }
@@ -82,6 +85,8 @@ public class AppointmentService {
             NotificationCategory.APPOINTMENT,
             "/patient/appointments"
         );
+
+        emailService.sendAppointmentBookedEmail(saved);
 
         return saved;
     }
@@ -157,6 +162,7 @@ public class AppointmentService {
                 NotificationCategory.APPOINTMENT,
                 "/doctor/dashboard"
             );
+            emailService.sendAppointmentConfirmationEmail(savedAppointment);
             userService.getDoctorProfile(savedAppointment.getDoctor()).ifPresent(profile -> {
                 if (profile.getConsultationFee() != null && profile.getConsultationFee() > 0) {
                     billingService.createInvoice(
