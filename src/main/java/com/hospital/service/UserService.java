@@ -407,6 +407,18 @@ public class UserService {
         return userRepository.findByRoleAndApprovalStatus(Role.VENDOR, ApprovalStatus.PENDING_ADMIN);
     }
 
+    public List<User> findVendorsByType(VendorType vendorType) {
+        return userRepository.findByRole(Role.VENDOR).stream()
+                .filter(v -> v.getVendorType() == vendorType)
+                .toList();
+    }
+
+    public List<User> findPendingVendorsByType(VendorType vendorType) {
+        return findPendingVendors().stream()
+                .filter(v -> v.getVendorType() == vendorType)
+                .toList();
+    }
+
     public PatientProfile updatePatientProfile(Long userId, PatientProfile updatedProfile) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));

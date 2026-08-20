@@ -24,4 +24,7 @@ public interface LabRequestRepository extends JpaRepository<LabRequest, Long> {
     List<LabRequest> findByStatusOrderByCreatedAtDesc(String status);
 
     long countByStatus(String status);
+
+    @Query("SELECT r FROM LabRequest r LEFT JOIN FETCH r.patient LEFT JOIN FETCH r.doctor LEFT JOIN FETCH r.labVendor ORDER BY r.createdAt DESC")
+    List<LabRequest> findAllDetailed();
 }

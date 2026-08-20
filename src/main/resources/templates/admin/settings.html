@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Settings')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+<div class="container">
+        <h1>System Settings</h1>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div class="split-layout">
+            <div class="card">
+                <div class="card-title">Hospital configuration</div>
+                <form th:action="@{/admin/settings}" method="post">
+                    <div class="form-group">
+                        <label class="form-label">Hospital name</label>
+                        <input class="form-control" name="hospitalName" required
+                               th:value="${settings.get('hospital.name')}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Address</label>
+                        <input class="form-control" name="hospitalAddress" th:value="${settings.get('hospital.address')}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input class="form-control" name="hospitalPhone" th:value="${settings.get('hospital.phone')}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Public email</label>
+                        <input class="form-control" name="hospitalEmail" th:value="${settings.get('hospital.email')}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Working hours</label>
+                        <input class="form-control" name="hospitalHours" th:value="${settings.get('hospital.workingHours')}">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" name="emailEnabled" value="true"
+                                   th:checked="${settings.get('notifications.emailEnabled') == 'true'}">
+                            Enable email notification channel
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save settings</button>
+                </form>
+            </div>
+            <div>
+                <div class="card" style="margin-bottom:1rem;">
+                    <div class="card-title">Related configuration</div>
+                    <p><a href="/admin/departments">Manage departments</a></p>
+                    <p><a href="/admin/announcements">Hospital announcements</a></p>
+                    <p><a href="/admin/notifications">Portal notifications</a></p>
+                    <p><a href="/admin/audit-logs">Audit logs</a></p>
+                </div>
+                <div class="card">
+                    <div class="card-title">Departments</div>
+                    <ul>
+                        <li th:each="d : ${departments}" th:text="${d.name}">Dept</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

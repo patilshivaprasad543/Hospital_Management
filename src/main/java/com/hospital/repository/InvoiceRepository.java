@@ -17,4 +17,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     List<Invoice> findByChargeTypeAndPaymentStatus(String chargeType, PaymentStatus status);
 
     java.util.Optional<Invoice> findFirstByChargeTypeAndReferenceId(String chargeType, Long referenceId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT i FROM Invoice i LEFT JOIN FETCH i.patient ORDER BY i.createdAt DESC")
+    List<Invoice> findAllWithPatient();
 }

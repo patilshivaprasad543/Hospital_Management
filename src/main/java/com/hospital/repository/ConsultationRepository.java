@@ -13,4 +13,7 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
     List<Consultation> findByPatientOrderByStartedAtDesc(User patient);
     List<Consultation> findByDoctorOrderByStartedAtDesc(User doctor);
     Optional<Consultation> findByAppointmentId(Long appointmentId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Consultation c LEFT JOIN FETCH c.patient LEFT JOIN FETCH c.doctor ORDER BY c.startedAt DESC")
+    List<Consultation> findAllDetailed();
 }

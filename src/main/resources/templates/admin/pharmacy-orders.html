@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pharmacy Orders')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+<div class="container">
+        <h2>Monitor Pharmacy Orders</h2>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr><th>Order</th><th>Patient</th><th>Pharmacy</th><th>Total</th><th>Payment</th><th>Status</th><th>Updated</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ord : ${pharmacyOrders}">
+                        <td th:text="${'#ORD-' + ord.id}">1</td>
+                        <td th:text="${ord.patient.fullName}">P</td>
+                        <td th:text="${ord.pharmacyVendor != null ? ord.pharmacyVendor.fullName : '—'}">V</td>
+                        <td th:text="${'₹' + #numbers.formatDecimal(ord.totalPrice, 1, 2)}">0</td>
+                        <td th:text="${ord.paymentStatus}">PENDING</td>
+                        <td>
+                            <span class="badge pharmacy-status-badge" th:classappend="${' status-' + ord.status.name()}"
+                                  th:text="${ord.status.displayName}">s</span>
+                        </td>
+                        <td th:text="${#temporals.format(ord.updatedAt, 'dd MMM yyyy HH:mm')}">dt</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pharmacyOrders)}">
+                        <td colspan="7" style="text-align:center;color:var(--text-muted);">No pharmacy orders.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

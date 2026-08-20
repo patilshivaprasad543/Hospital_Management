@@ -23,4 +23,11 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
            "LEFT JOIN FETCH p.items " +
            "WHERE p.doctor = :doctor ORDER BY p.createdAt DESC")
     List<Prescription> findByDoctorOrderByCreatedAtDesc(@Param("doctor") User doctor);
+
+    @Query("SELECT DISTINCT p FROM Prescription p " +
+           "LEFT JOIN FETCH p.patient " +
+           "LEFT JOIN FETCH p.doctor " +
+           "LEFT JOIN FETCH p.items " +
+           "ORDER BY p.createdAt DESC")
+    List<Prescription> findAllDetailed();
 }

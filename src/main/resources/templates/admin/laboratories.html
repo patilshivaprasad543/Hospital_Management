@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Laboratories')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+<div class="container">
+        <h2>Laboratory Management</h2>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Verify lab vendor licenses and monitor diagnostic partners.</p>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        <p><a href="/admin/lab-reports" class="btn btn-outline btn-sm">Monitor lab reports</a></p>
+
+        <h3>Pending lab licenses</h3>
+        <div class="table-container" style="margin-bottom: 2rem;">
+            <table class="table">
+                <thead><tr><th>Name</th><th>Email</th><th>Documents</th><th>License</th><th>Actions</th></tr></thead>
+                <tbody>
+                    <tr th:each="ven : ${pendingVendors}">
+                        <td th:text="${ven.fullName}">Name</td>
+                        <td th:text="${ven.email}">email</td>
+                        <td th:text="${ven.documentInfo != null ? ven.documentInfo : 'Not submitted'}">docs</td>
+                        <td>
+                            <span th:if="${pendingProfiles.get(ven.id) != null}">
+                                <span th:text="${pendingProfiles.get(ven.id).licenseNumber}">lic</span>
+                                <br/>
+                                <a th:if="${pendingProfiles.get(ven.id).licenseFileName != null}"
+                                   th:href="@{/uploads/vendors/{f}(f=${pendingProfiles.get(ven.id).licenseFileName})}"
+                                   target="_blank">View file</a>
+                            </span>
+                        </td>
+                        <td>
+                            <form th:action="@{/admin/vendor/{id}/approve(id=${ven.id})}" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-primary btn-sm">Approve</button>
+                            </form>
+                            <form th:action="@{/admin/vendor/{id}/reject(id=${ven.id})}" method="post" style="display:inline;">
+                                <input type="text" name="reason" class="form-control" placeholder="Reason" required style="width:160px;display:inline-block;">
+                                <button type="submit" class="btn btn-secondary btn-sm">Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pendingVendors)}">
+                        <td colspan="5" style="text-align:center;color:var(--text-muted);">No pending laboratory licenses.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>Registered laboratories</h3>
+        <div class="grid" style="margin-bottom:2rem;">
+            <div class="card" th:each="ven : ${vendors}">
+                <div class="card-title" th:text="${vendorProfiles.get(ven.id) != null and vendorProfiles.get(ven.id).businessName != null ? vendorProfiles.get(ven.id).businessName : ven.fullName}">Lab</div>
+                <p th:text="${ven.email}">email</p>
+                <span class="badge" th:classappend="${ven.approvalStatus.name() == 'APPROVED' ? 'badge-confirmed' : 'badge-pending'}"
+                      th:text="${ven.approvalStatus.label}">Status</span>
+            </div>
+        </div>
+
+        <h3>Lab test catalog</h3>
+        <div class="table-container">
+            <table class="table">
+                <thead><tr><th>Test</th><th>Category</th><th>Price</th><th>Vendor</th></tr></thead>
+                <tbody>
+                    <tr th:each="test : ${labTests}">
+                        <td th:text="${test.testName}">CBC</td>
+                        <td th:text="${test.category}">Blood</td>
+                        <td th:text="${'₹' + test.price}">₹0</td>
+                        <td th:text="${test.vendor != null ? test.vendor.fullName : 'N/A'}">Lab</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

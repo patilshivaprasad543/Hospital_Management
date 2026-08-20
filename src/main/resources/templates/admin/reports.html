@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Reports')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+<div class="container">
+        <h1>Reports &amp; Analytics</h1>
+        <div class="grid">
+            <div class="card stat-card"><div class="card-title">Patients</div><div class="stat-number" th:text="${totalPatients}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Doctors</div><div class="stat-number" th:text="${totalDoctors}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Pharmacies</div><div class="stat-number" th:text="${pharmacyCount}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Labs</div><div class="stat-number" th:text="${labCount}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Appointments</div><div class="stat-number" th:text="${totalAppointments}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Prescriptions</div><div class="stat-number" th:text="${prescriptionCount}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Consultations</div><div class="stat-number" th:text="${consultationCount}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Lab requests</div><div class="stat-number" th:text="${labRequestCount}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Revenue</div><div class="stat-number" th:text="${'₹' + #numbers.formatDecimal(totalRevenue, 1, 2)}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Unpaid invoices</div><div class="stat-number warning" th:text="${pendingPayments}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Low-stock medicines</div><div class="stat-number warning" th:text="${lowStockMedicines}">0</div></div>
+        </div>
+        <div class="split-layout">
+            <div class="card">
+                <div class="card-title">Appointments by status</div>
+                <ul>
+                    <li th:each="entry : ${appointmentsByStatus}" th:text="${entry.key + ': ' + entry.value}">s</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-title">Pharmacy orders by status</div>
+                <ul>
+                    <li th:each="entry : ${ordersByStatus}" th:text="${entry.key + ': ' + entry.value}">s</li>
+                </ul>
+            </div>
+        </div>
+        <h3>Recent audit activity</h3>
+        <div class="table-container">
+            <table class="table">
+                <thead><tr><th>When</th><th>User</th><th>Action</th><th>Module</th><th>Details</th></tr></thead>
+                <tbody>
+                    <tr th:each="log : ${auditLogs}">
+                        <td th:text="${#temporals.format(log.createdAt, 'dd MMM HH:mm')}">t</td>
+                        <td th:text="${log.user != null ? log.user.fullName : 'System'}">u</td>
+                        <td th:text="${log.action}">a</td>
+                        <td th:text="${log.module}">m</td>
+                        <td th:text="${log.details}">d</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p><a href="/admin/audit-logs">Full audit log</a></p>
+    </div>
+</body>
+</html>

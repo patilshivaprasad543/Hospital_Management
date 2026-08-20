@@ -3,32 +3,41 @@
 <head th:replace="~{fragments/layout :: head('Doctors')}"></head>
 <body>
     <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
-
 <div class="container">
         <h2>Doctor Management</h2>
-        <p style="color: var(--text-muted); margin-bottom: 2rem;">Verify, approve, or reject doctor registrations</p>
-
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Verify licenses, then approve or reject doctor registrations.</p>
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-        <h3 style="margin-bottom: 1rem;">⏳ Pending Admin Approval</h3>
+        <h3 style="margin-bottom: 1rem;">Verify pending doctors</h3>
         <div class="table-container" style="margin-bottom: 2.5rem;">
             <table class="table">
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Email</th>
-                        <th>Mobile</th>
+                        <th>Contact</th>
                         <th>Documents</th>
+                        <th>License</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="doc : ${pendingDoctors}">
                         <td th:text="${doc.fullName}">Dr. Name</td>
-                        <td th:text="${doc.email}">email</td>
-                        <td th:text="${doc.mobileNumber}">mobile</td>
+                        <td>
+                            <div th:text="${doc.email}">email</div>
+                            <small th:text="${doc.mobileNumber}">mobile</small>
+                        </td>
                         <td th:text="${doc.documentInfo != null ? doc.documentInfo : 'Not submitted'}">docs</td>
+                        <td>
+                            <span th:if="${pendingProfiles.get(doc.id) != null}">
+                                <span th:text="${pendingProfiles.get(doc.id).licenseNumber}">lic</span>
+                                <br/>
+                                <a th:if="${pendingProfiles.get(doc.id).licenseFileName != null}"
+                                   th:href="@{/uploads/doctors/{f}(f=${pendingProfiles.get(doc.id).licenseFileName})}"
+                                   target="_blank">View license file</a>
+                            </span>
+                        </td>
                         <td>
                             <form th:action="@{/admin/doctor/{id}/approve(id=${doc.id})}" method="post" style="display:inline;">
                                 <button type="submit" class="btn btn-primary btn-sm">Approve</button>
@@ -46,19 +55,38 @@
             </table>
         </div>
 
-        <h3 style="margin-bottom: 1rem;">✅ Approved Doctors</h3>
-        <div class="grid">
-            <div class="card" th:each="doc : ${doctors}" th:if="${doc.approvalStatus.name() == 'APPROVED'}">
-                <div class="card-title" th:text="${doc.fullName}">Dr. Name</div>
-                <p style="color: var(--primary-color); font-weight: 600;" th:text="${doc.email}">email</p>
-                <p style="font-size: 0.9rem; color: var(--text-muted);">
-                    <strong>Mobile:</strong> <span th:text="${doc.mobileNumber}">9876543210</span>
-                </p>
-                <span class="badge badge-confirmed">Approved</span>
-            </div>
-            <div th:if="${#lists.isEmpty(doctors)}" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">
-                No doctors registered.
-            </div>
+        <h3 style="margin-bottom: 1rem;">Registered doctors</h3>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Specialization</th>
+                        <th>License</th>
+                        <th>Approval</th>
+                        <th>Account</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="doc : ${doctors}">
+                        <td th:text="${doc.fullName}">Dr</td>
+                        <td th:text="${doc.email}">email</td>
+                        <td th:text="${doctorProfiles.get(doc.id) != null ? doctorProfiles.get(doc.id).specialization : '—'}">spec</td>
+                        <td th:text="${doctorProfiles.get(doc.id) != null ? doctorProfiles.get(doc.id).licenseNumber : '—'}">lic</td>
+                        <td th:text="${doc.approvalStatus.label}">status</td>
+                        <td th:text="${doc.accountStatus}">ACTIVE</td>
+                        <td>
+                            <form th:action="@{/admin/user/{id}/toggle-status(id=${doc.id})}" method="post">
+                                <input type="hidden" name="returnTo" value="/admin/doctors">
+                                <button type="submit" class="btn btn-sm btn-secondary"
+                                        th:text="${doc.accountStatus == 'BLOCKED'} ? 'Activate' : 'Block'">Block</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
     <script th:src="@{/js/main.js}"></script>

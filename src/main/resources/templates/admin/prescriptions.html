@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Prescriptions')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+<div class="container">
+        <h2>Monitor Prescriptions</h2>
+        <p class="text-muted">Hospital-wide digital prescriptions issued by doctors.</p>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Diagnosis</th><th>Medicines</th><th>Date</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="rx : ${prescriptions}">
+                        <td th:text="${'#RX-' + rx.id}">1</td>
+                        <td th:text="${rx.patient.fullName}">P</td>
+                        <td th:text="${rx.doctor.fullName}">D</td>
+                        <td th:text="${rx.diagnosis}">dx</td>
+                        <td>
+                            <span th:each="item, iter : ${rx.items}" th:text="${item.medicineName + (iter.last ? '' : ', ')}">med</span>
+                        </td>
+                        <td th:text="${#temporals.format(rx.createdAt, 'dd MMM yyyy HH:mm')}">dt</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(prescriptions)}">
+                        <td colspan="6" style="text-align:center;color:var(--text-muted);">No prescriptions yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

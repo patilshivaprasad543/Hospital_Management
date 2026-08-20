@@ -41,4 +41,10 @@ public interface PharmacyOrderRepository extends JpaRepository<PharmacyOrder, Lo
     List<PharmacyOrder> findByPharmacyVendorOrderByCreatedAtDesc(@Param("pharmacyVendor") User pharmacyVendor);
 
     long countByStatus(PharmacyOrderStatus status);
+
+    @Query("SELECT o FROM PharmacyOrder o " +
+           "LEFT JOIN FETCH o.patient " +
+           "LEFT JOIN FETCH o.pharmacyVendor " +
+           "ORDER BY o.createdAt DESC")
+    List<PharmacyOrder> findAllDetailed();
 }

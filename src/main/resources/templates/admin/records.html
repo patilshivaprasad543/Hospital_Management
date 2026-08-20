@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Medical Records')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+<div class="container">
+        <h2>Medical Records</h2>
+        <p class="text-muted">System-level consultation records across the hospital.</p>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Diagnosis</th><th>Started</th><th>Completed</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="c : ${consultations}">
+                        <td th:text="${'#CON-' + c.id}">1</td>
+                        <td th:text="${c.patient.fullName}">P</td>
+                        <td th:text="${c.doctor.fullName}">D</td>
+                        <td th:text="${c.diagnosis}">dx</td>
+                        <td th:text="${#temporals.format(c.startedAt, 'dd MMM yyyy HH:mm')}">s</td>
+                        <td th:text="${c.completedAt != null ? #temporals.format(c.completedAt, 'dd MMM yyyy HH:mm') : 'In progress'}">c</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(consultations)}">
+                        <td colspan="6" style="text-align:center;color:var(--text-muted);">No consultation records.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

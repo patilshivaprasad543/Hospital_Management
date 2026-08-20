@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Audit Logs')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+<div class="container">
+        <h2>Audit Logs</h2>
+        <div class="table-container">
+            <table class="table">
+                <thead><tr><th>When</th><th>User</th><th>Action</th><th>Module</th><th>Details</th></tr></thead>
+                <tbody>
+                    <tr th:each="log : ${auditLogs}">
+                        <td th:text="${#temporals.format(log.createdAt, 'dd MMM yyyy HH:mm')}">t</td>
+                        <td th:text="${log.user != null ? log.user.fullName : 'System'}">u</td>
+                        <td th:text="${log.action}">a</td>
+                        <td th:text="${log.module}">m</td>
+                        <td th:text="${log.details}">d</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

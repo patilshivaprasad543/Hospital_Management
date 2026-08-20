@@ -62,6 +62,14 @@ public class PrescriptionService {
         return prescriptionRepository.findByDoctorOrderByCreatedAtDesc(doctor);
     }
 
+    public List<Prescription> getAllPrescriptions() {
+        return prescriptionRepository.findAllDetailed();
+    }
+
+    public long countPrescriptions() {
+        return prescriptionRepository.count();
+    }
+
     public Optional<Prescription> findByIdForPatient(Long prescriptionId, User patient) {
         return prescriptionRepository.findByPatientOrderByCreatedAtDesc(patient).stream()
                 .filter(p -> p.getId().equals(prescriptionId))
