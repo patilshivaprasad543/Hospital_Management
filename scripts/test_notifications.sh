@@ -73,13 +73,15 @@ fi
 
 # 6. Forgot password OTP
 echo "==> 6. Password reset OTP"
-curl -s -X POST "$BASE_URL/forgot-password" \
-  --data-urlencode "email=patient@smartcare360.com" -o /dev/null
+FP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL/forgot-password" \
+  --data-urlencode "email=patient@smartcare360.com")
+[[ "$FP_CODE" == "302" || "$FP_CODE" == "200" ]] || { echo "FAIL: forgot-password HTTP $FP_CODE"; exit 1; }
 sleep 1
-LOG2_FILE=$(mktemp)
-curl -s -b "$A_COOKIE" "$BASE_URL/admin/notifications" > "$LOG2_FILE"
-grep -qi "password reset\|PASSWORD RESET" "$LOG2_FILE" && echo "Password reset notification logged" || echo "WARN: check async log"
-rm -f "$LOG2_FILE"
+AUDIT_FILE=$(mktemp)
+curl -s -b "$A_COOKIE" "$BASE_URL/admin/audit-logs" > "$AUDIT_FILE"
+grep -q "PASSWORD_RESET_REQUESTED" "$AUDIT_FILE" && echo "Password reset audit log recorded" \
+  || { echo "FAIL: password reset not in audit logs"; exit 1; }
+rm -f "$AUDIT_FILE"
 
 echo ""
 echo "=========================================="

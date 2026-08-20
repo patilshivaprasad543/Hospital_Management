@@ -138,7 +138,8 @@ for path_label in \
   "/admin/settings|Admin settings|System Settings" \
   "/admin/departments|Admin departments|Department" \
   "/admin/announcements|Admin announcements|Announcement" \
-  "/admin/notifications|Admin portal notifications|Portal Notifications"; do
+  "/admin/notifications|Admin portal notifications|Portal Notifications" \
+  "/admin/audit-logs|Admin audit logs|Audit"; do
   IFS='|' read -r path label marker <<< "$path_label"
   expect_page "$A" "$path" "$label" "$marker"
 done
@@ -156,6 +157,7 @@ for path_label in \
   "/patient/lab-reports|Lab reports|Lab" \
   "/patient/bills|Patient bills|Bills" \
   "/patient/profile|Patient profile|Profile" \
+  "/patient/records|Patient medical records|Record" \
   "/patient/timeline|Health timeline|Timeline" \
   "/patient/symptom-wizard|Symptom wizard|Symptom"; do
   IFS='|' read -r path label marker <<< "$path_label"
@@ -163,7 +165,9 @@ for path_label in \
 done
 code="$(curl -s -b "$P" -o /dev/null -w "%{http_code}" "$BASE_URL/patient/api/slots?doctorId=2&date=$TOMORROW")"
 [[ "$code" == "200" ]] && pass "Patient API: appointment slots" || fail "Patient API: slots (HTTP $code)"
-expect_page "$P" "/notifications" "Patient notifications" "My Notifications"
+expect_page "$P" "/patient/notifications" "Patient notifications" "My Notifications"
+code="$(curl -s -b "$P" -o /dev/null -w "%{http_code}" "$BASE_URL/notifications")"
+[[ "$code" == "302" ]] && pass "Shared /notifications redirects by role" || fail "Shared /notifications (HTTP $code)"
 
 # ── 6. Doctor module ─────────────────────────────────────────
 section "6. Doctor module"
@@ -176,7 +180,8 @@ for path_label in \
   "/doctor/lab-tests|Doctor lab tests|Lab" \
   "/doctor/earnings|Doctor earnings|Earning" \
   "/doctor/reports|Doctor reports|Report" \
-  "/doctor/profile|Doctor profile|Profile"; do
+  "/doctor/profile|Doctor profile|Profile" \
+  "/doctor/notifications|Doctor notifications|Notification"; do
   IFS='|' read -r path label marker <<< "$path_label"
   expect_page "$D" "$path" "$label" "$marker"
 done
@@ -192,6 +197,8 @@ expect_page "$PH" "/vendor/orders" "Pharmacy orders" "Order Management"
 expect_page "$PH" "/vendor/reports" "Pharmacy reports" "Pharmacy Reports"
 expect_page "$L" "/vendor/profile" "Lab vendor profile" "Profile"
 expect_page "$PH" "/vendor/profile" "Pharmacy vendor profile" "Profile"
+expect_page "$L" "/vendor/notifications" "Lab vendor notifications" "Notification"
+expect_page "$PH" "/vendor/notifications" "Pharmacy vendor notifications" "Notification"
 
 # ── 8. Appointment lifecycle ─────────────────────────────────
 section "8. Appointment lifecycle"
@@ -205,7 +212,7 @@ if [[ -n "$SLOT" ]]; then
     --data-urlencode "appointmentTime=$SLOT" \
     --data-urlencode "reason=Full system test" \
     --data-urlencode "department=General Consultation"
-  APPT_ID="$(curl -s -b "$P" "$BASE_URL/patient/appointments" | grep -oP '#APP-\K[0-9]+' | tail -1)"
+  APPT_ID="$(curl -s -b "$P" "$BASE_URL/patient/appointments" | grep -oP '#APP-\K[0-9]+' | sort -n | tail -1)"
   if [[ -n "$APPT_ID" ]]; then
     pass "Patient booked appointment #$APPT_ID"
     curl -s -b "$D" -o /dev/null -X POST "$BASE_URL/doctor/appointment/$APPT_ID/accept"
@@ -254,7 +261,7 @@ if [[ -n "$LAB_ID" ]]; then
     curl -s -b "$L" -o /dev/null -X POST "$BASE_URL/vendor/lab-request/$LAB_ID/upload-report" \
       --data-urlencode "reportResult=Hemoglobin: 14.2 g/dL | WBC: 7200 | All values within normal range."
     LAB_HTML2="$(curl -s -b "$P" "$BASE_URL/patient/lab-reports")"
-    echo "$LAB_HTML2" | grep -q "REPORT_READY\|Hemoglobin" && pass "Lab report uploaded and visible to patient" \
+    [[ "$LAB_HTML2" == *"REPORT_READY"* || "$LAB_HTML2" == *"Hemoglobin"* ]] && pass "Lab report uploaded and visible to patient" \
       || fail "Lab report not visible after upload"
   else
     skip "Lab vendor assignment (request already assigned or no pending)"
@@ -275,7 +282,7 @@ if [[ -n "$RX_ID" && -n "$VENDOR_ID" ]]; then
     --data-urlencode "prescriptionId=$RX_ID" \
     --data-urlencode "pharmacyVendorId=$VENDOR_ID" \
     --data-urlencode "deliveryAddress=123 Health Ave, Metro City"
-  ORDER_ID="$(curl -s -b "$P" "$BASE_URL/patient/pharmacy-orders" | grep -oP '#ORD-\K[0-9]+' | tail -1)"
+  ORDER_ID="$(curl -s -b "$P" "$BASE_URL/patient/pharmacy-orders" | grep -oP '#ORD-\K[0-9]+' | sort -n | tail -1)"
   if [[ -n "$ORDER_ID" ]]; then
     pass "Patient placed pharmacy order #$ORDER_ID"
     curl -s -b "$PH" -o /dev/null -X POST "$BASE_URL/vendor/pharmacy-order/$ORDER_ID/verify-prescription" \
@@ -286,7 +293,7 @@ if [[ -n "$RX_ID" && -n "$VENDOR_ID" ]]; then
         --data-urlencode "trackingNotes=System test: $status"
     done
     ORDERS_HTML="$(curl -s -b "$P" "$BASE_URL/patient/pharmacy-orders")"
-    echo "$ORDERS_HTML" | grep -q "System test: COMPLETED" && pass "Pharmacy order completed end-to-end" || fail "Pharmacy completion status"
+    [[ "$ORDERS_HTML" == *"System test: COMPLETED"* ]] && pass "Pharmacy order completed end-to-end" || fail "Pharmacy completion status"
   else
     fail "Pharmacy order not created"
   fi
@@ -326,8 +333,8 @@ NEW_UID="$(grep -i '^Location:' "$REG_HDR" | grep -oP 'userId=\K[0-9]+' | head -
 if [[ -n "$NEW_UID" ]]; then
   pass "New patient registration → verify-otp redirect"
   VERIFY_HTML="$(curl -s "$BASE_URL/verify-otp?userId=$NEW_UID")"
-  echo "$VERIFY_HTML" | grep -q "Enter 6-Digit Code" && pass "OTP verification page loads" || fail "OTP page layout"
-  echo "$VERIFY_HTML" | grep -q "dev-otp-code" && fail "OTP must not be displayed in portal"
+  [[ "$VERIFY_HTML" == *"Enter 6-Digit Code"* ]] && pass "OTP verification page loads" || fail "OTP page layout"
+  [[ "$VERIFY_HTML" == *"dev-otp-code"* ]] && fail "OTP must not be displayed in portal"
   skip "OTP verification (codes sent by email only, not shown in portal)"
   curl -s -o /dev/null "$BASE_URL/resend-otp?userId=$NEW_UID"
   pass "OTP resend endpoint"
@@ -339,21 +346,24 @@ pass "Forgot password OTP dispatch"
 
 # ── 13. Vendor catalog management ────────────────────────────
 section "13. Vendor catalog operations"
+MED_NAME="Test Medicine $(date +%s)mg"
 curl -s -b "$PH" -o /dev/null -X POST "$BASE_URL/vendor/pharmacy-item/add" \
-  --data-urlencode "itemName=Test Medicine 500mg" \
+  --data-urlencode "itemName=$MED_NAME" \
   --data-urlencode "category=Test" \
   --data-urlencode "price=99.00" \
   --data-urlencode "stockQuantity=50" \
+  --data-urlencode "batchNumber=SYS-$(date +%s)" \
   --data-urlencode "description=System test item"
 PH_HTML="$(curl -s -b "$PH" "$BASE_URL/vendor/inventory")"
-echo "$PH_HTML" | grep -q "Test Medicine 500mg" && pass "Pharmacy item added" || fail "Pharmacy item add"
+[[ "$PH_HTML" == *"$MED_NAME"* ]] && pass "Pharmacy item added" || fail "Pharmacy item add"
+LAB_NAME="System Test Panel $(date +%s)"
 curl -s -b "$L" -o /dev/null -X POST "$BASE_URL/vendor/lab-test/add" \
-  --data-urlencode "testName=System Test Panel" \
+  --data-urlencode "testName=$LAB_NAME" \
   --data-urlencode "category=General" \
   --data-urlencode "price=500" \
   --data-urlencode "description=Automated test"
 LAB_DASH="$(curl -s -b "$L" "$BASE_URL/vendor/dashboard")"
-echo "$LAB_DASH" | grep -q "System Test Panel" && pass "Lab test catalog item added" || fail "Lab test add"
+[[ "$LAB_DASH" == *"$LAB_NAME"* ]] && pass "Lab test catalog item added" || fail "Lab test add"
 
 # ── 14. Admin write operations ───────────────────────────────
 section "14. Admin write operations"
@@ -366,7 +376,7 @@ curl -s -b "$A" -o /dev/null -X POST "$BASE_URL/admin/announcements" \
   --data-urlencode "message=Automated full-system test run." \
   --data-urlencode "audience=ALL"
 ANN_HTML="$(curl -s -b "$A" "$BASE_URL/admin/announcements")"
-echo "$ANN_HTML" | grep -q "System Test Announcement" && pass "Admin announcement created" || fail "Admin announcement"
+[[ "$ANN_HTML" == *"System Test Announcement"* ]] && pass "Admin announcement created" || fail "Admin announcement"
 
 # ── 15. Logout & access control ──────────────────────────────
 section "15. Security and access control"

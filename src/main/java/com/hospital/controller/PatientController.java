@@ -310,6 +310,8 @@ public class PatientController {
         model.addAttribute("timelineEvents", patientTimelineService.buildTimeline(patient));
         return "patient/records";
     }
+
+    @GetMapping("/timeline")
     public String viewHealthTimeline(HttpSession session, Model model) {
         User patient = getLoggedInPatient(session);
         if (patient == null) return "redirect:/login/patient";

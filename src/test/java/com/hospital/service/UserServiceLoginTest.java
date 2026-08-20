@@ -95,4 +95,42 @@ class UserServiceLoginTest {
         verify(otpService).store(eq("new.user@example.com"), any(), eq(OtpPurpose.REGISTRATION));
         verify(notificationChannelService).sendOtp(eq("new.user@example.com"), eq("9000000000"), any());
     }
+
+    @Test
+    void loginUser_rejectsWrongPassword() {
+        when(userRepository.findByEmail("patient@smartcare360.com")).thenReturn(Optional.of(patient));
+        when(passwordEncoder.matches("wrong", "encoded")).thenReturn(false);
+
+        assertTrue(userService.loginUser("patient@smartcare360.com", "wrong").isEmpty());
+    }
+
+    @Test
+    void initiatePasswordReset_rejectsUnknownEmail() {
+        when(userRepository.findByEmail("missing@smartcare360.com")).thenReturn(Optional.empty());
+        RuntimeException error = org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class,
+                () -> userService.initiatePasswordReset("missing@smartcare360.com"));
+        assertTrue(error.getMessage().toLowerCase().contains("no account"));
+    }
+
+    @Test
+    void initiatePasswordReset_blocksAdminAccounts() {
+        User admin = new User("Admin", "admin@smartcare360.com", "9999999999", "encoded", Role.ADMIN);
+        when(userRepository.findByEmail("admin@smartcare360.com")).thenReturn(Optional.of(admin));
+        RuntimeException error = org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class,
+                () -> userService.initiatePasswordReset("admin@smartcare360.com"));
+        assertTrue(error.getMessage().toLowerCase().contains("admin"));
+    }
+
+    @Test
+    void initiatePasswordReset_storesOtpAndSendsEmail() {
+        when(userRepository.findByEmail("patient@smartcare360.com")).thenReturn(Optional.of(patient));
+        when(notificationChannelService.sendPasswordResetOtp(eq("patient@smartcare360.com"), eq("9876543214"), any()))
+                .thenReturn(true);
+
+        userService.initiatePasswordReset("patient@smartcare360.com");
+
+        verify(otpService).store(eq("patient@smartcare360.com"), any(), eq(OtpPurpose.PASSWORD_RESET));
+        verify(notificationChannelService).sendPasswordResetOtp(eq("patient@smartcare360.com"), eq("9876543214"), any());
+        verify(auditLogService).log(eq(patient), eq("PASSWORD_RESET_REQUESTED"), eq("AUTH"), any());
+    }
 }
