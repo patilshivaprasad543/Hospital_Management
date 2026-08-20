@@ -1,0 +1,13 @@
+{
+  "name": "smartcare360",
+  "private": true,
+  "description": "Allows Render services created as Node to build and start the Java app",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "postinstall": "bash scripts/render-native-build.sh",
+    "build": "bash scripts/render-native-build.sh",
+    "start": "bash scripts/render-native-start.sh"
+  }
+}

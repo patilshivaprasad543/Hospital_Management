@@ -2,9 +2,9 @@
 
 Integrated digital hospital platform: patient appointments, doctor consultations, laboratory workflows, pharmacy orders, billing, email/WhatsApp notifications, and role-based portals.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/patilshivaprasad543/Hospital_Management)
+**Public URL:** [https://hospital-management.onrender.com](https://hospital-management.onrender.com)
 
-That button creates the **Java Docker** service (`smartcare360-java`). Set admin email/password in the Render form, then deploy. Render Free still sleeps when idle; GitHub keep-alive on `main` pings `/health`. For true 24/7 with no bill, use Oracle Always Free + `scripts/install-always-free.sh` (see [DEPLOYMENT.md](DEPLOYMENT.md)).
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/patilshivaprasad543/Hospital_Management)
 
 ## Public demo accounts
 

@@ -24,18 +24,15 @@ This environment cannot create an Oracle account or click your cloud console for
 
 Those pages mean the Java process never stayed up (or there is no successful deploy). A common cause was missing `SMARTCARE_ADMIN_*` env vars, which used to crash startup. Current `main` generates admin credentials on first boot and writes them to the service logs (and `/app/data/admin-credentials.txt` on the disk).
 
-`https://hospital-management.onrender.com` currently returns Render **502 no-deploy** — create/redeploy as **Language = Docker**, not Node. After a green deploy, open `/health` (should be `{"status":"ok"}`) then `/login`.
+`https://hospital-management.onrender.com` 502/505 with `no-deploy` means Render never finished a build. The repo root now has `package.json` so a **Node** service still compiles Java 21 and runs the jar (`npm start`). Push `main` and wait for auto-deploy, or click Manual Deploy. Docker remains the preferred runtime.
 
 ---
 
-## Fix: `Couldn't find a package.json file`
+## Fix: `Couldn't find a package.json file` / 502 no-deploy
 
-This error means Render is trying to deploy as **Node.js**, but SmartCare 360 is a **Java / Spring Boot** app.
+Render created this service as **Node**. The repo now includes `package.json` so that service can build Java 21 and start with `npm start`. Push `main` (or Manual Deploy) and wait for the build (several minutes).
 
-**You cannot change runtime on an existing service.** Do this:
-
-1. **Delete** the failed Render web service (Dashboard → Service → Settings → Delete).
-2. Create again using **one** of these methods:
+If you prefer Docker: New → Blueprint (`render.yaml`) or New → Web Service → Language = **Docker**.
 
 ### Option A — Blueprint (recommended)
 

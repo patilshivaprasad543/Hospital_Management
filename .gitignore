@@ -1,7 +1,7 @@
 
-# Gradle
+# Java toolchain downloaded during Render Native (Node) builds
+.jdk/
 
-.gradle/
 
 build/
 
