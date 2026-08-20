@@ -1,11 +1,15 @@
 package com.hospital.model;
 
+import java.util.List;
+
 public enum PharmacyOrderStatus {
-    PLACED("Order Placed"),
-    ACCEPTED("Accepted by Pharmacy"),
-    PROCESSING("Processing"),
+    PLACED("Pending"),
+    ACCEPTED("Accepted"),
+    PROCESSING("Preparing"),
+    READY_FOR_PICKUP("Ready for pickup"),
     DISPATCHED("Dispatched"),
     DELIVERED("Delivered"),
+    COMPLETED("Completed"),
     CANCELLED("Cancelled");
 
     private final String displayName;
@@ -19,6 +23,18 @@ public enum PharmacyOrderStatus {
     }
 
     public boolean isTerminal() {
-        return this == DELIVERED || this == CANCELLED;
+        return this == COMPLETED || this == CANCELLED;
+    }
+
+    public List<PharmacyOrderStatus> nextStatuses() {
+        return switch (this) {
+            case PLACED -> List.of(ACCEPTED, CANCELLED);
+            case ACCEPTED -> List.of(PROCESSING, CANCELLED);
+            case PROCESSING -> List.of(READY_FOR_PICKUP, DISPATCHED, CANCELLED);
+            case READY_FOR_PICKUP -> List.of(DISPATCHED, DELIVERED, CANCELLED);
+            case DISPATCHED -> List.of(DELIVERED, CANCELLED);
+            case DELIVERED -> List.of(COMPLETED);
+            default -> List.of();
+        };
     }
 }

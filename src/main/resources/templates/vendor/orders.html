@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Orders')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: vendor-nav}"></nav>
+<div class="container">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Order Management</h1>
+                <p>Pending → Accepted → Preparing → Ready → Dispatched → Delivered → Completed</p>
+            </div>
+        </div>
+
+        <p>
+            <a href="/vendor/orders" class="btn btn-sm" th:classappend="${filterStatus == null} ? 'btn-primary' : 'btn-outline'">All</a>
+            <a th:each="st : ${allStatuses}"
+               th:href="@{/vendor/orders(status=${st})}"
+               class="btn btn-sm"
+               th:classappend="${filterStatus == st} ? 'btn-primary' : 'btn-outline'"
+               th:text="${st.displayName + ' (' + orderCounts.get(st) + ')'}">status</a>
+        </p>
+
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Patient</th>
+                        <th>Summary</th>
+                        <th>Address</th>
+                        <th>Total</th>
+                        <th>Rx verified</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Update</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ord : ${pharmacyOrders}">
+                        <td><a th:href="@{/vendor/orders/{id}(id=${ord.id})}" th:text="${'#ORD-' + ord.id}">#ORD-1</a></td>
+                        <td th:text="${ord.patient.fullName}">Patient</td>
+                        <td th:text="${ord.orderSummary}">Summary</td>
+                        <td th:text="${ord.deliveryAddress != null ? ord.deliveryAddress : 'Pickup'}">Address</td>
+                        <td th:text="${'₹' + #numbers.formatDecimal(ord.totalPrice, 1, 2)}">₹250</td>
+                        <td th:text="${ord.prescriptionVerified} ? 'Yes' : 'No'">No</td>
+                        <td th:text="${ord.paymentStatus}">PENDING</td>
+                        <td>
+                            <span class="badge pharmacy-status-badge"
+                                  th:classappend="${' status-' + ord.status.name()}"
+                                  th:text="${ord.status.displayName}">Pending</span>
+                        </td>
+                        <td>
+                            <form th:if="${!ord.status.terminal}"
+                                  th:action="@{/vendor/pharmacy-order/{id}/update-status(id=${ord.id})}"
+                                  method="post" class="pharmacy-status-form">
+                                <select name="status" class="form-control form-control-sm" required>
+                                    <option th:each="next : ${ord.status.nextStatuses()}"
+                                            th:value="${next}" th:text="${next.displayName}">Next</option>
+                                </select>
+                                <input type="text" name="trackingNotes" class="form-control form-control-sm"
+                                       placeholder="Note" th:value="${ord.trackingNotes}" />
+                                <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                            </form>
+                            <span th:if="${ord.status.terminal}" class="text-muted">Closed</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pharmacyOrders)}">
+                        <td colspan="9" style="text-align: center; color: var(--text-muted);">No orders in this view.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

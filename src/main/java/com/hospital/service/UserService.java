@@ -105,6 +105,11 @@ public class UserService {
         } else if (user.getRole() == Role.VENDOR) {
             VendorProfile vendorProfile = new VendorProfile(savedUser);
             vendorProfile.setBusinessName(user.getFullName() + " Services");
+            vendorProfile.setOwnerName(user.getFullName());
+            vendorProfile.setContactPhone(user.getMobileNumber());
+            if (address != null && !address.isBlank()) {
+                vendorProfile.setAddress(address.trim());
+            }
             vendorProfileRepository.save(vendorProfile);
         }
 
@@ -167,16 +172,22 @@ public class UserService {
             profile.setLicenseFileName(licenseFileName);
             doctorProfileRepository.save(profile);
         }
+        if (user.getRole() == Role.VENDOR && licenseFileName != null) {
+            VendorProfile profile = vendorProfileRepository.findByUser(user).orElseGet(() -> new VendorProfile(user));
+            profile.setLicenseFileName(licenseFileName);
+            vendorProfileRepository.save(profile);
+        }
 
         auditLogService.log(user, "DOCUMENTS_SUBMITTED", "AUTH", "Documents submitted for admin review");
 
+        String reviewPath = user.getRole() == Role.DOCTOR ? "/admin/doctors" : "/admin/vendors";
         userRepository.findByRole(Role.ADMIN).forEach(admin ->
                 notificationService.sendPortalNotification(
                         admin,
                         "New registration pending approval",
                         user.getFullName() + " (" + user.getRole() + ") submitted documents for review.",
                         NotificationCategory.SYSTEM,
-                        "/admin/doctors"
+                        reviewPath
                 )
         );
     }
@@ -478,8 +489,41 @@ public class UserService {
         existingProfile.setContactPhone(updatedProfile.getContactPhone());
         existingProfile.setAddress(updatedProfile.getAddress());
         existingProfile.setDescription(updatedProfile.getDescription());
+        existingProfile.setOwnerName(updatedProfile.getOwnerName());
+        existingProfile.setLicenseNumber(updatedProfile.getLicenseNumber());
+        existingProfile.setWorkingHours(updatedProfile.getWorkingHours());
+        existingProfile.setDeliveryArea(updatedProfile.getDeliveryArea());
+        if (updatedProfile.getLicenseFileName() != null && !updatedProfile.getLicenseFileName().isBlank()) {
+            existingProfile.setLicenseFileName(updatedProfile.getLicenseFileName());
+        }
 
         return vendorProfileRepository.save(existingProfile);
+    }
+
+    public void applyVendorRegistrationDetails(User vendor, String businessName, String ownerName,
+                                               String address, String licenseNumber,
+                                               String workingHours, String deliveryArea) {
+        VendorProfile profile = vendorProfileRepository.findByUser(vendor).orElseGet(() -> new VendorProfile(vendor));
+        if (businessName != null && !businessName.isBlank()) {
+            profile.setBusinessName(businessName.trim());
+        }
+        if (ownerName != null && !ownerName.isBlank()) {
+            profile.setOwnerName(ownerName.trim());
+        } else if (profile.getOwnerName() == null) {
+            profile.setOwnerName(vendor.getFullName());
+        }
+        if (address != null && !address.isBlank()) {
+            profile.setAddress(address.trim());
+        }
+        if (licenseNumber != null && !licenseNumber.isBlank()) {
+            profile.setLicenseNumber(licenseNumber.trim());
+        }
+        profile.setWorkingHours(workingHours);
+        profile.setDeliveryArea(deliveryArea);
+        if (profile.getContactPhone() == null) {
+            profile.setContactPhone(vendor.getMobileNumber());
+        }
+        vendorProfileRepository.save(profile);
     }
 
     public Optional<PatientProfile> getPatientProfile(User user) {

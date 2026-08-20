@@ -10,120 +10,59 @@
 
         <div class="page-header">
             <div class="page-header-content">
-                <h1>Pharmacy Portal</h1>
+                <h1>Pharmacy Dashboard</h1>
                 <p th:text="${profile.businessName != null ? profile.businessName : vendor.fullName}">Pharmacy Vendor</p>
             </div>
-        </div>
-
-        <div class="split-layout">
-            <div class="card">
-                <div class="card-title">Add Medicine / Product</div>
-                <form th:action="@{/vendor/pharmacy-item/add}" method="post" style="margin-top: 1rem;">
-                    <div class="form-group">
-                        <label class="form-label">Item / Medicine Name</label>
-                        <input type="text" name="itemName" class="form-control" placeholder="e.g. Paracetamol 650mg" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Category</label>
-                        <input type="text" name="category" class="form-control" placeholder="e.g. Analgesic / Antibiotic" required>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                        <div class="form-group">
-                            <label class="form-label">Price (₹)</label>
-                            <input type="number" step="0.01" name="price" class="form-control" placeholder="50.00" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Stock Qty</label>
-                            <input type="number" name="stockQuantity" class="form-control" placeholder="100" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Description / Dosage Info</label>
-                        <textarea name="description" class="form-control" placeholder="Strip of 10 tablets..."></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Add Item to Pharmacy</button>
-                </form>
-            </div>
-
-            <!-- Pharmacy Items Catalog Table -->
-            <div>
-                <h3 style="margin-bottom: 1rem;">Pharmacy Stock Inventory</h3>
-                <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Medicine Name</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="item : ${pharmacyItems}">
-                                <td th:text="${item.itemName}">Paracetamol</td>
-                                <td th:text="${item.category}">Category</td>
-                                <td th:text="${'₹' + item.price}">₹35</td>
-                                <td th:text="${item.stockQuantity}">100</td>
-                                <td>
-                                    <form th:action="@{/vendor/pharmacy-item/{id}/delete(id=${item.id})}" method="post">
-                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(pharmacyItems)}">
-                                <td colspan="5" style="text-align: center; color: var(--text-muted);">No pharmacy items listed yet.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="page-header-actions">
+                <a href="/vendor/orders?status=PLACED" class="btn btn-primary">New Orders</a>
+                <a href="/vendor/inventory" class="btn btn-outline">Inventory</a>
             </div>
         </div>
 
-        <h3 style="margin: 2rem 0 1rem 0;">Incoming Prescription Orders & Fulfillment</h3>
+        <div class="grid" style="margin-bottom: 1.5rem;">
+            <div class="card stat-card"><div class="card-title">Pending</div><div class="stat-number warning" th:text="${orderCounts.get(T(com.hospital.model.PharmacyOrderStatus).PLACED)}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Accepted</div><div class="stat-number" th:text="${orderCounts.get(T(com.hospital.model.PharmacyOrderStatus).ACCEPTED)}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Preparing</div><div class="stat-number" th:text="${orderCounts.get(T(com.hospital.model.PharmacyOrderStatus).PROCESSING)}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Ready</div><div class="stat-number" th:text="${orderCounts.get(T(com.hospital.model.PharmacyOrderStatus).READY_FOR_PICKUP)}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Dispatched</div><div class="stat-number" th:text="${orderCounts.get(T(com.hospital.model.PharmacyOrderStatus).DISPATCHED)}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Delivered</div><div class="stat-number success" th:text="${orderCounts.get(T(com.hospital.model.PharmacyOrderStatus).DELIVERED)}">0</div></div>
+        </div>
+
+        <div class="alert alert-danger" th:if="${!#lists.isEmpty(lowStockItems)}">
+            Low stock: <span th:text="${lowStockItems.size()}">0</span> medicine(s).
+            <a href="/vendor/inventory">Review inventory</a>
+        </div>
+        <div class="alert alert-warning" th:if="${!#lists.isEmpty(expiringItems)}" style="background:#fffbeb;color:#92400e;">
+            Expiry watch: <span th:text="${expiringItems.size()}">0</span> medicine(s) expired or expiring within 30 days.
+        </div>
+
+        <h3 style="margin: 1.5rem 0 1rem 0;">Recent prescription orders</h3>
         <div class="table-container" style="margin-bottom: 2.5rem;">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Order ID</th>
-                        <th>Patient Name</th>
-                        <th>Order Summary</th>
-                        <th>Delivery Address</th>
-                        <th>Total Price (₹)</th>
+                        <th>Order</th>
+                        <th>Patient</th>
+                        <th>Summary</th>
+                        <th>Total</th>
+                        <th>Payment</th>
                         <th>Status</th>
-                        <th>Update Status</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="ord : ${pharmacyOrders}">
+                    <tr th:each="ord, iter : ${pharmacyOrders}" th:if="${iter.index &lt; 8}">
                         <td th:text="${'#ORD-' + ord.id}">#ORD-1</td>
                         <td th:text="${ord.patient.fullName}">Patient</td>
-                        <td th:text="${ord.orderSummary}">Prescription #1</td>
-                        <td th:text="${ord.deliveryAddress != null ? ord.deliveryAddress : '—'}">Address</td>
+                        <td th:text="${ord.orderSummary}">Summary</td>
                         <td th:text="${'₹' + #numbers.formatDecimal(ord.totalPrice, 1, 2)}">₹250</td>
+                        <td th:text="${ord.paymentStatus}">PENDING</td>
                         <td>
                             <span class="badge pharmacy-status-badge"
                                   th:classappend="${' status-' + ord.status.name()}"
-                                  th:text="${ord.status.displayName}">Order Placed</span>
+                                  th:text="${ord.status.displayName}">Pending</span>
                         </td>
-                        <td>
-                            <form th:if="${!ord.status.terminal}"
-                                  th:action="@{/vendor/pharmacy-order/{id}/update-status(id=${ord.id})}"
-                                  method="post" class="pharmacy-status-form">
-                                <select name="status" class="form-control form-control-sm" required>
-                                    <option th:if="${ord.status.name() == 'PLACED'}" value="ACCEPTED">Accept Order</option>
-                                    <option th:if="${ord.status.name() == 'ACCEPTED'}" value="PROCESSING">Start Processing</option>
-                                    <option th:if="${ord.status.name() == 'PROCESSING'}" value="DISPATCHED">Mark Dispatched</option>
-                                    <option th:if="${ord.status.name() == 'DISPATCHED'}" value="DELIVERED">Mark Delivered</option>
-                                    <option value="CANCELLED">Cancel Order</option>
-                                </select>
-                                <input type="text" name="trackingNotes" class="form-control form-control-sm"
-                                       placeholder="Tracking note (optional)"
-                                       th:value="${ord.trackingNotes}" />
-                                <button type="submit" class="btn btn-primary btn-sm">Update</button>
-                            </form>
-                            <span th:if="${ord.status.terminal}" class="text-muted">No further updates</span>
-                        </td>
+                        <td><a th:href="@{/vendor/orders/{id}(id=${ord.id})}" class="btn btn-sm btn-primary">Open</a></td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(pharmacyOrders)}">
                         <td colspan="7" style="text-align: center; color: var(--text-muted);">No incoming pharmacy orders.</td>

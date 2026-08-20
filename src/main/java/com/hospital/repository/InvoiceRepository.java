@@ -15,4 +15,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     List<Invoice> findByPaymentStatus(PaymentStatus status);
 
     List<Invoice> findByChargeTypeAndPaymentStatus(String chargeType, PaymentStatus status);
+
+    java.util.Optional<Invoice> findFirstByChargeTypeAndReferenceId(String chargeType, Long referenceId);
 }

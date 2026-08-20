@@ -3,6 +3,7 @@ package com.hospital.service;
 import com.hospital.model.*;
 import com.hospital.repository.InvoiceRepository;
 import com.hospital.repository.PaymentRepository;
+import com.hospital.repository.PharmacyOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,9 @@ public class BillingService {
     @Autowired
     private AuditLogService auditLogService;
 
+    @Autowired
+    private PharmacyOrderRepository pharmacyOrderRepository;
+
     public Invoice createInvoice(User patient, String chargeType, String description, Double amount, Long referenceId) {
         Invoice invoice = new Invoice(patient, generateInvoiceNumber(), chargeType, description, amount, referenceId);
         return invoiceRepository.save(invoice);
@@ -44,6 +48,20 @@ public class BillingService {
 
         Payment payment = new Payment(invoice, patient, invoice.getAmount(), "TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         Payment saved = paymentRepository.save(payment);
+
+        if ("PHARMACY".equalsIgnoreCase(invoice.getChargeType()) && invoice.getReferenceId() != null) {
+            pharmacyOrderRepository.findById(invoice.getReferenceId()).ifPresent(order -> {
+                order.setPaymentStatus(PaymentStatus.PAID);
+                pharmacyOrderRepository.save(order);
+                if (order.getPharmacyVendor() != null) {
+                    notificationService.sendPortalNotification(order.getPharmacyVendor(),
+                            "💰 Payment confirmation",
+                            "Payment received for pharmacy order #" + order.getId()
+                                    + " (" + patient.getFullName() + "). Invoice: " + invoice.getInvoiceNumber(),
+                            NotificationCategory.BILLING, "/vendor/orders/" + order.getId());
+                }
+            });
+        }
 
         notificationService.sendPortalNotification(patient, "💰 Payment Successful",
                 "Payment of ₹" + invoice.getAmount() + " received for " + invoice.getDescription()

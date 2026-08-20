@@ -27,6 +27,14 @@ public class VendorProfile {
     @Column(length = 1000)
     private String description;
 
+    private String ownerName;
+    private String licenseNumber;
+    private String licenseFileName;
+    private String workingHours;
+
+    @Column(length = 500)
+    private String deliveryArea;
+
     public VendorProfile() {
     }
 
@@ -89,5 +97,45 @@ public class VendorProfile {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getOwnerName() {
+        return ownerName;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
+    }
+
+    public String getLicenseNumber() {
+        return licenseNumber;
+    }
+
+    public void setLicenseNumber(String licenseNumber) {
+        this.licenseNumber = licenseNumber;
+    }
+
+    public String getLicenseFileName() {
+        return licenseFileName;
+    }
+
+    public void setLicenseFileName(String licenseFileName) {
+        this.licenseFileName = licenseFileName;
+    }
+
+    public String getWorkingHours() {
+        return workingHours;
+    }
+
+    public void setWorkingHours(String workingHours) {
+        this.workingHours = workingHours;
+    }
+
+    public String getDeliveryArea() {
+        return deliveryArea;
+    }
+
+    public void setDeliveryArea(String deliveryArea) {
+        this.deliveryArea = deliveryArea;
     }
 }

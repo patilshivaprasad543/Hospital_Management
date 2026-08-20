@@ -52,4 +52,13 @@ public class VendorService {
     public void deletePharmacyItem(Long itemId) {
         pharmacyItemRepository.deleteById(itemId);
     }
+
+    public PharmacyItem getPharmacyItemForVendor(Long itemId, User vendor) {
+        PharmacyItem item = pharmacyItemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Medicine not found"));
+        if (item.getVendor() == null || vendor == null || !item.getVendor().getId().equals(vendor.getId())) {
+            throw new RuntimeException("You are not authorized to update this medicine.");
+        }
+        return item;
+    }
 }

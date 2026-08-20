@@ -118,6 +118,9 @@
     </a>
     <ul class="nav-links">
         <li><a href="/vendor/dashboard">Dashboard</a></li>
+        <li th:if="${vendorTag == 'Pharmacy'}"><a href="/vendor/orders">Orders</a></li>
+        <li th:if="${vendorTag == 'Pharmacy'}"><a href="/vendor/inventory">Inventory</a></li>
+        <li th:if="${vendorTag == 'Pharmacy'}"><a href="/vendor/reports">Reports</a></li>
         <li><a href="/vendor/notifications">Notifications</a></li>
         <li><a href="/vendor/profile">Profile</a></li>
         <li><a href="/logout" class="btn btn-outline btn-sm">Sign Out</a></li>

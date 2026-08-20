@@ -22,6 +22,15 @@ public interface PharmacyOrderRepository extends JpaRepository<PharmacyOrder, Lo
            "WHERE o.patient = :patient ORDER BY o.createdAt DESC")
     List<PharmacyOrder> findByPatientOrderByCreatedAtDesc(@Param("patient") User patient);
 
+    @Query("SELECT o FROM PharmacyOrder o " +
+           "LEFT JOIN FETCH o.patient " +
+           "LEFT JOIN FETCH o.pharmacyVendor " +
+           "LEFT JOIN FETCH o.prescription p " +
+           "LEFT JOIN FETCH p.doctor " +
+           "LEFT JOIN FETCH p.items " +
+           "WHERE o.id = :id")
+    Optional<PharmacyOrder> findDetailedById(@Param("id") Long id);
+
     boolean existsByPrescriptionAndStatusNotIn(Prescription prescription, List<PharmacyOrderStatus> statuses);
 
     Optional<PharmacyOrder> findFirstByPrescriptionOrderByCreatedAtDesc(Prescription prescription);

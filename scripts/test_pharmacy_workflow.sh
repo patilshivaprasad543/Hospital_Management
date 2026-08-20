@@ -110,11 +110,21 @@ curl -s -b "$P_COOKIE" -L -o /tmp/pharmacy-order-redirect.html \
 ORDERS_HTML="$(curl -s -b "$P_COOKIE" "$BASE_URL/patient/pharmacy-orders")"
 ORDER_ID="$(echo "$ORDERS_HTML" | extract_first '#ORD-\K[0-9]+')"
 [[ -n "$ORDER_ID" ]] || fail "Pharmacy order was not created"
-echo "$ORDERS_HTML" | grep -q "Order Placed" || fail "Initial status not PLACED"
-pass "Pharmacy order #$ORDER_ID placed (status: Order Placed)"
+echo "$ORDERS_HTML" | grep -q "Pending" || fail "Initial status not PLACED"
+pass "Pharmacy order #$ORDER_ID placed (status: Pending)"
 
 step "7. Pharmacy vendor updates order through delivery"
 login PHARMACY "$PHARMACY_EMAIL" "$PHARMACY_PASS" "$V_COOKIE"
+
+DASH="$(curl -s -b "$V_COOKIE" "$BASE_URL/vendor/dashboard")"
+echo "$DASH" | grep -q "Pharmacy Dashboard" || fail "Pharmacy dashboard not reachable"
+INV="$(curl -s -b "$V_COOKIE" "$BASE_URL/vendor/inventory")"
+echo "$INV" | grep -q "Medicine Inventory" || fail "Inventory page missing"
+ORD="$(curl -s -b "$V_COOKIE" "$BASE_URL/vendor/orders")"
+echo "$ORD" | grep -q "#ORD-$ORDER_ID" || fail "Order not listed for pharmacy"
+REP="$(curl -s -b "$V_COOKIE" "$BASE_URL/vendor/reports")"
+echo "$REP" | grep -q "Pharmacy Reports" || fail "Reports page missing"
+pass "Pharmacy dashboard, inventory, orders, and reports are available"
 
 update_status() {
   local status="$1" notes="${2:-}"
@@ -124,15 +134,26 @@ update_status() {
     --data-urlencode "trackingNotes=$notes"
 }
 
+curl -s -b "$V_COOKIE" -o /dev/null \
+  -X POST "$BASE_URL/vendor/pharmacy-order/$ORDER_ID/verify-prescription" \
+  --data-urlencode "verified=true" \
+  --data-urlencode "notes=Doctor prescription verified against patient identity"
+pass "Prescription verified"
+
 update_status ACCEPTED "Order accepted and being prepared"
 ORDERS_HTML="$(curl -s -b "$P_COOKIE" "$BASE_URL/patient/pharmacy-orders")"
-echo "$ORDERS_HTML" | grep -q "Accepted by Pharmacy" || fail "Status not ACCEPTED"
+echo "$ORDERS_HTML" | grep -q "Accepted" || fail "Status not ACCEPTED"
 pass "Status updated to Accepted"
 
 update_status PROCESSING "Medicines being packed"
 ORDERS_HTML="$(curl -s -b "$P_COOKIE" "$BASE_URL/patient/pharmacy-orders")"
-echo "$ORDERS_HTML" | grep -q "Processing" || fail "Status not PROCESSING"
-pass "Status updated to Processing"
+echo "$ORDERS_HTML" | grep -q "Preparing" || fail "Status not PROCESSING/Preparing"
+pass "Status updated to Preparing"
+
+update_status READY_FOR_PICKUP "Ready at pharmacy counter"
+ORDERS_HTML="$(curl -s -b "$P_COOKIE" "$BASE_URL/patient/pharmacy-orders")"
+echo "$ORDERS_HTML" | grep -q "Ready for pickup" || fail "Status not READY_FOR_PICKUP"
+pass "Status updated to Ready for pickup"
 
 update_status DISPATCHED "Out for delivery via hospital courier"
 ORDERS_HTML="$(curl -s -b "$P_COOKIE" "$BASE_URL/patient/pharmacy-orders")"
@@ -146,14 +167,18 @@ echo "$ORDERS_HTML" | grep -q "Delivered" || fail "Status not DELIVERED"
 echo "$ORDERS_HTML" | grep -q "Delivered to patient doorstep" || fail "Final tracking notes not visible"
 pass "Status updated to Delivered with tracking notes"
 
+update_status COMPLETED "Order completed and inventory updated"
+ORDERS_HTML="$(curl -s -b "$P_COOKIE" "$BASE_URL/patient/pharmacy-orders")"
+echo "$ORDERS_HTML" | grep -q "Order completed and inventory updated" || fail "Status not COMPLETED"
+pass "Status updated to Completed"
+
 step "8. Verify invalid status transition is blocked"
 INVALID_CODE="$(curl -s -b "$V_COOKIE" -o /dev/null -w "%{http_code}" \
   -X POST "$BASE_URL/vendor/pharmacy-order/$ORDER_ID/update-status" \
   --data-urlencode "status=DISPATCHED")"
-# Should redirect with error (302) but order stays DELIVERED
 ORDERS_HTML="$(curl -s -b "$P_COOKIE" "$BASE_URL/patient/pharmacy-orders")"
-echo "$ORDERS_HTML" | grep -q "Delivered" || fail "Order status changed after terminal state"
-pass "Terminal order cannot be changed (still Delivered)"
+echo "$ORDERS_HTML" | grep -q "Order completed and inventory updated" || fail "Order status changed after terminal state"
+pass "Terminal order cannot be changed (still Completed)"
 
 echo ""
 echo "=========================================="
@@ -162,4 +187,4 @@ echo "=========================================="
 echo "Appointment ID : $APPT_ID"
 echo "Prescription ID: $RX_ID"
 echo "Pharmacy Order : #ORD-$ORDER_ID"
-echo "Final Status   : Delivered"
+echo "Final Status   : Completed"

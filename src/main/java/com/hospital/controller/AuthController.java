@@ -69,6 +69,10 @@ public class AuthController {
                                @RequestParam(value = "hospitalName", required = false) String hospitalName,
                                @RequestParam(value = "clinicAddress", required = false) String clinicAddress,
                                @RequestParam(value = "licenseNumber", required = false) String licenseNumber,
+                               @RequestParam(value = "businessName", required = false) String businessName,
+                               @RequestParam(value = "ownerName", required = false) String ownerName,
+                               @RequestParam(value = "workingHours", required = false) String workingHours,
+                               @RequestParam(value = "deliveryArea", required = false) String deliveryArea,
                                HttpSession session,
                                RedirectAttributes redirectAttributes,
                                Model model) {
@@ -88,6 +92,11 @@ public class AuthController {
             if (registeredUser.getRole() == Role.DOCTOR) {
                 userService.applyDoctorRegistrationDetails(registeredUser, specialization, qualification,
                         experienceYears, hospitalName, clinicAddress, licenseNumber);
+            }
+            if (registeredUser.getRole() == Role.VENDOR) {
+                userService.applyVendorRegistrationDetails(registeredUser, businessName,
+                        ownerName != null ? ownerName : registeredUser.getFullName(),
+                        address, licenseNumber, workingHours, deliveryArea);
             }
             session.setAttribute("pendingVerificationUser", registeredUser);
             boolean mailReady = emailService.isSmtpConfigured();
@@ -186,6 +195,7 @@ public class AuthController {
             userService.getDoctorProfile(user).ifPresent(p -> model.addAttribute("licenseFileName", p.getLicenseFileName()));
         }
         if (user.getRole() == Role.VENDOR) {
+            userService.getVendorProfile(user).ifPresent(p -> model.addAttribute("licenseFileName", p.getLicenseFileName()));
             model.addAttribute("loginPath", user.getVendorType() == VendorType.PHARMACY
                     ? "/login/pharmacy" : "/login/vendor");
         } else if (user.getRole() == Role.DOCTOR) {
@@ -202,7 +212,12 @@ public class AuthController {
         try {
             String storedFile = null;
             if (licenseFile != null && !licenseFile.isEmpty()) {
-                storedFile = fileStorageService.storeDoctorLicense(userId, licenseFile);
+                User existing = userService.findById(userId).orElse(null);
+                if (existing != null && existing.getRole() == Role.VENDOR) {
+                    storedFile = fileStorageService.storeVendorLicense(userId, licenseFile);
+                } else {
+                    storedFile = fileStorageService.storeDoctorLicense(userId, licenseFile);
+                }
             }
             userService.submitDocuments(userId, documentInfo, storedFile);
             User user = userService.findById(userId).orElse(null);

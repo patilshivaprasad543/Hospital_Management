@@ -23,6 +23,21 @@ public class SchemaRepair implements CommandLineRunner {
         addColumnIfMissing("doctor_profiles", "license_number", "VARCHAR(255)");
         addColumnIfMissing("doctor_profiles", "license_file_name", "VARCHAR(255)");
         addColumnIfMissing("consultations", "observations", "VARCHAR(2000)");
+        addColumnIfMissing("vendor_profiles", "owner_name", "VARCHAR(255)");
+        addColumnIfMissing("vendor_profiles", "license_number", "VARCHAR(255)");
+        addColumnIfMissing("vendor_profiles", "license_file_name", "VARCHAR(255)");
+        addColumnIfMissing("vendor_profiles", "working_hours", "VARCHAR(255)");
+        addColumnIfMissing("vendor_profiles", "delivery_area", "VARCHAR(500)");
+        addColumnIfMissing("pharmacy_items", "manufacturer", "VARCHAR(255)");
+        addColumnIfMissing("pharmacy_items", "batch_number", "VARCHAR(255)");
+        addColumnIfMissing("pharmacy_items", "expiry_date", "DATE");
+        addColumnIfMissing("pharmacy_items", "low_stock_threshold", "INT DEFAULT 10");
+        addColumnIfMissing("pharmacy_orders", "prescription_verified", "BOOLEAN DEFAULT FALSE NOT NULL");
+        addColumnIfMissing("pharmacy_orders", "stock_checked", "BOOLEAN DEFAULT FALSE NOT NULL");
+        addColumnIfMissing("pharmacy_orders", "stock_deducted", "BOOLEAN DEFAULT FALSE NOT NULL");
+        addColumnIfMissing("pharmacy_orders", "invoice_id", "BIGINT");
+        addColumnIfMissing("pharmacy_orders", "payment_status", "VARCHAR(50)");
+        addColumnIfMissing("pharmacy_orders", "pharmacy_notes", "VARCHAR(500)");
     }
 
     private void addColumnIfMissing(String table, String column, String definition) {

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Order Detail')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: vendor-nav}"></nav>
+<div class="container">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <p><a href="/vendor/orders">← All orders</a></p>
+        <h1 th:text="${'Order #ORD-' + order.id}">Order</h1>
+        <p>
+            <span class="badge pharmacy-status-badge" th:classappend="${' status-' + order.status.name()}"
+                  th:text="${order.status.displayName}">Pending</span>
+            Patient: <strong th:text="${order.patient.fullName}">P</strong>
+            · Total <strong th:text="${'₹' + #numbers.formatDecimal(order.totalPrice, 1, 2)}">₹0</strong>
+            · Payment <span th:text="${order.paymentStatus}">PENDING</span>
+        </p>
+
+        <div class="split-layout">
+            <div class="card">
+                <div class="card-title">Prescription verification</div>
+                <p th:if="${order.prescription != null}">
+                    Prescription #<span th:text="${order.prescription.id}">1</span>
+                    issued by Dr. <span th:text="${order.prescription.doctor != null ? order.prescription.doctor.fullName : '—'}">Doctor</span>
+                    <br/>Diagnosis: <span th:text="${order.prescription.diagnosis}">—</span>
+                    <br/>Instructions: <span th:text="${order.prescription.instructions}">—</span>
+                </p>
+                <p th:if="${order.prescription == null}">No linked doctor prescription.</p>
+                <form th:action="@{/vendor/pharmacy-order/{id}/verify-prescription(id=${order.id})}" method="post">
+                    <div class="form-group">
+                        <label class="form-label">Pharmacist notes</label>
+                        <textarea name="notes" class="form-control" th:text="${order.pharmacyNotes}"></textarea>
+                    </div>
+                    <button type="submit" name="verified" value="true" class="btn btn-primary">Verify prescription</button>
+                    <button type="submit" name="verified" value="false" class="btn btn-secondary">Cannot verify</button>
+                </form>
+                <p th:if="${order.prescriptionVerified}" class="alert alert-success" style="margin-top:1rem;">Prescription verified.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Medicine availability</div>
+                <table class="table">
+                    <thead><tr><th>Medicine</th><th>Stock</th><th>Price</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <tr th:each="row : ${availability}">
+                            <td th:text="${row.medicineName}">Med</td>
+                            <td th:text="${row.stock}">0</td>
+                            <td th:text="${'₹' + #numbers.formatDecimal(row.price, 1, 2)}">₹0</td>
+                            <td th:text="${row.message}">In stock</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>Delivery / pickup address: <span th:text="${order.deliveryAddress}">—</span></p>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+            <div class="card-title">Process order</div>
+            <form th:if="${!order.status.terminal}"
+                  th:action="@{/vendor/pharmacy-order/{id}/update-status(id=${order.id})}"
+                  method="post" class="pharmacy-status-form">
+                <input type="hidden" name="returnTo" th:value="${'/vendor/orders/' + order.id}">
+                <select name="status" class="form-control" required>
+                    <option th:each="next : ${order.status.nextStatuses()}"
+                            th:value="${next}" th:text="${next.displayName}">Next</option>
+                </select>
+                <input type="text" name="trackingNotes" class="form-control" placeholder="Tracking / billing note"
+                       th:value="${order.trackingNotes}">
+                <button type="submit" class="btn btn-primary">Update status</button>
+            </form>
+            <p th:if="${invoice != null}">
+                Invoice <span th:text="${invoice.invoiceNumber}">INV</span>
+                (<span th:text="${invoice.paymentStatus}">PENDING</span>)
+                <a th:href="@{/vendor/orders/{id}/invoice.pdf(id=${order.id})}">Download invoice PDF</a>
+            </p>
+            <p th:if="${invoice == null}">Invoice is generated when the order is accepted.</p>
+        </div>
+    </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
