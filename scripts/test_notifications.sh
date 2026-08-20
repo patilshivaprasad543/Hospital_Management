@@ -42,9 +42,9 @@ curl -s -c "$A_COOKIE" -b "$A_COOKIE" -X POST "$BASE_URL/login" \
   --data-urlencode "portalRole=ADMIN" -o /dev/null
 LOG_FILE=$(mktemp)
 curl -s -b "$A_COOKIE" "$BASE_URL/admin/notifications" > "$LOG_FILE"
-grep -q "Notification Center" "$LOG_FILE" || { echo "FAIL: notifications page"; exit 1; }
-grep -qE "$TEST_EMAIL|EMAIL" "$LOG_FILE" && echo "Notification log contains email entries" || echo "WARN: log may be empty if async pending"
-grep -qiE 'your (verification|otp) code is [0-9]{6}|otp code:[[:space:]]*[0-9]{6}' "$LOG_FILE" && { echo "FAIL: OTP content found in admin notifications page"; exit 1; } || true
+grep -q "Portal Notifications" "$LOG_FILE" || { echo "FAIL: notifications page"; exit 1; }
+grep -q "Recent Portal Notifications" "$LOG_FILE" && echo "Portal notifications page OK" || echo "WARN: page layout check"
+grep -qiE 'your (verification|otp) code is [0-9]{6}|otp code:[[:space:]]*[0-9]{6}' "$LOG_FILE" && { echo "FAIL: OTP content found on notifications page"; exit 1; } || true
 rm -f "$LOG_FILE"
 
 # 4. Verify OTP skipped — OTP is only delivered via email, not shown in portal

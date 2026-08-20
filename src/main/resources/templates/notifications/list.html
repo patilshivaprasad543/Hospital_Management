@@ -5,8 +5,8 @@
     <nav th:replace="~{fragments/layout :: auth-nav}"></nav>
 
 <div class="container">
-        <h2>🔔 Smart Notification Center</h2>
-        <p style="color: var(--text-muted); margin-bottom: 2rem;">Real-time alerts for appointments, digital prescriptions, lab reports, and orders.</p>
+        <h2>🔔 Notifications</h2>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Updates about your appointments, prescriptions, lab reports, pharmacy orders, and billing.</p>
 
         <div class="grid">
             <div class="card" th:each="n : ${notifications}" th:style="${n.read ? 'opacity: 0.75;' : 'border-left: 4px solid var(--primary-color);'}">
@@ -16,10 +16,11 @@
                 </div>
                 <p style="margin: 0.5rem 0;" th:text="${n.message}">Notification message details...</p>
                 <div style="font-size: 0.8rem; color: var(--text-muted);" th:text="${#temporals.format(n.createdAt, 'dd-MMM-yyyy HH:mm')}">Date Time</div>
+                <a th:if="${n.linkUrl != null}" th:href="${n.linkUrl}" class="btn btn-outline btn-sm" style="margin-top: 0.75rem;">View Details</a>
             </div>
 
             <div th:if="${#lists.isEmpty(notifications)}" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">
-                No notifications recorded.
+                No notifications yet.
             </div>
         </div>
     </div>

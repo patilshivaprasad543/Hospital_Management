@@ -54,16 +54,7 @@ public class AdminController {
     private BillingService billingService;
 
     @Autowired
-    private NotificationLogService notificationLogService;
-
-    @Autowired
     private NotificationService notificationService;
-
-    @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private WhatsAppService whatsAppService;
 
     private User getLoggedInAdmin(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
@@ -369,9 +360,6 @@ public class AdminController {
         model.addAttribute("totalNotifications", notificationService.getTotalNotificationCount());
         model.addAttribute("unreadNotifications", notificationService.getUnreadNotificationCount());
         model.addAttribute("recentNotifications", notificationService.getRecentNotifications());
-        model.addAttribute("deliveryEntries", notificationLogService.getRecentEntries());
-        model.addAttribute("emailEnabled", emailService.isSmtpConfigured());
-        model.addAttribute("whatsappEnabled", whatsAppService.isTwilioConfigured());
         return "admin/notifications";
     }
 
@@ -410,7 +398,7 @@ public class AdminController {
             auditLogService.log(admin, "NOTIFICATION_BROADCAST", "NOTIFICATIONS", null, null,
                     "Sent \"" + title + "\" to " + sent + " user(s) [" + audience + "]");
             redirectAttributes.addFlashAttribute("successMessage",
-                    "Notification sent to " + sent + " user(s).");
+                    "Portal alert published to " + sent + " user(s).");
         }
         return "redirect:/admin/notifications";
     }

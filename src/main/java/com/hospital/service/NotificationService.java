@@ -38,6 +38,12 @@ public class NotificationService {
         return notification;
     }
 
+    public Notification sendPortalNotification(User recipient, String title, String message,
+                                               NotificationCategory category, String linkUrl) {
+        return notificationRepository.save(
+                new Notification(recipient, title, message, category, linkUrl));
+    }
+
     public void notifyBoth(User user1, User user2, String title, String message,
                            NotificationCategory category, String linkUrl1, String linkUrl2) {
         if (user1 != null) {
@@ -119,7 +125,7 @@ public class NotificationService {
             if (!"ACTIVE".equalsIgnoreCase(recipient.getAccountStatus())) {
                 continue;
             }
-            sendNotification(recipient, title.trim(), message.trim(), resolvedCategory, resolvedLink);
+            sendPortalNotification(recipient, title.trim(), message.trim(), resolvedCategory, resolvedLink);
             sent++;
         }
         return sent;
