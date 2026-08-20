@@ -8,7 +8,7 @@
 
 services:
   - type: web
-    name: smartcare360
+    name: smartcare360-java
     runtime: docker
     plan: free
     region: singapore
@@ -25,7 +25,7 @@ services:
       - key: PORT
         value: "8080"
       - key: SMARTCARE_APP_URL
-        value: https://smartcare360.onrender.com
+        value: https://smartcare360-java.onrender.com
       - key: SMARTCARE_ADMIN_EMAIL
         sync: false
       - key: SMARTCARE_ADMIN_PASSWORD

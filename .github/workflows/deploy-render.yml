@@ -1,0 +1,28 @@
+# Auto-create the Render Docker service when RENDER_API_KEY is set in GitHub secrets.
+# Without that secret this job exits 0 and does not fail the repo.
+name: Deploy live (Render)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create or redeploy Render Docker service
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          if [ -z "$RENDER_API_KEY" ]; then
+            echo "No RENDER_API_KEY GitHub secret. Cannot create a public URL from GitHub Actions."
+            echo "Add the secret, or open: https://render.com/deploy?repo=https://github.com/patilshivaprasad543/Hospital_Management"
+            exit 0
+          fi
+          bash scripts/deploy-render.sh
