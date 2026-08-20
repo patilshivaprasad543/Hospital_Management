@@ -41,7 +41,7 @@ See **[DEPLOYMENT.md](DEPLOYMENT.md)** for publishing to Render or Docker.
 Required secrets (set in hosting dashboard, never in code):
 
 - `SMARTCARE_ADMIN_EMAIL` / `SMARTCARE_ADMIN_PASSWORD` — **private admin login**
-- `SMARTCARE_MAIL_USERNAME` / `SMARTCARE_MAIL_PASSWORD` — email OTP & notifications
+- **Email OTP:** On Render free tier use **Brevo API** (`SMARTCARE_MAIL_PROVIDER=brevo`, `SMARTCARE_BREVO_API_KEY`, `SMARTCARE_BREVO_SENDER_EMAIL`). Gmail SMTP works locally only — Render blocks SMTP ports on free plans.
 - `SMARTCARE_APP_URL` — your public URL
 - Twilio vars (optional) — WhatsApp notifications
 
