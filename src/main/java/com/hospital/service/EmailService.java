@@ -1,13 +1,10 @@
 package com.hospital.service;
 
 import com.hospital.model.Appointment;
-import com.hospital.model.User;
+import com.hospital.service.mail.MailTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -16,17 +13,8 @@ public class EmailService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
-    @Autowired(required = false)
-    private JavaMailSender mailSender;
-
     @Autowired
-    private NotificationLogService notificationLogService;
-
-    @Value("${spring.mail.username:}")
-    private String fromEmail;
-
-    @Value("${smartcare.notifications.email-enabled:true}")
-    private boolean emailEnabled;
+    private MailTransport mailTransport;
 
     @Async
     public void sendNotificationEmail(String recipientEmail, String recipientName, String subject, String body) {
@@ -129,46 +117,15 @@ public class EmailService {
     }
 
     public boolean isSmtpConfigured() {
-        return mailSender != null && fromEmail != null && !fromEmail.isBlank();
+        return mailTransport.isConfigured();
     }
 
     private boolean sendEmail(String to, String subject, String body, String type) {
         logger.info("\n=======================================================");
-        logger.info("EMAIL [{}] TO: {}", type, to);
+        logger.info("EMAIL [{} via {}] TO: {}", type, mailTransport.providerName(), to);
         logger.info("SUBJECT: {}", subject);
         logger.info("BODY:\n{}", body);
         logger.info("=======================================================\n");
-
-        if (!emailEnabled) {
-            notificationLogService.log("EMAIL", to, subject, body, false, "Email channel disabled in settings");
-            return false;
-        }
-
-        if (to == null || to.isBlank()) {
-            notificationLogService.log("EMAIL", to, subject, body, false, "Recipient email is blank");
-            return false;
-        }
-
-        if (mailSender == null || fromEmail == null || fromEmail.isBlank()) {
-            notificationLogService.log("EMAIL", to, subject, body, false,
-                    "SMTP not configured — logged to console and notification log");
-            return false;
-        }
-
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(body);
-            mailSender.send(message);
-            logger.info("Email successfully dispatched to {}", to);
-            notificationLogService.log("EMAIL", to, subject, body, true, "Sent via SMTP");
-            return true;
-        } catch (Exception e) {
-            logger.warn("Could not send SMTP email to {}: {}", to, e.getMessage());
-            notificationLogService.log("EMAIL", to, subject, body, false, e.getMessage());
-            return false;
-        }
+        return mailTransport.send(to, subject, body, type);
     }
 }

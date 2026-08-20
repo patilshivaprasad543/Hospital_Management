@@ -14,7 +14,8 @@
             <p style="text-align: center; font-weight: 600; margin-bottom: 1rem;" th:text="${userEmail}">you@email.com</p>
 
             <div th:unless="${emailReady}" class="alert alert-danger" style="font-size:0.9rem;">
-                Email delivery is not configured on this server. Please contact the hospital administrator.
+                Email delivery is not configured on this server. The administrator must set up email
+                (Brevo API for Render free hosting, or Gmail SMTP locally).
             </div>
 
             <div th:if="${emailReady}" class="alert alert-success" style="font-size:0.9rem;background:var(--bg-secondary);border:none;color:var(--text-muted);">

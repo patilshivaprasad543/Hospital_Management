@@ -30,6 +30,14 @@ services:
         sync: false
       - key: SMARTCARE_MAIL_PASSWORD
         sync: false
+      - key: SMARTCARE_MAIL_PROVIDER
+        value: brevo
+      - key: SMARTCARE_BREVO_API_KEY
+        sync: false
+      - key: SMARTCARE_BREVO_SENDER_EMAIL
+        sync: false
+      - key: SMARTCARE_BREVO_SENDER_NAME
+        value: SmartCare 360
       - key: SMARTCARE_WHATSAPP_ENABLED
         value: "false"
       - key: SMARTCARE_DB_URL

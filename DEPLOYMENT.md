@@ -55,12 +55,54 @@ Do **not** use Node, npm, or `package.json` — this project uses Gradle (`build
 
 5. Deploy. Render builds the Docker image and assigns a URL like `https://smartcare360.onrender.com`.
 
-## 2. Gmail setup (for email OTP)
+## 2. Email setup (OTP & notifications)
+
+### Why Gmail SMTP may not work on Render free
+
+**Render free web services block outbound SMTP ports (25, 465, 587).** Gmail SMTP uses port 587, so registration and forgot-password emails will **not send** on Render free even with correct Gmail credentials. This is a hosting restriction, not an app bug.
+
+**Options:**
+
+| Option | Best for |
+|--------|----------|
+| **Brevo API (recommended)** | Render free tier — uses HTTPS (port 443) |
+| **Gmail SMTP** | Local development (`./scripts/start.sh`) |
+| **Paid Render plan** | Gmail SMTP works on paid instances |
+
+### Option A — Brevo (production on Render free)
+
+1. Sign up at [brevo.com](https://www.brevo.com) (free tier: 300 emails/day).
+2. Create an **API key**: Settings → SMTP & API → API Keys.
+3. Add and verify a **sender email** in Brevo (Settings → Senders).
+4. Set these in Render environment variables:
+
+| Variable | Value |
+|----------|-------|
+| `SMARTCARE_MAIL_PROVIDER` | `brevo` |
+| `SMARTCARE_BREVO_API_KEY` | Your Brevo API key |
+| `SMARTCARE_BREVO_SENDER_EMAIL` | Verified sender email in Brevo |
+| `SMARTCARE_BREVO_SENDER_NAME` | `SmartCare 360` |
+
+`render.yaml` already defaults `SMARTCARE_MAIL_PROVIDER=brevo` for Blueprint deploys.
+
+### Option B — Gmail SMTP (local development)
 
 1. Enable 2FA on your Google account.
 2. Create an **App Password**: Google Account → Security → App passwords.
-3. Set `SMARTCARE_MAIL_USERNAME` = your Gmail address.
-4. Set `SMARTCARE_MAIL_PASSWORD` = the 16-character app password.
+3. Add to local `.env` (gitignored):
+
+```
+SMARTCARE_MAIL_PROVIDER=smtp
+SMARTCARE_MAIL_USERNAME=your@gmail.com
+SMARTCARE_MAIL_PASSWORD=your-16-char-app-password
+```
+
+4. Start with `./scripts/start.sh` so `.env` is loaded.
+
+### Option C — Gmail SMTP on paid Render
+
+Upgrade the Render web service to any **paid** instance type. Then set `SMARTCARE_MAIL_PROVIDER=smtp` with Gmail credentials.
+
 
 ## 3. WhatsApp setup (optional, via Twilio)
 
