@@ -1,6 +1,7 @@
 package com.hospital.dto;
 
 import com.hospital.model.NotificationDispatchLog;
+import com.hospital.util.SensitiveContentMasker;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +14,7 @@ public class NotificationLogEntry {
     private final String body;
     private final boolean delivered;
     private final String note;
+    private final boolean otpMessage;
 
     public NotificationLogEntry(String channel, String recipient, String subject, String body,
                                 boolean delivered, String note) {
@@ -23,10 +25,11 @@ public class NotificationLogEntry {
         this.body = body;
         this.delivered = delivered;
         this.note = note;
+        this.otpMessage = SensitiveContentMasker.isOtpRelated(subject, body);
     }
 
     private NotificationLogEntry(LocalDateTime timestamp, String channel, String recipient, String subject,
-                                 String body, boolean delivered, String note) {
+                                 String body, boolean delivered, String note, boolean otpMessage) {
         this.timestamp = timestamp;
         this.channel = channel;
         this.recipient = recipient;
@@ -34,29 +37,22 @@ public class NotificationLogEntry {
         this.body = body;
         this.delivered = delivered;
         this.note = note;
+        this.otpMessage = otpMessage;
     }
 
     public static NotificationLogEntry fromEntity(NotificationDispatchLog entity) {
+        String subject = entity.getSubject();
+        String body = entity.getBody();
         return new NotificationLogEntry(
                 entity.getCreatedAt(),
                 entity.getChannel(),
                 entity.getRecipient(),
-                entity.getSubject(),
-                maskSensitiveContent(entity.getSubject(), entity.getBody()),
+                SensitiveContentMasker.displaySubject(subject),
+                SensitiveContentMasker.displayBody(subject, body),
                 entity.isDelivered(),
-                entity.getNote()
+                entity.getNote(),
+                SensitiveContentMasker.isOtpRelated(subject, body)
         );
-    }
-
-    /** Redact OTP codes from message bodies shown in the admin portal. */
-    private static String maskSensitiveContent(String subject, String body) {
-        if (body == null) {
-            return null;
-        }
-        if (subject != null && subject.toLowerCase().contains("otp")) {
-            return body.replaceAll("\\b\\d{6}\\b", "******");
-        }
-        return body;
     }
 
     public LocalDateTime getTimestamp() {
@@ -85,5 +81,9 @@ public class NotificationLogEntry {
 
     public String getNote() {
         return note;
+    }
+
+    public boolean isOtpMessage() {
+        return otpMessage;
     }
 }

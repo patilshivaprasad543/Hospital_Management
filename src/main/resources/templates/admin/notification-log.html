@@ -8,7 +8,7 @@
     <div class="page-header">
         <div class="page-header-content">
             <h1>Notification Delivery Log</h1>
-            <p>Recent email and WhatsApp delivery status. Message bodies with OTP codes are redacted for security.</p>
+            <p>Delivery status for emails and WhatsApp. OTP and verification message content is never shown — not even to administrators.</p>
         </div>
     </div>
 
@@ -48,7 +48,10 @@
                               th:text="${entry.delivered} ? 'Delivered' : 'Logged'">Status</span>
                     </td>
                     <td>
-                        <details>
+                        <span th:if="${entry.otpMessage}" class="text-muted" style="font-size:0.9rem;">
+                            Redacted (OTP sent to user email only)
+                        </span>
+                        <details th:unless="${entry.otpMessage}">
                             <summary style="cursor:pointer;color:var(--primary);">View</summary>
                             <pre class="notification-log-body" th:text="${entry.body}"></pre>
                             <p th:if="${entry.note != null}" class="text-muted" style="font-size:0.85rem;margin-top:0.5rem;"

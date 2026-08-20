@@ -43,7 +43,8 @@ curl -s -c "$A_COOKIE" -b "$A_COOKIE" -X POST "$BASE_URL/login" \
 LOG_FILE=$(mktemp)
 curl -s -b "$A_COOKIE" "$BASE_URL/admin/notification-log" > "$LOG_FILE"
 grep -q "Notification Delivery Log" "$LOG_FILE" || { echo "FAIL: notification log page"; exit 1; }
-grep -qE "$TEST_EMAIL|EMAIL|OTP" "$LOG_FILE" && echo "Notification log contains OTP/email entries" || echo "WARN: log may be empty if async pending"
+grep -qE "$TEST_EMAIL|EMAIL" "$LOG_FILE" && echo "Notification log contains email entries" || echo "WARN: log may be empty if async pending"
+echo "$LOG_FILE" | xargs grep -oE '\b[0-9]{6}\b' 2>/dev/null | head -1 | grep -q . && echo "FAIL: OTP digits found in admin notification log" && exit 1 || true
 rm -f "$LOG_FILE"
 
 # 4. Verify OTP skipped — OTP is only delivered via email, not shown in portal

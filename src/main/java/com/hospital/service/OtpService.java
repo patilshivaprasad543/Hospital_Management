@@ -52,21 +52,6 @@ public class OtpService {
         }
     }
 
-    public Optional<String> peekForDev(String email, OtpPurpose purpose) {
-        if (email == null || email.isBlank()) {
-            return Optional.empty();
-        }
-        OtpRecord record = store.get(key(email, purpose));
-        if (record == null) {
-            return Optional.empty();
-        }
-        if (LocalDateTime.now().isAfter(record.expiresAt())) {
-            store.remove(key(email, purpose));
-            return Optional.empty();
-        }
-        return Optional.of(record.code());
-    }
-
     private String key(String email, OtpPurpose purpose) {
         return email.trim().toLowerCase() + ":" + purpose.name();
     }
