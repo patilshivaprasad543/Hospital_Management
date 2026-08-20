@@ -20,6 +20,7 @@
                         <th>Type</th>
                         <th>Email</th>
                         <th>Documents</th>
+                        <th>License</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -30,17 +31,25 @@
                         <td th:text="${ven.email}">email</td>
                         <td th:text="${ven.documentInfo != null ? ven.documentInfo : 'Not submitted'}">docs</td>
                         <td>
+                            <span th:if="${vendorProfiles.get(ven.id) != null}">
+                                <span th:text="${vendorProfiles.get(ven.id).licenseNumber}">lic</span>
+                                <br/>
+                                <small th:text="${vendorProfiles.get(ven.id).licenseFileName}">file</small>
+                            </span>
+                            <span th:if="${vendorProfiles.get(ven.id) == null}">—</span>
+                        </td>
+                        <td>
                             <form th:action="@{/admin/vendor/{id}/approve(id=${ven.id})}" method="post" style="display:inline;">
                                 <button type="submit" class="btn btn-primary btn-sm">Approve</button>
                             </form>
                             <form th:action="@{/admin/vendor/{id}/reject(id=${ven.id})}" method="post" style="display:inline; margin-left: 0.4rem;">
-                                <input type="hidden" name="reason" value="License verification failed">
+                                <input type="text" name="reason" class="form-control" placeholder="Rejection reason" required style="display:inline-block;width:180px;">
                                 <button type="submit" class="btn btn-secondary btn-sm">Reject</button>
                             </form>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(pendingVendors)}">
-                        <td colspan="5" style="text-align: center; color: var(--text-muted);">No pending vendor approvals.</td>
+                        <td colspan="6" style="text-align: center; color: var(--text-muted);">No pending vendor approvals.</td>
                     </tr>
                 </tbody>
             </table>
@@ -87,6 +96,9 @@
                     <tr>
                         <th>Medicine</th>
                         <th>Category</th>
+                        <th>Manufacturer</th>
+                        <th>Batch</th>
+                        <th>Expiry</th>
                         <th>Price (₹)</th>
                         <th>Stock</th>
                         <th>Vendor</th>
@@ -96,6 +108,9 @@
                     <tr th:each="item : ${pharmacyItems}">
                         <td th:text="${item.itemName}">Medicine</td>
                         <td th:text="${item.category}">Category</td>
+                        <td th:text="${item.manufacturer}">Mfr</td>
+                        <td th:text="${item.batchNumber}">Batch</td>
+                        <td th:text="${item.expiryDate}">date</td>
                         <td th:text="${'₹' + item.price}">₹35</td>
                         <td th:text="${item.stockQuantity}">500</td>
                         <td th:text="${item.vendor != null ? item.vendor.fullName : 'N/A'}">Pharmacy</td>

@@ -2,6 +2,8 @@ package com.hospital.model;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "pharmacy_items")
 public class PharmacyItem {
@@ -16,6 +18,11 @@ public class PharmacyItem {
     private String category;
     private Double price;
     private Integer stockQuantity;
+
+    private String manufacturer;
+    private String batchNumber;
+    private LocalDate expiryDate;
+    private Integer lowStockThreshold = 10;
 
     @Column(length = 1000)
     private String description;
@@ -74,6 +81,51 @@ public class PharmacyItem {
 
     public void setStockQuantity(Integer stockQuantity) {
         this.stockQuantity = stockQuantity;
+    }
+
+    public String getManufacturer() {
+        return manufacturer;
+    }
+
+    public void setManufacturer(String manufacturer) {
+        this.manufacturer = manufacturer;
+    }
+
+    public String getBatchNumber() {
+        return batchNumber;
+    }
+
+    public void setBatchNumber(String batchNumber) {
+        this.batchNumber = batchNumber;
+    }
+
+    public LocalDate getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(LocalDate expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    public Integer getLowStockThreshold() {
+        return lowStockThreshold;
+    }
+
+    public void setLowStockThreshold(Integer lowStockThreshold) {
+        this.lowStockThreshold = lowStockThreshold;
+    }
+
+    public boolean isLowStock() {
+        int threshold = lowStockThreshold != null ? lowStockThreshold : 10;
+        return stockQuantity != null && stockQuantity <= threshold;
+    }
+
+    public boolean isExpired() {
+        return expiryDate != null && !expiryDate.isAfter(LocalDate.now());
+    }
+
+    public boolean isNearExpiry() {
+        return expiryDate != null && !isExpired() && !expiryDate.isAfter(LocalDate.now().plusDays(30));
     }
 
     public String getDescription() {

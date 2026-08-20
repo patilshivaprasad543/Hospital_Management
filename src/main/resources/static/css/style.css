@@ -691,8 +691,10 @@ select.form-control {
 .pharmacy-status-badge.status-PLACED { background: #fffbeb; color: #b45309; }
 .pharmacy-status-badge.status-ACCEPTED { background: #eff6ff; color: #1d4ed8; }
 .pharmacy-status-badge.status-PROCESSING { background: #f5f3ff; color: #6d28d9; }
+.pharmacy-status-badge.status-READY_FOR_PICKUP { background: #ecfeff; color: #0e7490; }
 .pharmacy-status-badge.status-DISPATCHED { background: #f0f9ff; color: #0369a1; }
 .pharmacy-status-badge.status-DELIVERED { background: #ecfdf5; color: #047857; }
+.pharmacy-status-badge.status-COMPLETED { background: #d1fae5; color: #065f46; }
 .pharmacy-status-badge.status-CANCELLED { background: #fef2f2; color: #b91c1c; }
 
 .status-guide {

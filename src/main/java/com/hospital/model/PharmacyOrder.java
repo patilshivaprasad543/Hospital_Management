@@ -37,6 +37,17 @@ public class PharmacyOrder {
     @Column(length = 500)
     private String trackingNotes;
 
+    private boolean prescriptionVerified;
+    private boolean stockChecked;
+    private boolean stockDeducted;
+    private Long invoiceId;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
+
+    @Column(length = 500)
+    private String pharmacyNotes;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt = LocalDateTime.now();
@@ -126,6 +137,54 @@ public class PharmacyOrder {
 
     public void setTrackingNotes(String trackingNotes) {
         this.trackingNotes = trackingNotes;
+    }
+
+    public boolean isPrescriptionVerified() {
+        return prescriptionVerified;
+    }
+
+    public void setPrescriptionVerified(boolean prescriptionVerified) {
+        this.prescriptionVerified = prescriptionVerified;
+    }
+
+    public boolean isStockChecked() {
+        return stockChecked;
+    }
+
+    public void setStockChecked(boolean stockChecked) {
+        this.stockChecked = stockChecked;
+    }
+
+    public boolean isStockDeducted() {
+        return stockDeducted;
+    }
+
+    public void setStockDeducted(boolean stockDeducted) {
+        this.stockDeducted = stockDeducted;
+    }
+
+    public Long getInvoiceId() {
+        return invoiceId;
+    }
+
+    public void setInvoiceId(Long invoiceId) {
+        this.invoiceId = invoiceId;
+    }
+
+    public PaymentStatus getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public String getPharmacyNotes() {
+        return pharmacyNotes;
+    }
+
+    public void setPharmacyNotes(String pharmacyNotes) {
+        this.pharmacyNotes = pharmacyNotes;
     }
 
     public LocalDateTime getCreatedAt() {

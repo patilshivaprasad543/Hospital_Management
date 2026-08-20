@@ -206,6 +206,11 @@ public class AdminController {
 
         model.addAttribute("vendors", userService.findVendors());
         model.addAttribute("pendingVendors", userService.findPendingVendors());
+        java.util.Map<Long, VendorProfile> vendorProfiles = new java.util.HashMap<>();
+        for (User vendor : userService.findPendingVendors()) {
+            userService.getVendorProfile(vendor).ifPresent(p -> vendorProfiles.put(vendor.getId(), p));
+        }
+        model.addAttribute("vendorProfiles", vendorProfiles);
         model.addAttribute("labTests", vendorService.getAllLabTests());
         model.addAttribute("pharmacyItems", vendorService.getAllPharmacyItems());
         return "admin/vendors";

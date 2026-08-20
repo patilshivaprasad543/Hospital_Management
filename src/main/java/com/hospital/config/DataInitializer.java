@@ -79,6 +79,12 @@ public class DataInitializer implements CommandLineRunner {
         User pharmacyVendor = createApprovedVendor("MediPlus Pharmacy", "pharmacy@smartcare360.com", "9876543216", "vendor123",
                 VendorType.PHARMACY, "MediPlus Central Pharmacy", "1800-MED-PLUS", "Ground Floor, Main Hospital Block",
                 "24x7 Authorized Hospital Pharmacy providing essential prescription medicines.");
+        VendorProfile pharmacyProfile = userService.getVendorProfile(pharmacyVendor).orElse(new VendorProfile(pharmacyVendor));
+        pharmacyProfile.setOwnerName("MediPlus Pharmacy");
+        pharmacyProfile.setLicenseNumber("DL-PHARM-360");
+        pharmacyProfile.setWorkingHours("24x7");
+        pharmacyProfile.setDeliveryArea("Hospital campus and 10 km city radius");
+        userService.updateVendorProfile(pharmacyVendor.getId(), pharmacyProfile);
         seedPharmacyItemsIfMissing(pharmacyVendor);
     }
 
@@ -92,9 +98,21 @@ public class DataInitializer implements CommandLineRunner {
 
     private void seedPharmacyItemsIfMissing(User pharmacyVendor) {
         if (vendorService.getPharmacyItemsByVendor(pharmacyVendor).isEmpty()) {
-            vendorService.savePharmacyItem(new PharmacyItem("Paracetamol 650mg", "Analgesic", 35.0, 500, "Pain relief & antipyretic strip of 15 tablets.", pharmacyVendor));
-            vendorService.savePharmacyItem(new PharmacyItem("Amoxicillin 500mg", "Antibiotics", 120.0, 200, "Broad-spectrum antibiotic strip of 10 capsules.", pharmacyVendor));
-            vendorService.savePharmacyItem(new PharmacyItem("Multivitamin & Mineral", "Supplements", 210.0, 150, "Daily health supplement bottle of 30 tablets.", pharmacyVendor));
+            PharmacyItem para = new PharmacyItem("Paracetamol 650mg", "Analgesic", 35.0, 500, "Pain relief & antipyretic strip of 15 tablets.", pharmacyVendor);
+            para.setManufacturer("Cipla");
+            para.setBatchNumber("PCM-650-A1");
+            para.setExpiryDate(java.time.LocalDate.now().plusMonths(18));
+            vendorService.savePharmacyItem(para);
+            PharmacyItem amox = new PharmacyItem("Amoxicillin 500mg", "Antibiotics", 120.0, 200, "Broad-spectrum antibiotic strip of 10 capsules.", pharmacyVendor);
+            amox.setManufacturer("Sun Pharma");
+            amox.setBatchNumber("AMX-500-B2");
+            amox.setExpiryDate(java.time.LocalDate.now().plusMonths(12));
+            vendorService.savePharmacyItem(amox);
+            PharmacyItem multi = new PharmacyItem("Multivitamin & Mineral", "Supplements", 210.0, 150, "Daily health supplement bottle of 30 tablets.", pharmacyVendor);
+            multi.setManufacturer("Himalaya");
+            multi.setBatchNumber("VIT-30-C3");
+            multi.setExpiryDate(java.time.LocalDate.now().plusMonths(24));
+            vendorService.savePharmacyItem(multi);
         }
     }
 

@@ -60,4 +60,28 @@ public class FileStorageService {
             throw new RuntimeException("Could not save license document.");
         }
     }
+
+    public String storeVendorLicense(Long vendorId, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+        if (file.getSize() > 5_000_000) {
+            throw new RuntimeException("License file must be smaller than 5 MB.");
+        }
+        String original = file.getOriginalFilename() != null ? file.getOriginalFilename() : "license";
+        String lower = original.toLowerCase();
+        if (!(lower.endsWith(".pdf") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png"))) {
+            throw new RuntimeException("Upload a PDF, JPG, or PNG of your pharmacy/business license.");
+        }
+        try {
+            Path dir = Path.of("data/uploads/vendors").toAbsolutePath().normalize();
+            Files.createDirectories(dir);
+            String extension = lower.substring(lower.lastIndexOf('.'));
+            String fileName = vendorId + "-" + UUID.randomUUID() + extension;
+            Files.copy(file.getInputStream(), dir.resolve(fileName), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            return fileName;
+        } catch (IOException e) {
+            throw new RuntimeException("Could not save vendor license document.");
+        }
+    }
 }
