@@ -1,18 +1,15 @@
 # Ping the public site every 5 minutes so Render Free does not idle-sleep.
-# Runs on GitHub's free runners (no Render paid plan required).
-# Scheduled jobs only run after this file is on the repository default branch (main).
+# Read-only token only — no approval, secrets, or extra GitHub permissions.
+# Must live on main so the schedule runs.
 
 name: Keep site live
 
 on:
   schedule:
     - cron: "*/5 * * * *"
-  workflow_dispatch:
   push:
-    paths:
-      - ".github/workflows/keep-alive.yml"
-      - ".github/keep-alive-urls.txt"
-      - "scripts/keep_alive.sh"
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
