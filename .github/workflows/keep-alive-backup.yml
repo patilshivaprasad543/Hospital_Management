@@ -1,0 +1,27 @@
+# Second free pinger so a missed GitHub schedule still wakes Render.
+name: Keep site live (backup)
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+    - cron: "2-59/5 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Backup ping
+        run: |
+          set +e
+          for url in https://smartcare360.onrender.com https://hospital-management.onrender.com; do
+            curl -fsS --max-time 90 -A "SmartCare360-KeepAlive-Backup" "$url/health" >/dev/null
+            curl -fsS --max-time 90 -A "SmartCare360-KeepAlive-Backup" "$url/ping" >/dev/null
+            curl -fsS --max-time 90 -A "SmartCare360-KeepAlive-Backup" "$url/" >/dev/null
+          done
+          exit 0

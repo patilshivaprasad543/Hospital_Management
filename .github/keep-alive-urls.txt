@@ -1,2 +1,4 @@
 https://smartcare360.onrender.com
 https://hospital-management.onrender.com
+https://hospital-management-app.onrender.com
+https://hospital-management-java.onrender.com

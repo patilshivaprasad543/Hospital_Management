@@ -140,43 +140,25 @@ docker run -p 8080:8080 \
 - Share your public URL and the **demo accounts** from README (not admin).
 - Test registration OTP, appointment booking, and notification log at `/admin/notification-log` (admin login only).
 
-## 7. Keep the site live 24/7 (no “waking up”)
+## 7. Stay live 24/7 for free
 
-Render **free** web services **sleep after about 15 minutes with no traffic**. The next visitor sees a host “service waking up” page for 30–90 seconds. That is the host, not an application crash.
+Render Free sleeps after about 15 minutes with no traffic. This repo already turns on **every free keep-alive we can run in GitHub + the app**. No paid Render plan is required.
 
-### What you should do (pick one)
+What is already on `main`:
 
-| Option | Cost | Result |
-|--------|------|--------|
-| **A. Upgrade Render to Starter (recommended)** | Paid monthly | Instance stays running. This is the only reliable always-on option. |
-| **B. External uptime ping + GitHub keep-alive** | Free | Pings `/health` every few minutes so free instances usually do not sleep. GitHub cron can be late; use UptimeRobot as well. |
-| **C. Your own VPS / Railway / Fly.io paid VM** | Varies | You control uptime; use the Docker run command in section 5. |
+| Free mechanism | What it does |
+|----------------|----------------|
+| GitHub Action **Keep site live** | Pings `/health`, `/ping`, `/login`, `/` on the hardcoded Render URLs on several 5-minute cron offsets |
+| GitHub Action **Keep site live (backup)** | Second independent pinger so one missed schedule still wakes the service |
+| App **KeepAlivePinger** | While the process is up, it pings its own `/health` every 3 minutes |
+| Cheap health URLs | `/health`, `/healthz`, `/ping`, `/keepalive` |
+| Faster JVM start | Dockerfile flags so a wake-from-sleep is shorter |
 
-### Option A — Render paid (do this if you need it always live)
+Optional extra (also free, one-time in a browser): create an [UptimeRobot](https://uptimerobot.com) or [cron-job.org](https://cron-job.org) HTTPS monitor every 5 minutes to `https://YOUR-RENDER-URL/health`. That is not required if GitHub Actions is running.
 
-1. Open the **smartcare360** service on Render.
-2. **Settings → Instance type** → change **Free** to **Starter** (or higher).
-3. Keep the persistent disk mounted at `/app/data`.
-4. Confirm health check path is `/health`.
+GitHub only runs these schedules after the workflow files are on **main**. This branch is meant to be on `main`.
 
-Do not leave `plan: free` in the dashboard if you need zero sleep. Blueprint YAML still says `free` so new Blueprint deploys stay free until you upgrade.
-
-### Option B — Free keep-alive (already in this repo)
-
-This is the free path. No paid Render plan.
-
-1. Merge this branch to **main** (GitHub scheduled workflows only run on the default branch).
-2. Put your real Render URL in `.github/keep-alive-urls.txt` (one URL, no trailing slash). A GitHub Action then pings `/health` every **5 minutes** at no cost.
-3. Optional: repo **Settings → Secrets → Actions** → `SMARTCARE_APP_URL` = the same URL.
-4. Optional extra: [UptimeRobot](https://uptimerobot.com) HTTPS monitor every 5 minutes to `https://YOUR-URL/health`.
-
-GitHub’s 5-minute cron is often a bit late, but it is enough to stop most Render Free sleep cycles.
-
-Pings cannot help if Render pauses the service for other reasons (account limits, deploy in progress, disk/build failure).
-
-### After you upgrade or add pings
-
-Redeploy so `/health` and faster JVM startup from this update are live. First request after a deploy can still take a minute while the container starts.
+If the first visitor still waits ~1 minute, that is a cold start after a deploy — not a missing keep-alive.
 
 ## Send me your credentials
 

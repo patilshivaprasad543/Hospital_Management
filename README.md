@@ -38,7 +38,7 @@ Open http://localhost:8080 — uses `dev` profile with local defaults.
 
 See **[DEPLOYMENT.md](DEPLOYMENT.md)** for publishing to Render or Docker.
 
-To keep the public URL live without “waking up” pauses, upgrade Render from Free to **Starter**, or add a 5-minute uptime ping to `/health` (details in DEPLOYMENT.md §7).
+Free 24/7 keep-alive is already on `main`: GitHub Actions ping `/health` on a schedule, and the running app pings itself every 3 minutes. Details in DEPLOYMENT.md §7.
 
 Required secrets (set in hosting dashboard, never in code):
 

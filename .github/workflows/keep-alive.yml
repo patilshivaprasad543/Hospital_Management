@@ -1,9 +1,14 @@
-# Keep Render Free awake. URL is hardcoded — no secrets and no extra GitHub permissions.
+# Free 24/7 keep-alive for Render Free (no paid plan, no secrets, no extra permissions).
+# GitHub only guarantees schedules about every 5 minutes; several crons cover delays.
 name: Keep site live
 
 on:
   schedule:
     - cron: "*/5 * * * *"
+    - cron: "1-59/5 * * * *"
+    - cron: "2-59/5 * * * *"
+    - cron: "3-59/5 * * * *"
+    - cron: "4-59/5 * * * *"
   push:
     branches: [main]
   workflow_dispatch:
@@ -13,19 +18,23 @@ permissions: {}
 jobs:
   ping:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Ping live site
+      - name: Ping every known live URL
         run: |
           set +e
-          for url in \
-            https://smartcare360.onrender.com \
-            https://hospital-management.onrender.com
-          do
-            echo "Pinging $url"
-            if curl -fsS --max-time 90 "$url/health" || curl -fsS --max-time 90 "$url/"; then
-              echo "Reachable: $url"
-              exit 0
-            fi
+          urls="
+          https://smartcare360.onrender.com
+          https://hospital-management.onrender.com
+          https://hospital-management-app.onrender.com
+          https://hospital-management-java.onrender.com
+          "
+          paths="/health /healthz /ping /keepalive /login /"
+          for url in $urls; do
+            [ -z "$url" ] && continue
+            for path in $paths; do
+              echo "GET $url$path"
+              curl -fsS --max-time 90 -A "SmartCare360-KeepAlive" "$url$path" >/dev/null && echo "OK $url$path"
+            done
           done
-          echo "Host did not answer this run; next ping is in 5 minutes."
           exit 0
