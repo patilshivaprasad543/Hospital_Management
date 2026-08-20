@@ -71,9 +71,11 @@ Thumbs.db
 
 *.pid
 
+# H2 database files (persistent local storage)
+
+data/
 
 
-# Environment / secrets
 
 .env
 

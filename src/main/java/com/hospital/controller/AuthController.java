@@ -8,7 +8,9 @@ import com.hospital.model.VendorType;
 import com.hospital.service.UserService;
 import com.hospital.service.EmailService;
 import com.hospital.service.NotificationLogService;
+import com.hospital.service.OtpService;
 import com.hospital.service.WhatsAppService;
+import com.hospital.model.OtpPurpose;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +32,9 @@ public class AuthController {
 
     @Autowired
     private NotificationLogService notificationLogService;
+
+    @Autowired
+    private OtpService otpService;
 
     @Autowired
     private WhatsAppService whatsAppService;
@@ -98,7 +103,8 @@ public class AuthController {
             model.addAttribute("userMobile", maskMobile(user.getMobileNumber()));
             model.addAttribute("userRole", user.getRole());
             if (!emailService.isSmtpConfigured() || exposeOtp) {
-                notificationLogService.findLatestOtpForEmail(user.getEmail())
+                otpService.peekForDev(user.getEmail(), OtpPurpose.REGISTRATION)
+                        .or(() -> notificationLogService.findLatestOtpForEmail(user.getEmail()))
                         .ifPresent(otp -> model.addAttribute("devOtp", otp));
             }
             if (user.getRole() == Role.VENDOR) {

@@ -1,5 +1,7 @@
 package com.hospital.dto;
 
+import com.hospital.model.NotificationDispatchLog;
+
 import java.time.LocalDateTime;
 
 public class NotificationLogEntry {
@@ -21,6 +23,29 @@ public class NotificationLogEntry {
         this.body = body;
         this.delivered = delivered;
         this.note = note;
+    }
+
+    private NotificationLogEntry(LocalDateTime timestamp, String channel, String recipient, String subject,
+                                 String body, boolean delivered, String note) {
+        this.timestamp = timestamp;
+        this.channel = channel;
+        this.recipient = recipient;
+        this.subject = subject;
+        this.body = body;
+        this.delivered = delivered;
+        this.note = note;
+    }
+
+    public static NotificationLogEntry fromEntity(NotificationDispatchLog entity) {
+        return new NotificationLogEntry(
+                entity.getCreatedAt(),
+                entity.getChannel(),
+                entity.getRecipient(),
+                entity.getSubject(),
+                entity.getBody(),
+                entity.isDelivered(),
+                entity.getNote()
+        );
     }
 
     public LocalDateTime getTimestamp() {
