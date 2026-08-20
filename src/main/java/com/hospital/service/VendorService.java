@@ -29,7 +29,7 @@ public class VendorService {
     }
 
     public List<LabTest> getAllLabTests() {
-        return labTestRepository.findAll();
+        return labTestRepository.findAllWithVendor();
     }
 
     public void deleteLabTest(Long testId) {
@@ -46,7 +46,7 @@ public class VendorService {
     }
 
     public List<PharmacyItem> getAllPharmacyItems() {
-        return pharmacyItemRepository.findAll();
+        return pharmacyItemRepository.findAllWithVendor();
     }
 
     public void deletePharmacyItem(Long itemId) {
