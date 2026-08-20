@@ -21,6 +21,9 @@ public class ConsultationService {
     @Autowired
     private AuditLogService auditLogService;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public Consultation startConsultation(Appointment appointment, User doctor) {
         Optional<Consultation> existing = consultationRepository.findByAppointmentId(appointment.getId());
         if (existing.isPresent()) {
@@ -38,18 +41,31 @@ public class ConsultationService {
     }
 
     public Consultation completeConsultation(Long consultationId, String symptoms, String diagnosis,
-                                             String treatment, String notes, LocalDate followUpDate, User doctor) {
+                                             String treatment, String notes, String observations,
+                                             LocalDate followUpDate, User doctor) {
         Consultation consultation = consultationRepository.findById(consultationId)
                 .orElseThrow(() -> new RuntimeException("Consultation not found"));
         consultation.setSymptoms(symptoms);
         consultation.setDiagnosis(diagnosis);
         consultation.setTreatment(treatment);
         consultation.setNotes(notes);
+        consultation.setObservations(observations);
         consultation.setFollowUpDate(followUpDate);
         consultation.setCompletedAt(LocalDateTime.now());
         Consultation saved = consultationRepository.save(consultation);
         auditLogService.log(doctor, "CONSULTATION_COMPLETED", "CONSULTATION",
                 "Consultation", consultationId, "Diagnosis: " + diagnosis);
+
+        if (followUpDate != null && consultation.getPatient() != null) {
+            notificationService.sendPortalNotification(
+                    consultation.getPatient(),
+                    "Follow-up Scheduled",
+                    "Dr. " + doctor.getFullName() + " scheduled a follow-up on " + followUpDate
+                            + (notes != null && !notes.isBlank() ? ". Instructions: " + notes : "."),
+                    com.hospital.model.NotificationCategory.APPOINTMENT,
+                    "/patient/appointments"
+            );
+        }
         return saved;
     }
 

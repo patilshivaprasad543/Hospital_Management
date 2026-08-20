@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Patients')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
+    <div class="container">
+        <h1>Assigned Patients</h1>
+        <p class="text-muted">Patients who have booked or consulted with you.</p>
+        <div class="grid">
+            <div class="card" th:each="p : ${patients}">
+                <div class="card-title" th:text="${p.fullName}">Name</div>
+                <p th:text="${p.email}">email</p>
+                <p th:text="${p.mobileNumber}">mobile</p>
+                <a th:href="@{/doctor/patients/{id}/records(id=${p.id})}" class="btn btn-primary btn-sm">Medical Records</a>
+            </div>
+            <p th:if="${#lists.isEmpty(patients)}" class="text-muted">No patients assigned yet.</p>
+        </div>
+    </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

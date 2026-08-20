@@ -34,7 +34,7 @@
                                 <button type="submit" class="btn btn-primary btn-sm">Approve</button>
                             </form>
                             <form th:action="@{/admin/doctor/{id}/reject(id=${doc.id})}" method="post" style="display:inline; margin-left: 0.4rem;">
-                                <input type="hidden" name="reason" value="Documents did not meet requirements">
+                                <input type="text" name="reason" class="form-control" placeholder="Rejection reason" required style="display:inline-block;width:180px;">
                                 <button type="submit" class="btn btn-secondary btn-sm">Reject</button>
                             </form>
                         </td>

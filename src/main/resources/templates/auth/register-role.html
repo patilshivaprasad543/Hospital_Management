@@ -53,6 +53,32 @@
                     <label class="form-label">Address</label>
                     <input type="text" name="address" class="form-control" placeholder="House no, street, city">
                 </div>
+                <div th:if="${portalRole.name() == 'DOCTOR'}">
+                    <div class="form-group">
+                        <label class="form-label">Specialization</label>
+                        <input type="text" name="specialization" class="form-control" placeholder="Cardiology" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Qualification</label>
+                        <input type="text" name="qualification" class="form-control" placeholder="MBBS, MD" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Experience (years)</label>
+                        <input type="number" name="experienceYears" class="form-control" min="0" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hospital / Clinic Name</label>
+                        <input type="text" name="hospitalName" class="form-control" placeholder="SmartCare 360 Hospital">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hospital / Clinic Address</label>
+                        <input type="text" name="clinicAddress" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Medical License Number</label>
+                        <input type="text" name="licenseNumber" class="form-control">
+                    </div>
+                </div>
                 <div class="form-group">
                     <label class="form-label">Password</label>
                     <input type="password" th:field="*{password}" class="form-control" placeholder="••••••••" required>

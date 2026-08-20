@@ -304,6 +304,33 @@ public class AppointmentService {
         return saved;
     }
 
+    public Appointment rescheduleByDoctor(Long appointmentId, User doctor, LocalDate newDate, LocalTime newTime) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        if (!appointment.getDoctor().getId().equals(doctor.getId())) {
+            throw new RuntimeException("Unauthorized reschedule.");
+        }
+        if (appointment.getStatus() == AppointmentStatus.COMPLETED
+                || appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new RuntimeException("This appointment cannot be rescheduled.");
+        }
+        doctorScheduleService.validateBooking(doctor, newDate, newTime);
+        appointment.setAppointmentDate(newDate);
+        appointment.setAppointmentTime(newTime);
+        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        appointment.setState(AppointmentState.CONFIRMED);
+        appointment.setReminderSent(false);
+        Appointment saved = appointmentRepository.save(appointment);
+        notificationService.sendPortalNotification(
+                appointment.getPatient(),
+                "Appointment Rescheduled by Doctor",
+                "Dr. " + doctor.getFullName() + " moved your appointment to " + newDate + " at " + newTime + ".",
+                NotificationCategory.APPOINTMENT,
+                "/patient/appointments"
+        );
+        return saved;
+    }
+
     public void sendDueReminders(User patient) {
         java.time.LocalDate tomorrow = java.time.LocalDate.now().plusDays(1);
         for (Appointment appointment : getPatientAppointments(patient)) {

@@ -13,4 +13,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     List<Invoice> findByPatientOrderByCreatedAtDesc(User patient);
     long countByPaymentStatus(PaymentStatus status);
     List<Invoice> findByPaymentStatus(PaymentStatus status);
+
+    List<Invoice> findByChargeTypeAndPaymentStatus(String chargeType, PaymentStatus status);
 }

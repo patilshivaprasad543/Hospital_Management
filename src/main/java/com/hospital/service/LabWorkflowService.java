@@ -77,6 +77,10 @@ public class LabWorkflowService {
         return saved;
     }
 
+    public List<LabRequest> getDoctorLabRequests(User doctor) {
+        return labRequestRepository.findByDoctorOrderByCreatedAtDesc(doctor);
+    }
+
     public List<LabRequest> getPatientLabRequests(User patient) {
         return labRequestRepository.findByPatientOrderByCreatedAtDesc(patient);
     }

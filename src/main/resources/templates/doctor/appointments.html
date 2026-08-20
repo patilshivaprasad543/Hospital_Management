@@ -3,44 +3,76 @@
 <head th:replace="~{fragments/layout :: head('Appointments')}"></head>
 <body>
     <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
-
 <div class="container">
-        <h2>All Patient Appointments History</h2>
-        
-        <div class="table-container" style="margin-top: 1.5rem;">
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Appointment History</h1>
+                <p>Filter by status, patient, or date. Accept, reject, or reschedule requests.</p>
+            </div>
+        </div>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        <form method="get" class="card mb-2" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:0.75rem;align-items:end;">
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control">
+                    <option value="">All</option>
+                    <option value="PENDING" th:selected="${filterStatus == 'PENDING'}">Pending</option>
+                    <option value="CONFIRMED" th:selected="${filterStatus == 'CONFIRMED'}">Accepted</option>
+                    <option value="REJECTED" th:selected="${filterStatus == 'REJECTED'}">Rejected</option>
+                    <option value="CANCELLED" th:selected="${filterStatus == 'CANCELLED'}">Cancelled</option>
+                    <option value="COMPLETED" th:selected="${filterStatus == 'COMPLETED'}">Completed</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Patient name</label>
+                <input type="text" name="patient" class="form-control" th:value="${filterPatient}" placeholder="Search patient">
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Date</label>
+                <input type="date" name="date" class="form-control" th:value="${filterDate}">
+            </div>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+        <div class="table-container">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Patient Name</th>
-                        <th>Mobile</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Reason</th>
-                        <th>Status</th>
+                        <th>ID</th><th>Patient</th><th>Mobile</th><th>Date</th><th>Time</th><th>Reason</th><th>Status</th><th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="app : ${appointments}">
                         <td th:text="${'#APP-' + app.id}">#1</td>
-                        <td th:text="${app.patient.fullName}">Patient Name</td>
-                        <td th:text="${app.patient.mobileNumber}">9876543210</td>
-                        <td th:text="${app.appointmentDate}">2026-08-20</td>
-                        <td th:text="${app.appointmentTime}">10:00 AM</td>
-                        <td th:text="${app.reason}">Reason</td>
+                        <td><a th:href="@{/doctor/patients/{id}/records(id=${app.patient.id})}" th:text="${app.patient.fullName}">Patient</a></td>
+                        <td th:text="${app.patient.mobileNumber}">mobile</td>
+                        <td th:text="${app.appointmentDate}">date</td>
+                        <td th:text="${app.appointmentTime}">time</td>
+                        <td th:text="${app.reason}">reason</td>
+                        <td><span class="badge" th:text="${app.status.label}">Status</span></td>
                         <td>
-                            <span class="badge" 
-                                  th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : (app.status.name() == 'COMPLETED' ? 'badge-completed' : 'badge-rejected'))}"
-                                  th:text="${app.status.label}">Status</span>
+                            <form th:if="${app.status.name() == 'PENDING'}" th:action="@{/doctor/appointment/{id}/accept(id=${app.id})}" method="post" style="display:inline;">
+                                <button class="btn btn-success btn-sm" type="submit">Accept</button>
+                            </form>
+                            <form th:if="${app.status.name() == 'PENDING'}" th:action="@{/doctor/appointment/{id}/reject(id=${app.id})}" method="post" style="display:inline;">
+                                <button class="btn btn-danger btn-sm" type="submit">Reject</button>
+                            </form>
+                            <a th:if="${app.status.name() == 'CONFIRMED'}" th:href="@{/doctor/consultation/{id}(id=${app.id})}" class="btn btn-primary btn-sm">Consult</a>
+                            <details th:if="${app.status.name() == 'PENDING' or app.status.name() == 'CONFIRMED'}" style="display:inline-block;">
+                                <summary class="btn btn-secondary btn-sm">Reschedule</summary>
+                                <form th:action="@{/doctor/appointment/{id}/reschedule(id=${app.id})}" method="post" style="margin-top:0.5rem;">
+                                    <input type="date" name="appointmentDate" class="form-control" th:attr="min=${minDate}" required>
+                                    <input type="time" name="appointmentTime" class="form-control" required>
+                                    <button class="btn btn-primary btn-sm" type="submit">Save</button>
+                                </form>
+                            </details>
                         </td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(appointments)}">
-                        <td colspan="7" style="text-align: center; color: var(--text-muted);">No appointments found.</td>
-                    </tr>
+                    <tr th:if="${#lists.isEmpty(appointments)}"><td colspan="8" class="table-empty">No appointments found.</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
-    <script th:src="@{/js/main.js}"></script>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>
 </html>

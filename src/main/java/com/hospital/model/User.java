@@ -40,6 +40,9 @@ public class User {
 
     private String documentInfo;
 
+    @Column(length = 1000)
+    private String rejectionReason;
+
     private java.time.LocalDateTime lastLoginAt;
 
     public User() {
@@ -156,6 +159,14 @@ public class User {
 
     public void setDocumentInfo(String documentInfo) {
         this.documentInfo = documentInfo;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
     }
 
     public boolean canLogin() {

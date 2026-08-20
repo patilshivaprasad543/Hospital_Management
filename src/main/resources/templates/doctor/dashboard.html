@@ -14,8 +14,18 @@
                 <p th:text="${profile.specialization != null ? profile.specialization : 'General Physician'}">Specialization</p>
             </div>
             <div class="page-header-actions">
-                <a href="/doctor/profile" class="btn btn-outline">Manage Schedule</a>
+                <a href="/doctor/profile" class="btn btn-outline">Availability</a>
+                <a href="/doctor/earnings" class="btn btn-outline">Earnings</a>
             </div>
+        </div>
+
+        <div class="grid" style="margin-bottom:1.5rem;">
+            <a href="/doctor/appointments" class="card">📅 Appointments</a>
+            <a href="/doctor/patients" class="card">👥 Patients</a>
+            <a href="/doctor/prescriptions" class="card">💊 Prescriptions</a>
+            <a href="/doctor/lab-tests" class="card">🧪 Lab Tests</a>
+            <a href="/doctor/reports" class="card">📊 Reports</a>
+            <a href="/doctor/notifications" class="card">🔔 Notifications</a>
         </div>
 
         <div th:if="${!#lists.isEmpty(announcements)}" class="announcement-banner">
@@ -206,7 +216,8 @@
                         <td><span class="badge badge-confirmed">Confirmed</span></td>
                         <td th:text="${app.notes != null ? app.notes : 'None'}">Notes</td>
                         <td>
-                            <form th:action="@{/doctor/appointment/{id}/complete(id=${app.id})}" method="post">
+                            <a th:href="@{/doctor/consultation/{id}(id=${app.id})}" class="btn btn-primary btn-sm">Open Consultation</a>
+                            <form th:action="@{/doctor/appointment/{id}/complete(id=${app.id})}" method="post" style="display:inline;">
                                 <button type="submit" class="btn btn-secondary btn-sm">Mark Completed</button>
                             </form>
                         </td>

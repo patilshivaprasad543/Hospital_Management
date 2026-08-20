@@ -36,6 +36,9 @@ public class Consultation {
     @Column(length = 2000)
     private String notes;
 
+    @Column(length = 2000)
+    private String observations;
+
     private LocalDate followUpDate;
 
     private LocalDateTime startedAt = LocalDateTime.now();
@@ -107,6 +110,14 @@ public class Consultation {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getObservations() {
+        return observations;
+    }
+
+    public void setObservations(String observations) {
+        this.observations = observations;
     }
 
     public LocalDate getFollowUpDate() {

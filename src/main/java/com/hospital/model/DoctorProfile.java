@@ -30,6 +30,15 @@ public class DoctorProfile {
     @JoinColumn(name = "department_id")
     private Department department;
 
+    private String hospitalName;
+
+    @Column(length = 500)
+    private String clinicAddress;
+
+    private String licenseNumber;
+
+    private String licenseFileName;
+
     public DoctorProfile() {
     }
 
@@ -139,5 +148,37 @@ public class DoctorProfile {
 
     public void setDepartment(Department department) {
         this.department = department;
+    }
+
+    public String getHospitalName() {
+        return hospitalName;
+    }
+
+    public void setHospitalName(String hospitalName) {
+        this.hospitalName = hospitalName;
+    }
+
+    public String getClinicAddress() {
+        return clinicAddress;
+    }
+
+    public void setClinicAddress(String clinicAddress) {
+        this.clinicAddress = clinicAddress;
+    }
+
+    public String getLicenseNumber() {
+        return licenseNumber;
+    }
+
+    public void setLicenseNumber(String licenseNumber) {
+        this.licenseNumber = licenseNumber;
+    }
+
+    public String getLicenseFileName() {
+        return licenseFileName;
+    }
+
+    public void setLicenseFileName(String licenseFileName) {
+        this.licenseFileName = licenseFileName;
     }
 }

@@ -9,6 +9,7 @@ import com.hospital.service.NotificationChannelService;
 import com.hospital.service.UserService;
 import com.hospital.service.EmailService;
 import com.hospital.service.WhatsAppService;
+import com.hospital.service.FileStorageService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -32,6 +33,9 @@ public class AuthController {
 
     @Autowired
     private NotificationChannelService notificationChannelService;
+
+    @Autowired
+    private FileStorageService fileStorageService;
 
     @GetMapping("/register")
     public String redirectRegisterPortal() {
@@ -59,6 +63,12 @@ public class AuthController {
                                @RequestParam(value = "dateOfBirth", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate dateOfBirth,
                                @RequestParam(value = "gender", required = false) String gender,
                                @RequestParam(value = "address", required = false) String address,
+                               @RequestParam(value = "specialization", required = false) String specialization,
+                               @RequestParam(value = "qualification", required = false) String qualification,
+                               @RequestParam(value = "experienceYears", required = false) Integer experienceYears,
+                               @RequestParam(value = "hospitalName", required = false) String hospitalName,
+                               @RequestParam(value = "clinicAddress", required = false) String clinicAddress,
+                               @RequestParam(value = "licenseNumber", required = false) String licenseNumber,
                                HttpSession session,
                                RedirectAttributes redirectAttributes,
                                Model model) {
@@ -75,6 +85,10 @@ public class AuthController {
             }
 
             User registeredUser = userService.registerUser(user, dateOfBirth, gender, address);
+            if (registeredUser.getRole() == Role.DOCTOR) {
+                userService.applyDoctorRegistrationDetails(registeredUser, specialization, qualification,
+                        experienceYears, hospitalName, clinicAddress, licenseNumber);
+            }
             session.setAttribute("pendingVerificationUser", registeredUser);
             boolean mailReady = emailService.isSmtpConfigured();
             redirectAttributes.addFlashAttribute("successMessage", mailReady
@@ -167,6 +181,10 @@ public class AuthController {
         model.addAttribute("userId", userId);
         model.addAttribute("userRole", user.getRole());
         model.addAttribute("userEmail", user.getEmail());
+        model.addAttribute("rejectionReason", user.getRejectionReason());
+        if (user.getRole() == Role.DOCTOR) {
+            userService.getDoctorProfile(user).ifPresent(p -> model.addAttribute("licenseFileName", p.getLicenseFileName()));
+        }
         if (user.getRole() == Role.VENDOR) {
             model.addAttribute("loginPath", user.getVendorType() == VendorType.PHARMACY
                     ? "/login/pharmacy" : "/login/vendor");
@@ -179,9 +197,14 @@ public class AuthController {
     @PostMapping("/submit-documents")
     public String submitDocuments(@RequestParam("userId") Long userId,
                                   @RequestParam("documentInfo") String documentInfo,
+                                  @RequestParam(value = "licenseFile", required = false) org.springframework.web.multipart.MultipartFile licenseFile,
                                   RedirectAttributes redirectAttributes) {
         try {
-            userService.submitDocuments(userId, documentInfo);
+            String storedFile = null;
+            if (licenseFile != null && !licenseFile.isEmpty()) {
+                storedFile = fileStorageService.storeDoctorLicense(userId, licenseFile);
+            }
+            userService.submitDocuments(userId, documentInfo, storedFile);
             User user = userService.findById(userId).orElse(null);
             String loginPath = PortalRole.loginPathForUser(user);
             redirectAttributes.addFlashAttribute("successMessage",
@@ -262,8 +285,11 @@ public class AuthController {
                     return "redirect:/login/" + portalRoleParam.toLowerCase();
                 }
                 if (user.getApprovalStatus() == ApprovalStatus.REJECTED) {
-                    redirectAttributes.addFlashAttribute("errorMessage", "Your account application was rejected. Contact the administrator.");
-                    return "redirect:/login/" + portalRoleParam.toLowerCase();
+                    redirectAttributes.addFlashAttribute("errorMessage",
+                            "Your application was rejected"
+                                    + (user.getRejectionReason() != null ? ": " + user.getRejectionReason() : ".")
+                                    + " You can update documents and resubmit.");
+                    return "redirect:/submit-documents?userId=" + user.getId();
                 }
             }
 

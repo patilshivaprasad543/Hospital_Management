@@ -17,6 +17,12 @@ public class SchemaRepair implements CommandLineRunner {
     public void run(String... args) {
         addColumnIfMissing("appointments", "reminder_sent", "BOOLEAN DEFAULT FALSE NOT NULL");
         addColumnIfMissing("patient_profiles", "photo_file_name", "VARCHAR(255)");
+        addColumnIfMissing("users", "rejection_reason", "VARCHAR(1000)");
+        addColumnIfMissing("doctor_profiles", "hospital_name", "VARCHAR(255)");
+        addColumnIfMissing("doctor_profiles", "clinic_address", "VARCHAR(500)");
+        addColumnIfMissing("doctor_profiles", "license_number", "VARCHAR(255)");
+        addColumnIfMissing("doctor_profiles", "license_file_name", "VARCHAR(255)");
+        addColumnIfMissing("consultations", "observations", "VARCHAR(2000)");
     }
 
     private void addColumnIfMissing(String table, String column, String definition) {

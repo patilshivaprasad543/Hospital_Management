@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Prescriptions')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
+    <div class="container">
+        <h1>Prescriptions Issued</h1>
+        <div class="grid">
+            <div class="card" th:each="rx : ${prescriptions}">
+                <div class="card-title" th:text="${'Rx #' + rx.id + ' — ' + rx.patient.fullName}">Rx</div>
+                <p th:text="${rx.diagnosis}">dx</p>
+                <ul>
+                    <li th:each="item : ${rx.items}" th:text="${item.medicineName + ' ' + item.dosage + ' × ' + item.duration}">med</li>
+                </ul>
+            </div>
+            <p th:if="${#lists.isEmpty(prescriptions)}" class="text-muted">No prescriptions yet. Issue them from a consultation.</p>
+        </div>
+    </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

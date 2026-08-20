@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Patient Records')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
+    <div class="container">
+        <h1 th:text="${'Records — ' + patient.fullName}">Records</h1>
+        <p>Email: <span th:text="${patient.email}"></span> · Mobile: <span th:text="${patient.mobileNumber}"></span></p>
+        <p th:if="${patientProfile.medicalHistory != null}">History: <span th:text="${patientProfile.medicalHistory}"></span></p>
+        <p th:if="${patientProfile.allergies != null}">Allergies: <span th:text="${patientProfile.allergies}"></span></p>
+
+        <h3>Appointments</h3>
+        <div class="table-container">
+            <table class="table">
+                <thead><tr><th>Date</th><th>Status</th><th>Reason</th></tr></thead>
+                <tbody>
+                    <tr th:each="app : ${appointments}">
+                        <td th:text="${app.appointmentDate + ' ' + app.appointmentTime}">dt</td>
+                        <td th:text="${app.status.label}">st</td>
+                        <td th:text="${app.reason}">r</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <h3>Diagnoses / Treatment</h3>
+        <div class="card" th:each="c : ${consultations}">
+            <p><strong th:text="${c.diagnosis}">dx</strong></p>
+            <p th:text="${c.treatment}">tx</p>
+        </div>
+        <h3>Prescriptions</h3>
+        <ul><li th:each="rx : ${prescriptions}" th:text="${'#' + rx.id + ' — ' + rx.diagnosis}">rx</li></ul>
+        <h3>Lab reports</h3>
+        <ul><li th:each="lab : ${labRequests}" th:text="${lab.testName + ' — ' + lab.status}">lab</li></ul>
+        <a href="/doctor/patients" class="btn btn-outline">Back</a>
+    </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

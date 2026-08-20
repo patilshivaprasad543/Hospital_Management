@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Earnings')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
+    <div class="container">
+        <h1>Earnings</h1>
+        <div class="grid">
+            <div class="card stat-card"><div class="card-title">Consultation fee</div><div class="stat-number" th:text="${'₹' + (profile.consultationFee != null ? profile.consultationFee : 0)}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Completed consults</div><div class="stat-number" th:text="${earnings.completedAppointments}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Today completed</div><div class="stat-number" th:text="${earnings.todayCompleted}">0</div></div>
+            <div class="card stat-card"><div class="card-title">This month completed</div><div class="stat-number" th:text="${earnings.monthCompleted}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Paid earnings</div><div class="stat-number success" th:text="${'₹' + earnings.totalEarned}">0</div></div>
+            <div class="card stat-card"><div class="card-title">This month paid</div><div class="stat-number" th:text="${'₹' + earnings.monthEarned}">0</div></div>
+        </div>
+        <p class="text-muted">Paid earnings are consultation invoices marked paid by the patient.</p>
+    </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

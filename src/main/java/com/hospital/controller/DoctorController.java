@@ -12,7 +12,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/doctor")
@@ -44,6 +46,12 @@ public class DoctorController {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private BillingService billingService;
+
+    @Autowired
+    private DepartmentService departmentService;
 
     private User getLoggedInDoctor(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
@@ -133,13 +141,14 @@ public class DoctorController {
                                        @RequestParam String diagnosis,
                                        @RequestParam String treatment,
                                        @RequestParam(required = false) String notes,
+                                       @RequestParam(required = false) String observations,
                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate followUpDate,
                                        HttpSession session,
                                        RedirectAttributes redirectAttributes) {
         User doctor = getLoggedInDoctor(session);
         if (doctor == null) return "redirect:/login/doctor";
         consultationService.findByAppointment(id).ifPresent(c -> {
-            consultationService.completeConsultation(c.getId(), symptoms, diagnosis, treatment, notes, followUpDate, doctor);
+            consultationService.completeConsultation(c.getId(), symptoms, diagnosis, treatment, notes, observations, followUpDate, doctor);
             appointmentService.updateAppointmentStatus(id, AppointmentStatus.COMPLETED, "Consultation completed");
         });
         redirectAttributes.addFlashAttribute("successMessage",
@@ -206,11 +215,35 @@ public class DoctorController {
     }
 
     @GetMapping("/appointments")
-    public String viewAppointments(HttpSession session, Model model) {
+    public String viewAppointments(@RequestParam(value = "status", required = false) String status,
+                                   @RequestParam(value = "patient", required = false) String patient,
+                                   @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                   HttpSession session, Model model) {
         User doctor = getLoggedInDoctor(session);
         if (doctor == null) return "redirect:/login";
 
-        model.addAttribute("appointments", appointmentService.getDoctorAppointments(doctor));
+        List<Appointment> appointments = appointmentService.getDoctorAppointments(doctor);
+        if (status != null && !status.isBlank()) {
+            appointments = appointments.stream()
+                    .filter(a -> a.getStatus().name().equalsIgnoreCase(status))
+                    .toList();
+        }
+        if (patient != null && !patient.isBlank()) {
+            String q = patient.toLowerCase();
+            appointments = appointments.stream()
+                    .filter(a -> a.getPatient().getFullName().toLowerCase().contains(q))
+                    .toList();
+        }
+        if (date != null) {
+            appointments = appointments.stream()
+                    .filter(a -> date.equals(a.getAppointmentDate()))
+                    .toList();
+        }
+        model.addAttribute("appointments", appointments);
+        model.addAttribute("filterStatus", status);
+        model.addAttribute("filterPatient", patient);
+        model.addAttribute("filterDate", date);
+        model.addAttribute("minDate", LocalDate.now().toString());
         return "doctor/appointments";
     }
 
@@ -277,6 +310,7 @@ public class DoctorController {
         model.addAttribute("upcomingLeaves", doctorScheduleService.getUpcomingLeaves(doctor));
         model.addAttribute("averageRating", feedbackService.getDoctorAverageRating(doctor));
         model.addAttribute("ratingCount", feedbackService.getDoctorRatingCount(doctor));
+        model.addAttribute("departments", departmentService.getActiveDepartments());
         return "doctor/profile";
     }
 
@@ -319,5 +353,97 @@ public class DoctorController {
         userService.updateDoctorProfile(doctor.getId(), profile);
         redirectAttributes.addFlashAttribute("successMessage", "Doctor profile & availability updated successfully!");
         return "redirect:/doctor/profile";
+    }
+
+    @PostMapping("/appointment/{id}/reschedule")
+    public String rescheduleAppointment(@PathVariable Long id,
+                                        @RequestParam("appointmentDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate appointmentDate,
+                                        @RequestParam("appointmentTime") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.TIME) java.time.LocalTime appointmentTime,
+                                        HttpSession session,
+                                        RedirectAttributes redirectAttributes) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return "redirect:/login/doctor";
+        try {
+            appointmentService.rescheduleByDoctor(id, doctor, appointmentDate, appointmentTime);
+            redirectAttributes.addFlashAttribute("successMessage", "Appointment rescheduled. Patient has been notified.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/doctor/appointments";
+    }
+
+    @GetMapping("/patients")
+    public String patients(HttpSession session, Model model) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return "redirect:/login/doctor";
+        Map<Long, User> unique = new LinkedHashMap<>();
+        appointmentService.getDoctorAppointments(doctor)
+                .forEach(a -> unique.putIfAbsent(a.getPatient().getId(), a.getPatient()));
+        model.addAttribute("patients", unique.values());
+        return "doctor/patients";
+    }
+
+    @GetMapping("/patients/{id}/records")
+    public String patientRecords(@PathVariable Long id, HttpSession session, Model model) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return "redirect:/login/doctor";
+        User patient = userService.findById(id).orElse(null);
+        if (patient == null) return "redirect:/doctor/patients";
+        boolean assigned = appointmentService.getDoctorAppointments(doctor).stream()
+                .anyMatch(a -> a.getPatient().getId().equals(patient.getId()));
+        if (!assigned) {
+            return "redirect:/doctor/patients";
+        }
+        model.addAttribute("patient", patient);
+        model.addAttribute("patientProfile", userService.getPatientProfile(patient).orElse(new PatientProfile(patient)));
+        model.addAttribute("appointments", appointmentService.getPatientAppointments(patient).stream()
+                .filter(a -> a.getDoctor().getId().equals(doctor.getId()))
+                .toList());
+        model.addAttribute("consultations", consultationService.getPatientConsultations(patient).stream()
+                .filter(c -> c.getDoctor().getId().equals(doctor.getId()))
+                .toList());
+        model.addAttribute("prescriptions", prescriptionService.getPatientPrescriptions(patient));
+        model.addAttribute("labRequests", labWorkflowService.getPatientLabRequests(patient));
+        return "doctor/patient-records";
+    }
+
+    @GetMapping("/prescriptions")
+    public String prescriptions(HttpSession session, Model model) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return "redirect:/login/doctor";
+        model.addAttribute("prescriptions", prescriptionService.getDoctorPrescriptions(doctor));
+        return "doctor/prescriptions";
+    }
+
+    @GetMapping("/lab-tests")
+    public String labTests(HttpSession session, Model model) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return "redirect:/login/doctor";
+        model.addAttribute("labRequests", labWorkflowService.getDoctorLabRequests(doctor));
+        return "doctor/lab-tests";
+    }
+
+    @GetMapping("/earnings")
+    public String earnings(HttpSession session, Model model) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return "redirect:/login/doctor";
+        List<Appointment> appointments = appointmentService.getDoctorAppointments(doctor);
+        model.addAttribute("earnings", billingService.getDoctorEarnings(doctor, appointments));
+        model.addAttribute("profile", userService.getDoctorProfile(doctor).orElse(new DoctorProfile(doctor)));
+        return "doctor/earnings";
+    }
+
+    @GetMapping("/reports")
+    public String reports(HttpSession session, Model model) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return "redirect:/login/doctor";
+        List<Appointment> appointments = appointmentService.getDoctorAppointments(doctor);
+        model.addAttribute("appointments", appointments);
+        model.addAttribute("earnings", billingService.getDoctorEarnings(doctor, appointments));
+        model.addAttribute("pendingCount", appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.PENDING).count());
+        model.addAttribute("acceptedCount", appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.CONFIRMED).count());
+        model.addAttribute("completedCount", appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.COMPLETED).count());
+        model.addAttribute("cancelledCount", appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.CANCELLED || a.getStatus() == AppointmentStatus.REJECTED).count());
+        return "doctor/reports";
     }
 }

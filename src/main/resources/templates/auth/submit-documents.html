@@ -6,16 +6,19 @@
 
 <div class="container login-splash-wrapper">
         <div class="auth-card" style="max-width: 560px;">
-            <h2 style="text-align: center; margin-bottom: 0.5rem;">📄 Document Verification</h2>
+            <h2 style="text-align: center; margin-bottom: 0.5rem;">Document Verification</h2>
             <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">
-                <span th:if="${userRole.name() == 'DOCTOR'}">Submit your medical license and qualification documents for admin verification.</span>
+                <span th:if="${userRole.name() == 'DOCTOR'}">Upload your medical license and qualification details for admin verification.</span>
                 <span th:if="${userRole.name() == 'VENDOR'}">Submit your business license, GST, and vendor documents for admin approval.</span>
             </p>
 
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
             <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${rejectionReason != null}" class="alert alert-danger">
+                Previous application was rejected: <span th:text="${rejectionReason}">reason</span>. Update and resubmit.
+            </div>
 
-            <form th:action="@{/submit-documents}" method="post">
+            <form th:action="@{/submit-documents}" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="userId" th:value="${userId}" />
                 <div class="form-group">
                     <label class="form-label">Registered Email</label>
@@ -25,6 +28,11 @@
                     <label class="form-label">Document Details</label>
                     <textarea name="documentInfo" class="form-control" rows="6" required
                               th:placeholder="${userRole.name() == 'DOCTOR'} ? 'License number, qualification certificates, specialization proof...' : 'Business name, GST number, license number, vendor type proof...'"></textarea>
+                </div>
+                <div th:if="${userRole.name() == 'DOCTOR'}" class="form-group">
+                    <label class="form-label">Upload Medical License / Certificate (PDF, JPG, PNG)</label>
+                    <input type="file" name="licenseFile" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                    <p th:if="${licenseFileName != null}" class="form-hint">Previously uploaded: <span th:text="${licenseFileName}">file</span></p>
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Submit for Admin Approval</button>
             </form>

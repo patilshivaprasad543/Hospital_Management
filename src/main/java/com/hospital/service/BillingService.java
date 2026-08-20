@@ -74,6 +74,36 @@ public class BillingService {
         return invoiceRepository.countByPaymentStatus(PaymentStatus.PENDING);
     }
 
+    public DoctorEarnings getDoctorEarnings(User doctor, List<Appointment> appointments) {
+        List<Appointment> completed = appointments.stream()
+                .filter(a -> a.getStatus() == AppointmentStatus.COMPLETED)
+                .toList();
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalDate monthStart = today.withDayOfMonth(1);
+        long todayCount = completed.stream()
+                .filter(a -> today.equals(a.getAppointmentDate()))
+                .count();
+        long monthCount = completed.stream()
+                .filter(a -> a.getAppointmentDate() != null && !a.getAppointmentDate().isBefore(monthStart))
+                .count();
+        List<Invoice> paid = invoiceRepository.findByChargeTypeAndPaymentStatus("CONSULTATION", PaymentStatus.PAID);
+        java.util.Set<Long> appointmentIds = completed.stream().map(Appointment::getId).collect(java.util.stream.Collectors.toSet());
+        double earned = paid.stream()
+                .filter(i -> i.getReferenceId() != null && appointmentIds.contains(i.getReferenceId()))
+                .mapToDouble(i -> i.getAmount() != null ? i.getAmount() : 0)
+                .sum();
+        double monthEarned = paid.stream()
+                .filter(i -> i.getReferenceId() != null && appointmentIds.contains(i.getReferenceId()))
+                .filter(i -> i.getCreatedAt() != null && !i.getCreatedAt().toLocalDate().isBefore(monthStart))
+                .mapToDouble(i -> i.getAmount() != null ? i.getAmount() : 0)
+                .sum();
+        return new DoctorEarnings(completed.size(), todayCount, monthCount, earned, monthEarned);
+    }
+
+    public record DoctorEarnings(long completedAppointments, long todayCompleted, long monthCompleted,
+                                 double totalEarned, double monthEarned) {
+    }
+
     private String generateInvoiceNumber() {
         return "INV-" + System.currentTimeMillis() % 1000000;
     }

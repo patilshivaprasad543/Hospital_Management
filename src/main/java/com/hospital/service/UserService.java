@@ -144,7 +144,7 @@ public class UserService {
         return false;
     }
 
-    public void submitDocuments(Long userId, String documentInfo) {
+    public void submitDocuments(Long userId, String documentInfo, String licenseFileName) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -157,8 +157,17 @@ public class UserService {
         }
 
         user.setDocumentInfo(documentInfo);
+        user.setRejectionReason(null);
         user.setApprovalStatus(ApprovalStatus.PENDING_ADMIN);
+        user.setAccountStatus("PENDING");
         userRepository.save(user);
+
+        if (user.getRole() == Role.DOCTOR && licenseFileName != null) {
+            DoctorProfile profile = doctorProfileRepository.findByUser(user).orElseGet(() -> new DoctorProfile(user));
+            profile.setLicenseFileName(licenseFileName);
+            doctorProfileRepository.save(profile);
+        }
+
         auditLogService.log(user, "DOCUMENTS_SUBMITTED", "AUTH", "Documents submitted for admin review");
 
         userRepository.findByRole(Role.ADMIN).forEach(admin ->
@@ -172,6 +181,10 @@ public class UserService {
         );
     }
 
+    public void submitDocuments(Long userId, String documentInfo) {
+        submitDocuments(userId, documentInfo, null);
+    }
+
     public void approveUser(Long userId, User admin) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -179,11 +192,15 @@ public class UserService {
         user.setAdminApproved(true);
         user.setApprovalStatus(ApprovalStatus.APPROVED);
         user.setAccountStatus("ACTIVE");
+        user.setRejectionReason(null);
         userRepository.save(user);
 
         auditLogService.log(admin, "USER_APPROVED", "ADMIN",
                 user.getRole().name(), userId, "Approved " + user.getFullName());
         notificationChannelService.sendApprovalNotice(user.getEmail(), user.getMobileNumber(), user.getFullName(), true);
+        notificationService.sendPortalNotification(user, "Account Approved",
+                "Your SmartCare 360 account has been approved. You can now sign in.",
+                NotificationCategory.SYSTEM, PortalRole.loginPathForUser(user));
     }
 
     public void rejectUser(Long userId, User admin, String reason) {
@@ -192,12 +209,17 @@ public class UserService {
 
         user.setAdminApproved(false);
         user.setApprovalStatus(ApprovalStatus.REJECTED);
-        user.setAccountStatus("BLOCKED");
+        user.setAccountStatus("PENDING");
+        user.setRejectionReason(reason != null && !reason.isBlank() ? reason.trim() : "Documents did not meet requirements.");
         userRepository.save(user);
 
         auditLogService.log(admin, "USER_REJECTED", "ADMIN",
-                user.getRole().name(), userId, reason != null ? reason : "Rejected by admin");
+                user.getRole().name(), userId, user.getRejectionReason());
         notificationChannelService.sendApprovalNotice(user.getEmail(), user.getMobileNumber(), user.getFullName(), false);
+        notificationService.sendPortalNotification(user, "Application Rejected",
+                "Your registration was not approved. Reason: " + user.getRejectionReason()
+                        + " You may update documents and resubmit.",
+                NotificationCategory.SYSTEM, "/submit-documents?userId=" + user.getId());
     }
 
     public void resendOtp(Long userId) {
@@ -415,8 +437,33 @@ public class UserService {
         existingProfile.setWorkEndTime(updatedProfile.getWorkEndTime());
         existingProfile.setMaxAppointmentsPerDay(updatedProfile.getMaxAppointmentsPerDay());
         existingProfile.setDepartment(updatedProfile.getDepartment());
+        existingProfile.setHospitalName(updatedProfile.getHospitalName());
+        existingProfile.setClinicAddress(updatedProfile.getClinicAddress());
+        existingProfile.setLicenseNumber(updatedProfile.getLicenseNumber());
+        if (updatedProfile.getLicenseFileName() != null) {
+            existingProfile.setLicenseFileName(updatedProfile.getLicenseFileName());
+        }
 
         return doctorProfileRepository.save(existingProfile);
+    }
+
+    public void applyDoctorRegistrationDetails(User doctor, String specialization, String qualification,
+                                               Integer experienceYears, String hospitalName, String clinicAddress,
+                                               String licenseNumber) {
+        DoctorProfile profile = doctorProfileRepository.findByUser(doctor).orElseGet(() -> new DoctorProfile(doctor));
+        if (specialization != null && !specialization.isBlank()) {
+            profile.setSpecialization(specialization.trim());
+        }
+        if (qualification != null && !qualification.isBlank()) {
+            profile.setQualification(qualification.trim());
+        }
+        if (experienceYears != null) {
+            profile.setExperienceYears(experienceYears);
+        }
+        profile.setHospitalName(hospitalName);
+        profile.setClinicAddress(clinicAddress);
+        profile.setLicenseNumber(licenseNumber);
+        doctorProfileRepository.save(profile);
     }
 
     public VendorProfile updateVendorProfile(Long userId, VendorProfile updatedProfile) {

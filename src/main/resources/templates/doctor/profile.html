@@ -38,10 +38,46 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Weekly Availability</label>
+                        <label class="form-label">Weekly Availability (display)</label>
                         <input type="text" th:field="*{availabilitySchedule}" class="form-control" placeholder="Mon - Sat (09:00 - 17:00)">
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block">Save Profile</button>
+                    <div class="form-group">
+                        <label class="form-label">Hospital / Clinic Name</label>
+                        <input type="text" th:field="*{hospitalName}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hospital / Clinic Address</label>
+                        <input type="text" th:field="*{clinicAddress}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">License Number</label>
+                        <input type="text" th:field="*{licenseNumber}" class="form-control">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Working Days</label>
+                            <input type="text" th:field="*{workingDays}" class="form-control" placeholder="MON,TUE,WED,THU,FRI,SAT">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Start Time</label>
+                            <input type="time" th:field="*{workStartTime}" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">End Time</label>
+                            <input type="time" th:field="*{workEndTime}" class="form-control">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Slot Duration (minutes)</label>
+                            <input type="number" th:field="*{slotDurationMinutes}" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Max Appointments / Day</label>
+                            <input type="number" th:field="*{maxAppointmentsPerDay}" class="form-control">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Save Profile &amp; Availability</button>
                 </form>
             </div>
 
