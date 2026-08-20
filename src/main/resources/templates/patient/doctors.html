@@ -47,7 +47,8 @@
                     Fee: ₹<span th:text="${prof != null && prof.consultationFee != null ? prof.consultationFee : '500'}">500</span>
                     · Exp: <span th:text="${prof != null ? prof.experienceYears : '-'}">5</span> yrs
                 </p>
-                <a th:href="@{/patient/book-appointment(doctorId=${doc.id})}" class="btn btn-primary btn-sm btn-block mt-2">Book Appointment</a>
+                <a th:href="@{/patient/doctors/{id}(id=${doc.id})}" class="btn btn-outline btn-sm btn-block mt-2">View Profile</a>
+                <a th:href="@{/patient/book-appointment(doctorId=${doc.id})}" class="btn btn-primary btn-sm btn-block mt-2">Select &amp; Book</a>
             </div>
             <div th:if="${#lists.isEmpty(doctors)}" class="table-empty" style="grid-column:1/-1;padding:2rem;">
                 No doctors found matching your criteria.

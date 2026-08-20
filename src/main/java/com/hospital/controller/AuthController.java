@@ -56,6 +56,9 @@ public class AuthController {
     public String registerUser(@PathVariable String portalRole,
                                @ModelAttribute("user") User user,
                                @RequestParam(value = "selectedVendorType", required = false) VendorType selectedVendorType,
+                               @RequestParam(value = "dateOfBirth", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate dateOfBirth,
+                               @RequestParam(value = "gender", required = false) String gender,
+                               @RequestParam(value = "address", required = false) String address,
                                HttpSession session,
                                RedirectAttributes redirectAttributes,
                                Model model) {
@@ -71,22 +74,21 @@ public class AuthController {
                 user.setVendorType(selectedVendorType);
             }
 
-            User registeredUser = userService.registerUser(user);
-            if (registeredUser.getRole() == Role.PATIENT) {
-                session.setAttribute("loggedInUser", registeredUser);
-                redirectAttributes.addFlashAttribute("successMessage",
-                        "Account created. You are signed in. Next time, use this email and password to log in.");
-                return getRedirectUrlForRole(registeredUser.getRole());
-            }
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "Account created and saved. Submit your documents, then sign in with the same email and password after admin approval.");
-            return "redirect:/submit-documents?userId=" + registeredUser.getId();
+            User registeredUser = userService.registerUser(user, dateOfBirth, gender, address);
+            session.setAttribute("pendingVerificationUser", registeredUser);
+            boolean mailReady = emailService.isSmtpConfigured();
+            redirectAttributes.addFlashAttribute("successMessage", mailReady
+                    ? "A 6-digit OTP was sent to " + registeredUser.getEmail() + ". Verify to activate your account, then sign in."
+                    : "Account saved. Email could not be sent — use Resend OTP after mail is configured, or try Resend now.");
+            return "redirect:/verify-otp?userId=" + registeredUser.getId();
         } catch (Exception e) {
             Optional<User> existingUser = userService.findByEmail(user.getEmail());
-            if (existingUser.isPresent()) {
-                redirectAttributes.addFlashAttribute("errorMessage",
-                        "This email is already registered. Please sign in with your password.");
-                return "redirect:" + PortalRole.loginPathForUser(existingUser.get());
+            if (existingUser.isEmpty() && user.getMobileNumber() != null) {
+                existingUser = userService.findByEmailOrMobile(user.getMobileNumber());
+            }
+            if (existingUser.isPresent() && !existingUser.get().isVerified()) {
+                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/verify-otp?userId=" + existingUser.get().getId();
             }
             role.applyToUser(user);
             model.addAttribute("portalRole", role);
@@ -134,10 +136,9 @@ public class AuthController {
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
                 if (user.getRole() == Role.PATIENT) {
-                    session.setAttribute("loggedInUser", user);
                     redirectAttributes.addFlashAttribute("successMessage",
-                            "Email verified! Welcome to SmartCare 360.");
-                    return getRedirectUrlForRole(user.getRole());
+                            "Email verified. Your account is activated. Please sign in.");
+                    return "redirect:" + PortalRole.loginPathForUser(user);
                 }
                 redirectAttributes.addFlashAttribute("successMessage",
                         "Email verified! Please submit your documents for admin approval.");

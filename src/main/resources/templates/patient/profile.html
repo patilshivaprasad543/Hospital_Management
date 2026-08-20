@@ -5,13 +5,19 @@
     <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
 <div class="container">
-        <div class="auth-card" style="max-width: 600px;">
-            <h2 style="text-align: center; margin-bottom: 0.5rem;">👤 Patient Profile</h2>
-            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">Update your personal & medical details</p>
+        <div class="auth-card" style="max-width: 640px;">
+            <h2 style="text-align: center; margin-bottom: 0.5rem;">Patient Profile</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">View and update personal details, photo, and emergency contact</p>
 
             <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-            <form th:action="@{/patient/profile}" th:object="${profile}" method="post">
+            <div th:if="${profile.photoFileName != null}" style="text-align:center;margin-bottom:1rem;">
+                <img th:src="${'/uploads/patients/' + profile.photoFileName}" alt="Profile photo"
+                     style="width:96px;height:96px;border-radius:50%;object-fit:cover;">
+            </div>
+
+            <form th:action="@{/patient/profile}" th:object="${profile}" method="post" enctype="multipart/form-data">
                 <div class="form-group">
                     <label class="form-label">Full Name</label>
                     <input type="text" class="form-control" th:value="${patient.fullName}" disabled readonly>
@@ -19,6 +25,18 @@
                 <div class="form-group">
                     <label class="form-label">Email Address</label>
                     <input type="email" class="form-control" th:value="${patient.email}" disabled readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mobile</label>
+                    <input type="text" class="form-control" th:value="${patient.mobileNumber}" disabled readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Profile Photo</label>
+                    <input type="file" name="photo" class="form-control" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" th:field="*{dateOfBirth}" class="form-control">
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
                     <div class="form-group">
@@ -54,8 +72,20 @@
                     <input type="text" th:field="*{address}" class="form-control" placeholder="123 Street, City">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Medical History / Allergies</label>
-                    <textarea th:field="*{medicalHistory}" class="form-control" placeholder="Mention any chronic conditions, allergies, or ongoing medications..."></textarea>
+                    <label class="form-label">Emergency Contact Name</label>
+                    <input type="text" th:field="*{emergencyContactName}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Emergency Contact Phone</label>
+                    <input type="text" th:field="*{emergencyContactPhone}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Allergies</label>
+                    <textarea th:field="*{allergies}" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Medical History</label>
+                    <textarea th:field="*{medicalHistory}" class="form-control"></textarea>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Profile Updates</button>

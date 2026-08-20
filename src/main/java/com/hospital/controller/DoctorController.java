@@ -187,7 +187,8 @@ public class DoctorController {
     @PostMapping("/lab-request/create")
     public String createLabRequest(@RequestParam("patientId") Long patientId,
                                    @RequestParam("testName") String testName,
-                                   @RequestParam("notes") String notes,
+                                   @RequestParam(value = "notes", required = false) String notes,
+                                   @RequestParam(value = "appointmentId", required = false) Long appointmentId,
                                    HttpSession session,
                                    RedirectAttributes redirectAttributes) {
         User doctor = getLoggedInDoctor(session);
@@ -197,6 +198,9 @@ public class DoctorController {
         if (patient != null) {
             labWorkflowService.requestLabTest(doctor, patient, testName, notes);
             redirectAttributes.addFlashAttribute("successMessage", "Diagnostic Lab Test (" + testName + ") requested for patient!");
+        }
+        if (appointmentId != null) {
+            return "redirect:/doctor/consultation/" + appointmentId;
         }
         return "redirect:/doctor/dashboard";
     }

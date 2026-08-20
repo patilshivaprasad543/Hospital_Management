@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Doctor Profile')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+    <div class="container">
+        <div class="auth-card" style="max-width:720px;">
+            <h2 th:text="${doctor.fullName}">Doctor</h2>
+            <p style="color:var(--primary);font-weight:700;" th:text="${profile.specialization}">Cardiology</p>
+            <p th:if="${profile.department != null}" class="text-muted" th:text="${'Department: ' + profile.department.name}">Dept</p>
+            <p>🎓 Qualification: <span th:text="${profile.qualification}">MBBS</span></p>
+            <p>⭐ Experience: <span th:text="${profile.experienceYears}">5</span> years</p>
+            <p>💰 Consultation fee: ₹<span th:text="${profile.consultationFee}">500</span></p>
+            <p>⏰ Availability: <span th:text="${profile.availabilitySchedule}">Mon-Sat</span></p>
+            <p>Working days: <span th:text="${profile.workingDays}">MON-SAT</span>
+                · <span th:text="${profile.workStartTime}">09:00</span>–<span th:text="${profile.workEndTime}">17:00</span></p>
+            <p>Rating: ★ <span th:text="${#numbers.formatDecimal(rating, 1, 1)}">4.5</span>
+                (<span th:text="${ratingCount}">0</span> reviews)</p>
+            <a th:href="@{/patient/book-appointment(doctorId=${doctor.id})}" class="btn btn-primary">Select Doctor &amp; Book</a>
+            <a href="/patient/doctors" class="btn btn-outline">Back to search</a>
+        </div>
+    </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

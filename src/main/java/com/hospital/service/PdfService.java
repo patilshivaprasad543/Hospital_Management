@@ -1,6 +1,7 @@
 package com.hospital.service;
 
 import com.hospital.model.Invoice;
+import com.hospital.model.LabRequest;
 import com.hospital.model.Prescription;
 import com.hospital.model.User;
 import com.lowagie.text.*;
@@ -48,6 +49,21 @@ public class PdfService {
             document.add(new Paragraph("Amount: ₹" + invoice.getAmount(), HEADING));
             document.add(new Paragraph("Status: " + invoice.getPaymentStatus(), BODY));
             document.add(new Paragraph("Date: " + invoice.getCreatedAt().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm")), BODY));
+        });
+    }
+
+    public byte[] generateLabReportPdf(LabRequest labRequest, User patient) {
+        return buildPdf("SmartCare 360 — Lab Report", document -> {
+            document.add(new Paragraph("Lab Report #" + labRequest.getId(), TITLE));
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Patient: " + patient.getFullName(), BODY));
+            document.add(new Paragraph("Test: " + nullSafe(labRequest.getTestName()), HEADING));
+            document.add(new Paragraph("Requested by: Dr. " + (labRequest.getDoctor() != null ? labRequest.getDoctor().getFullName() : "-"), BODY));
+            document.add(new Paragraph("Laboratory: " + (labRequest.getLabVendor() != null ? labRequest.getLabVendor().getFullName() : "-"), BODY));
+            document.add(new Paragraph("Status: " + nullSafe(labRequest.getStatus()), BODY));
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Findings:", HEADING));
+            document.add(new Paragraph(nullSafe(labRequest.getReportResult()), BODY));
         });
     }
 

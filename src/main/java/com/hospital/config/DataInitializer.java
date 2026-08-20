@@ -56,6 +56,8 @@ public class DataInitializer implements CommandLineRunner {
                 .filter(d -> d.getName().equals("Neurology")).findFirst().orElse(null);
         Department pediatrics = departmentService.getAllDepartments().stream()
                 .filter(d -> d.getName().equals("Pediatrics")).findFirst().orElse(null);
+        Department general = departmentService.getAllDepartments().stream()
+                .filter(d -> d.getName().equals("General Medicine")).findFirst().orElse(null);
 
         User doc1 = createApprovedDoctor("Dr. Sarah Jenkins", "sarah.jenkins@smartcare360.com", "9876543211", "doc123",
                 "Cardiology", "MD, DM (Cardiology)", 12, 800.0, "Mon - Sat (09:00 AM - 02:00 PM)", cardiology);
@@ -63,6 +65,8 @@ public class DataInitializer implements CommandLineRunner {
                 "Neurology", "MBBS, M.Ch (Neurology)", 9, 1000.0, "Mon - Fri (10:00 AM - 04:00 PM)", neurology);
         User doc3 = createApprovedDoctor("Dr. Emily Watson", "emily.watson@smartcare360.com", "9876543213", "doc123",
                 "Pediatrics", "MBBS, DCH, MD (Pediatrics)", 7, 600.0, "Mon - Sat (11:00 AM - 05:00 PM)", pediatrics);
+        createApprovedDoctor("Dr. Anita Mehra", "anita.mehra@smartcare360.com", "9876543217", "doc123",
+                "General Medicine", "MBBS, MD (Medicine)", 10, 500.0, "Mon - Sat (09:00 AM - 05:00 PM)", general);
 
         createApprovedPatient("John Doe", "patient@smartcare360.com", "9876543214", "patient123",
                 34, "O+", "Male", "123 Health Ave, Metro City", "No major chronic conditions.");

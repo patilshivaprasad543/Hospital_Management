@@ -16,11 +16,11 @@ public class Consultation {
     @JoinColumn(name = "appointment_id", nullable = false, unique = true)
     private Appointment appointment;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "doctor_id", nullable = false)
     private User doctor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "patient_id", nullable = false)
     private User patient;
 

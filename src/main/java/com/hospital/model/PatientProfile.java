@@ -33,6 +33,8 @@ public class PatientProfile {
     @Column(length = 1000)
     private String medicalHistory;
 
+    private String photoFileName;
+
     public PatientProfile() {
     }
 
@@ -126,5 +128,13 @@ public class PatientProfile {
 
     public void setMedicalHistory(String medicalHistory) {
         this.medicalHistory = medicalHistory;
+    }
+
+    public String getPhotoFileName() {
+        return photoFileName;
+    }
+
+    public void setPhotoFileName(String photoFileName) {
+        this.photoFileName = photoFileName;
     }
 }

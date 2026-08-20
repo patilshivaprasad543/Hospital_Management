@@ -37,8 +37,8 @@
                         <td th:text="${app.appointmentDate + ' ' + app.appointmentTime}">Date</td>
                         <td>
                             <span class="badge"
-                                  th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : (app.state.name() == 'CANCELLED' ? 'badge-rejected' : 'badge-completed'))}"
-                                  th:text="${app.state.name() == 'CANCELLED' ? 'Cancelled' : app.status.label}">Pending</span>
+                                  th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : (app.status.name() == 'COMPLETED' ? 'badge-completed' : 'badge-rejected'))}"
+                                  th:text="${app.status.label}">Pending</span>
                         </td>
                         <td>
                             <form th:if="${app.status.name() == 'CONFIRMED' && app.queueTicket == null}"
@@ -46,7 +46,9 @@
                                 <button type="submit" class="btn btn-success btn-sm">Check-In</button>
                             </form>
                             <span th:if="${app.queueTicket != null}" class="badge badge-role" th:text="${'Ticket ' + app.queueTicket}">#A101</span>
-                            <form th:if="${app.status.name() != 'COMPLETED' && app.state.name() != 'CANCELLED' && app.queueTicket == null}"
+                            <a th:if="${(app.status.name() == 'PENDING' or app.status.name() == 'CONFIRMED') and app.queueTicket == null}"
+                               th:href="@{/patient/appointments/{id}/reschedule(id=${app.id})}" class="btn btn-secondary btn-sm">Reschedule</a>
+                            <form th:if="${app.status.name() != 'COMPLETED' && app.status.name() != 'CANCELLED' && app.status.name() != 'REJECTED' && app.queueTicket == null}"
                                   th:action="@{/patient/appointments/{id}/cancel(id=${app.id})}" method="post" style="display:inline;">
                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Cancel this appointment?')">Cancel</button>
                             </form>

@@ -72,6 +72,12 @@ public class PatientController {
     @Autowired
     private PatientTimelineService patientTimelineService;
 
+    @Autowired
+    private FileStorageService fileStorageService;
+
+    @Autowired
+    private ConsultationService consultationService;
+
     private User getLoggedInPatient(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user != null && user.getRole() == Role.PATIENT) {
@@ -87,6 +93,7 @@ public class PatientController {
 
         List<Appointment> appointments = appointmentService.getPatientAppointments(patient);
         PatientProfile profile = userService.getPatientProfile(patient).orElse(new PatientProfile(patient));
+        appointmentService.sendDueReminders(patient);
 
         model.addAttribute("patient", patient);
         model.addAttribute("profile", profile);
@@ -172,6 +179,21 @@ public class PatientController {
         return "patient/doctors";
     }
 
+    @GetMapping("/doctors/{id}")
+    public String viewDoctorProfile(@PathVariable Long id, HttpSession session, Model model) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+        User doctor = userService.findById(id).orElse(null);
+        if (doctor == null || doctor.getRole() != Role.DOCTOR) {
+            return "redirect:/patient/doctors";
+        }
+        model.addAttribute("doctor", doctor);
+        model.addAttribute("profile", userService.getDoctorProfile(doctor).orElse(new DoctorProfile(doctor)));
+        model.addAttribute("rating", feedbackService.getDoctorAverageRating(doctor));
+        model.addAttribute("ratingCount", feedbackService.getDoctorRatingCount(doctor));
+        return "patient/doctor-profile";
+    }
+
     @GetMapping("/book-appointment")
     public String showBookAppointmentForm(@RequestParam(value = "doctorId", required = false) Long doctorId,
                                            @RequestParam(value = "department", required = false) String department,
@@ -193,10 +215,19 @@ public class PatientController {
         model.addAttribute("doctors", userService.findApprovedDoctors());
         model.addAttribute("departments", departmentService.getActiveDepartments());
         model.addAttribute("doctorDepartments", doctorDepartments);
+        model.addAttribute("doctorProfiles", doctorProfilesForBooking(userService.findApprovedDoctors()));
         model.addAttribute("selectedDoctorId", doctorId);
-        model.addAttribute("department", department != null ? department : "General Consultation");
+        model.addAttribute("department", department);
         model.addAttribute("minDate", LocalDate.now().toString());
         return "patient/book-appointment";
+    }
+
+    private Map<Long, DoctorProfile> doctorProfilesForBooking(List<User> doctors) {
+        Map<Long, DoctorProfile> map = new HashMap<>();
+        for (User doc : doctors) {
+            userService.getDoctorProfile(doc).ifPresent(p -> map.put(doc.getId(), p));
+        }
+        return map;
     }
 
     @PostMapping("/book-appointment")
@@ -236,7 +267,49 @@ public class PatientController {
         return "redirect:/patient/appointments";
     }
 
-    @GetMapping("/timeline")
+    @GetMapping("/appointments/{id}/reschedule")
+    public String rescheduleForm(@PathVariable Long id, HttpSession session, Model model) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+        Appointment app = appointmentService.findById(id).orElse(null);
+        if (app == null || !app.getPatient().getId().equals(patient.getId())) {
+            return "redirect:/patient/appointments";
+        }
+        model.addAttribute("appointment", app);
+        model.addAttribute("minDate", LocalDate.now().toString());
+        return "patient/reschedule";
+    }
+
+    @PostMapping("/appointments/{id}/reschedule")
+    public String rescheduleAppointment(@PathVariable Long id,
+                                        @RequestParam("appointmentDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate appointmentDate,
+                                        @RequestParam("appointmentTime") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime appointmentTime,
+                                        HttpSession session,
+                                        RedirectAttributes redirectAttributes) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+        try {
+            appointmentService.rescheduleAppointment(id, patient, appointmentDate, appointmentTime);
+            redirectAttributes.addFlashAttribute("successMessage", "Appointment rescheduled. Waiting for doctor confirmation.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/patient/appointments";
+    }
+
+    @GetMapping("/records")
+    public String medicalRecords(HttpSession session, Model model) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+        model.addAttribute("patient", patient);
+        model.addAttribute("appointments", appointmentService.getPatientAppointments(patient));
+        model.addAttribute("consultations", consultationService.getPatientConsultations(patient));
+        model.addAttribute("prescriptions", prescriptionService.getPatientPrescriptions(patient));
+        model.addAttribute("labRequests", labWorkflowService.getPatientLabRequests(patient));
+        model.addAttribute("invoices", billingService.getPatientInvoices(patient));
+        model.addAttribute("timelineEvents", patientTimelineService.buildTimeline(patient));
+        return "patient/records";
+    }
     public String viewHealthTimeline(HttpSession session, Model model) {
         User patient = getLoggedInPatient(session);
         if (patient == null) return "redirect:/login/patient";
@@ -411,13 +484,21 @@ public class PatientController {
 
     @PostMapping("/profile")
     public String updateProfile(@ModelAttribute PatientProfile profile,
+                                @RequestParam(value = "photo", required = false) org.springframework.web.multipart.MultipartFile photo,
                                 HttpSession session,
                                 RedirectAttributes redirectAttributes) {
         User patient = getLoggedInPatient(session);
         if (patient == null) return "redirect:/login/patient";
 
-        userService.updatePatientProfile(patient.getId(), profile);
-        redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");
+        try {
+            if (photo != null && !photo.isEmpty()) {
+                profile.setPhotoFileName(fileStorageService.storePatientPhoto(patient.getId(), photo));
+            }
+            userService.updatePatientProfile(patient.getId(), profile);
+            redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/patient/profile";
     }
 
@@ -467,6 +548,20 @@ public class PatientController {
                         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=prescription-" + rx.getId() + ".pdf")
                         .contentType(MediaType.APPLICATION_PDF)
                         .body(pdfService.generatePrescriptionPdf(rx, rx.getDoctor(), patient)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/lab-report/{id}/pdf")
+    public ResponseEntity<byte[]> downloadLabReportPdf(@PathVariable Long id, HttpSession session) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return ResponseEntity.status(401).build();
+        return labWorkflowService.getPatientLabRequests(patient).stream()
+                .filter(r -> r.getId().equals(id) && r.getReportResult() != null)
+                .findFirst()
+                .map(lab -> ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=lab-report-" + lab.getId() + ".pdf")
+                        .contentType(MediaType.APPLICATION_PDF)
+                        .body(pdfService.generateLabReportPdf(lab, patient)))
                 .orElse(ResponseEntity.notFound().build());
     }
 }

@@ -2,8 +2,9 @@ package com.hospital.model;
 
 public enum AppointmentStatus {
     PENDING("Pending"),
-    CONFIRMED("Confirmed"),
-    REJECTED("Declined"),
+    CONFIRMED("Accepted"),
+    REJECTED("Rejected"),
+    CANCELLED("Cancelled"),
     COMPLETED("Completed");
 
     private final String label;

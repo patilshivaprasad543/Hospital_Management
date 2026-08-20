@@ -5,39 +5,46 @@
     <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
 <div class="container">
-        <div class="auth-card" style="max-width: 680px;">
-            <h2 style="text-align: center; margin-bottom: 0.5rem;">📅 Book Doctor Appointment</h2>
+        <div class="auth-card" style="max-width: 880px;">
+            <h2 style="text-align: center; margin-bottom: 0.5rem;">Book Doctor Appointment</h2>
             <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">
-                Calendar starts from today. Past dates and unavailable slots are disabled.
+                Choose a doctor, then pick an available date and time slot.
             </p>
 
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            <div th:if="${#lists.isEmpty(doctors)}" class="alert alert-danger">
+                No approved doctors are available yet. Please contact the hospital.
+            </div>
 
             <form th:action="@{/patient/book-appointment}" method="post" id="bookingForm">
                 <div class="form-group">
-                    <label class="form-label">Department</label>
+                    <label class="form-label">Filter by Department</label>
                     <select id="departmentFilter" class="form-control">
                         <option value="">All Departments</option>
                         <option th:each="dept : ${departments}" th:value="${dept.name}" th:text="${dept.name}"
                                 th:selected="${department != null and department == dept.name}"></option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Select Doctor</label>
-                    <select name="doctorId" id="doctorSelect" class="form-control" required>
-                        <option value="">-- Choose a Doctor --</option>
-                        <option th:each="doc : ${doctors}"
-                                th:value="${doc.id}"
-                                th:attr="data-dept=${doctorDepartments[doc.id]}"
-                                th:selected="${selectedDoctorId != null and selectedDoctorId == doc.id}"
-                                th:text="${doc.fullName + ' — ' + (doctorDepartments[doc.id] != null ? doctorDepartments[doc.id] : 'General')}">Dr.</option>
-                    </select>
+
+                <label class="form-label">Select Doctor</label>
+                <p id="doctorFilterNote" class="form-hint" style="display:none;"></p>
+                <div class="doctor-choice-grid" id="doctorGrid">
+                    <label class="doctor-choice-card" th:each="doc : ${doctors}"
+                           th:attr="data-dept=${doctorDepartments[doc.id]}, data-name=${doc.fullName}">
+                        <input type="radio" name="doctorId" th:value="${doc.id}" required
+                               th:checked="${selectedDoctorId != null and selectedDoctorId == doc.id}">
+                        <strong th:text="${doc.fullName}">Dr. Name</strong>
+                        <span th:text="${doctorDepartments[doc.id] != null ? doctorDepartments[doc.id] : 'General'}">Dept</span>
+                        <span class="text-muted" th:if="${doctorProfiles[doc.id] != null}"
+                              th:text="${'₹' + doctorProfiles[doc.id].consultationFee + ' · ' + doctorProfiles[doc.id].experienceYears + ' yrs'}">Fee</span>
+                        <a class="soft-link" th:href="@{/patient/doctors/{id}(id=${doc.id})}" onclick="event.stopPropagation();">View profile</a>
+                    </label>
                 </div>
+
                 <div class="form-group">
                     <label class="form-label">Appointment Date</label>
                     <input type="date" name="appointmentDate" id="appointmentDate" class="form-control"
                            th:attr="min=${minDate}, value=${minDate}" required>
-                    <small style="color: var(--text-muted);">Only today and future dates are allowed</small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Available Time Slots</label>
@@ -47,59 +54,95 @@
                 </div>
                 <input type="hidden" name="department" id="departmentHidden" th:value="${department}" />
                 <div class="form-group">
-                    <label class="form-label">Reason for Consultation</label>
+                    <label class="form-label">Reason / Symptoms</label>
                     <textarea name="reason" class="form-control" placeholder="Describe symptoms or reason for visit..." required></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Book Appointment</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Confirm Appointment</button>
             </form>
         </div>
     </div>
 
     <script th:inline="javascript">
         const minDate = /*[[${minDate}]]*/ '';
-        const doctorSelect = document.getElementById('doctorSelect');
         const dateInput = document.getElementById('appointmentDate');
         const slotSelect = document.getElementById('timeSlotSelect');
         const deptFilter = document.getElementById('departmentFilter');
         const deptHidden = document.getElementById('departmentHidden');
+        const note = document.getElementById('doctorFilterNote');
 
-        deptFilter.addEventListener('change', () => {
+        function selectedDoctorId() {
+            const checked = document.querySelector('input[name="doctorId"]:checked');
+            return checked ? checked.value : '';
+        }
+
+        function applyDepartmentFilter() {
             const dept = deptFilter.value;
-            deptHidden.value = dept || 'General Consultation';
-            Array.from(doctorSelect.options).forEach(opt => {
-                if (!opt.value) return;
-                opt.hidden = dept && opt.dataset.dept !== dept;
+            deptHidden.value = dept || '';
+            const cards = Array.from(document.querySelectorAll('.doctor-choice-card'));
+            let visible = 0;
+            cards.forEach(card => {
+                const match = !dept || card.dataset.dept === dept;
+                card.style.display = match ? '' : 'none';
+                if (match) visible++;
             });
-        });
+            if (dept && visible === 0) {
+                cards.forEach(card => card.style.display = '');
+                note.style.display = 'block';
+                note.textContent = 'No specialists in ' + dept + '. Showing all doctors.';
+            } else {
+                note.style.display = 'none';
+            }
+        }
+
+        async function loadSlotsForDate(doctorId, date) {
+            const res = await fetch(`/patient/api/slots?doctorId=${doctorId}&date=${date}`);
+            if (!res.ok) return [];
+            return res.json();
+        }
 
         async function loadSlots() {
-            const doctorId = doctorSelect.value;
-            const date = dateInput.value;
+            const doctorId = selectedDoctorId();
+            let date = dateInput.value;
             slotSelect.innerHTML = '<option value="">Loading slots...</option>';
             if (!doctorId || !date) {
                 slotSelect.innerHTML = '<option value="">Select doctor and date first</option>';
                 return;
             }
-            const res = await fetch(`/patient/api/slots?doctorId=${doctorId}&date=${date}`);
-            const slots = await res.json();
+            let slots = await loadSlotsForDate(doctorId, date);
+            let available = slots.filter(s => s.available);
+            if (!available.length) {
+                const start = new Date(date + 'T00:00:00');
+                for (let i = 1; i <= 14 && !available.length; i++) {
+                    start.setDate(start.getDate() + 1);
+                    const next = start.toISOString().slice(0, 10);
+                    slots = await loadSlotsForDate(doctorId, next);
+                    available = slots.filter(s => s.available);
+                    if (available.length) {
+                        dateInput.value = next;
+                        date = next;
+                    }
+                }
+            }
             slotSelect.innerHTML = '';
-            if (!slots.length) {
-                slotSelect.innerHTML = '<option value="">No slots available</option>';
+            if (!available.length) {
+                slotSelect.innerHTML = '<option value="">No slots in the next 14 days</option>';
                 return;
             }
-            slots.forEach(s => {
+            available.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.time;
-                opt.textContent = s.label + (s.available ? '' : ' (Unavailable)');
-                opt.disabled = !s.available;
+                opt.textContent = s.label;
                 slotSelect.appendChild(opt);
             });
         }
 
-        doctorSelect.addEventListener('change', loadSlots);
+        deptFilter.addEventListener('change', applyDepartmentFilter);
+        document.querySelectorAll('input[name="doctorId"]').forEach(r => r.addEventListener('change', loadSlots));
         dateInput.addEventListener('change', loadSlots);
         dateInput.min = minDate;
-        if (doctorSelect.value && dateInput.value) loadSlots();
+        applyDepartmentFilter();
+        if (selectedDoctorId() && dateInput.value) loadSlots();
     </script>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>
 </html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Reschedule Appointment')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+    <div class="container">
+        <div class="auth-card" style="max-width:640px;">
+            <h2>Reschedule Appointment</h2>
+            <p th:text="${'Dr. ' + appointment.doctor.fullName}">Doctor</p>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            <form th:action="@{/patient/appointments/{id}/reschedule(id=${appointment.id})}" method="post">
+                <div class="form-group">
+                    <label class="form-label">New Date</label>
+                    <input type="date" name="appointmentDate" id="appointmentDate" class="form-control"
+                           th:attr="min=${minDate}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Available Time Slots</label>
+                    <select name="appointmentTime" id="timeSlotSelect" class="form-control" required>
+                        <option value="">Select a date first</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Confirm New Time</button>
+                <a href="/patient/appointments" class="btn btn-outline">Cancel</a>
+            </form>
+        </div>
+    </div>
+    <script th:inline="javascript">
+        const doctorId = /*[[${appointment.doctor.id}]]*/ 0;
+        const dateInput = document.getElementById('appointmentDate');
+        const slotSelect = document.getElementById('timeSlotSelect');
+        dateInput.addEventListener('change', async () => {
+            slotSelect.innerHTML = '<option value="">Loading...</option>';
+            const res = await fetch('/patient/api/slots?doctorId=' + doctorId + '&date=' + dateInput.value);
+            const slots = await res.json();
+            slotSelect.innerHTML = '';
+            const available = slots.filter(s => s.available);
+            if (!available.length) {
+                slotSelect.innerHTML = '<option value="">No slots on this date</option>';
+                return;
+            }
+            available.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.time;
+                opt.textContent = s.label;
+                slotSelect.appendChild(opt);
+            });
+        });
+    </script>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

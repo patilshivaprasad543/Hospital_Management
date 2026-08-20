@@ -73,6 +73,23 @@
                 </form>
             </div>
         </div>
+
+        <div class="card" style="margin-top:1.5rem;">
+            <div class="card-title">3. Request Laboratory Test</div>
+            <form th:action="@{/doctor/lab-request/create}" method="post">
+                <input type="hidden" name="patientId" th:value="${patient.id}" />
+                <input type="hidden" name="appointmentId" th:value="${appointment.id}" />
+                <div class="form-group">
+                    <label class="form-label">Test Name</label>
+                    <input type="text" name="testName" class="form-control" placeholder="e.g. Complete Blood Count" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea name="notes" class="form-control" placeholder="Fasting required, clinical notes..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Request Lab Test</button>
+            </form>
+        </div>
     </div>
     <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>

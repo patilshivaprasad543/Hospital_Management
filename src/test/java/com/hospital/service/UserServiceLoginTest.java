@@ -1,6 +1,7 @@
 package com.hospital.service;
 
 import com.hospital.model.ApprovalStatus;
+import com.hospital.model.OtpPurpose;
 import com.hospital.model.Role;
 import com.hospital.model.User;
 import com.hospital.repository.*;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -61,9 +63,19 @@ class UserServiceLoginTest {
     }
 
     @Test
-    void registerUser_storesHashedPasswordAndActivatesPatient() {
+    void loginUser_acceptsMobileNumber() {
+        when(userRepository.findByMobileNumber("9876543214")).thenReturn(Optional.of(patient));
+        when(passwordEncoder.matches("patient123", "encoded")).thenReturn(true);
+        when(userRepository.save(any(User.class))).thenReturn(patient);
+
+        assertTrue(userService.loginUser("9876543214", "patient123").isPresent());
+    }
+
+    @Test
+    void registerUser_storesCredentialsAndSendsOtp() {
         User incoming = new User("New Patient", "new.user@example.com", "9000000000", "MySecret1", Role.PATIENT);
         when(userRepository.existsByEmail("new.user@example.com")).thenReturn(false);
+        when(userRepository.existsByMobileNumber("9000000000")).thenReturn(false);
         when(passwordEncoder.encode("MySecret1")).thenReturn("hashed-secret");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User saved = invocation.getArgument(0);
@@ -71,29 +83,16 @@ class UserServiceLoginTest {
             return saved;
         });
         when(patientProfileRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(notificationChannelService.sendOtp(eq("new.user@example.com"), eq("9000000000"), any())).thenReturn(true);
 
         User stored = userService.registerUser(incoming);
 
         assertEquals(42L, stored.getId());
         assertEquals("hashed-secret", stored.getPassword());
-        assertTrue(stored.isVerified());
-        assertEquals(ApprovalStatus.APPROVED, stored.getApprovalStatus());
+        assertFalse(stored.isVerified());
+        assertEquals(ApprovalStatus.PENDING_OTP, stored.getApprovalStatus());
         verify(patientProfileRepository).save(any());
-        verify(notificationChannelService).sendWelcomeNotice(
-                eq("new.user@example.com"), eq("9000000000"), eq("New Patient"), eq("PATIENT"));
-    }
-
-    @Test
-    void loginUser_activatesUnverifiedPatientWithCorrectPassword() {
-        User unverified = new User("Stuck User", "stuck@example.com", "9111111111", "encoded", Role.PATIENT);
-        unverified.setVerified(false);
-        unverified.setApprovalStatus(ApprovalStatus.PENDING_OTP);
-        when(userRepository.findByEmail("stuck@example.com")).thenReturn(Optional.of(unverified));
-        when(passwordEncoder.matches("mypassword", "encoded")).thenReturn(true);
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        User loggedIn = userService.loginUser("stuck@example.com", "mypassword").orElseThrow();
-        assertTrue(loggedIn.isVerified());
-        assertEquals(ApprovalStatus.APPROVED, loggedIn.getApprovalStatus());
+        verify(otpService).store(eq("new.user@example.com"), any(), eq(OtpPurpose.REGISTRATION));
+        verify(notificationChannelService).sendOtp(eq("new.user@example.com"), eq("9000000000"), any());
     }
 }

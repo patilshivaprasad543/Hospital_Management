@@ -48,6 +48,11 @@ public class UserService {
 
     @Transactional
     public User registerUser(User user) {
+        return registerUser(user, null, null, null);
+    }
+
+    @Transactional
+    public User registerUser(User user, java.time.LocalDate dateOfBirth, String gender, String address) {
         if (user.getRole() == Role.ADMIN) {
             throw new RuntimeException("Admin accounts cannot be self-registered. Contact system administrator.");
         }
@@ -58,25 +63,37 @@ public class UserService {
         }
         user.setEmail(email);
 
+        String mobile = normalizeMobile(user.getMobileNumber());
+        if (mobile.isBlank()) {
+            throw new RuntimeException("Mobile number is required.");
+        }
+        user.setMobileNumber(mobile);
+
         if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("This email is already registered. Please sign in with your password.");
         }
-
-        user.setVerified(true);
-        user.setAccountStatus("ACTIVE");
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        if (user.getRole() == Role.PATIENT) {
-            user.setAdminApproved(true);
-            user.setApprovalStatus(ApprovalStatus.APPROVED);
-        } else {
-            user.setAdminApproved(false);
-            user.setApprovalStatus(ApprovalStatus.PENDING_DOCUMENTS);
+        if (userRepository.existsByMobileNumber(mobile)) {
+            throw new RuntimeException("This mobile number is already registered. Please sign in with your password.");
         }
+
+        String otp = generateOtp();
+        user.setVerified(false);
+        user.setAccountStatus("PENDING");
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setApprovalStatus(ApprovalStatus.PENDING_OTP);
+        user.setAdminApproved(user.getRole() == Role.PATIENT);
 
         User savedUser = userRepository.save(user);
 
         if (user.getRole() == Role.PATIENT) {
-            patientProfileRepository.save(new PatientProfile(savedUser));
+            PatientProfile profile = new PatientProfile(savedUser);
+            profile.setDateOfBirth(dateOfBirth);
+            profile.setGender(gender);
+            profile.setAddress(address);
+            if (dateOfBirth != null) {
+                profile.setAge(java.time.Period.between(dateOfBirth, java.time.LocalDate.now()).getYears());
+            }
+            patientProfileRepository.save(profile);
         } else if (user.getRole() == Role.DOCTOR) {
             DoctorProfile doctorProfile = new DoctorProfile(savedUser);
             doctorProfile.setSpecialization("General Physician");
@@ -91,12 +108,13 @@ public class UserService {
             vendorProfileRepository.save(vendorProfile);
         }
 
-        auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered and credentials stored");
-        try {
-            notificationChannelService.sendWelcomeNotice(
-                    savedUser.getEmail(), savedUser.getMobileNumber(), savedUser.getFullName(), savedUser.getRole().name());
-        } catch (Exception e) {
-            // Account is already saved; email is optional.
+        otpService.store(savedUser.getEmail(), otp, OtpPurpose.REGISTRATION);
+        boolean sent = notificationChannelService.sendOtp(savedUser.getEmail(), savedUser.getMobileNumber(), otp);
+        auditLogService.log(savedUser, "USER_REGISTERED", "AUTH",
+                sent ? "User registered, OTP sent" : "User registered, OTP send failed");
+        if (!sent) {
+            String detail = mailDeliveryDiagnostics.getLastFailure();
+            savedUser.setDocumentInfo(detail != null ? detail : "OTP email was not delivered");
         }
         return savedUser;
     }
@@ -113,6 +131,7 @@ public class UserService {
             if (user.getRole() == Role.PATIENT) {
                 user.setApprovalStatus(ApprovalStatus.APPROVED);
                 user.setAdminApproved(true);
+                user.setAccountStatus("ACTIVE");
             } else if (user.getRole() == Role.DOCTOR || user.getRole() == Role.VENDOR) {
                 user.setApprovalStatus(ApprovalStatus.PENDING_DOCUMENTS);
                 user.setAdminApproved(false);
@@ -196,12 +215,11 @@ public class UserService {
         }
     }
 
-    public Optional<User> loginUser(String email, String password) {
-        Optional<User> userOptional = userRepository.findByEmail(normalizeEmail(email));
+    public Optional<User> loginUser(String emailOrMobile, String password) {
+        Optional<User> userOptional = findByEmailOrMobile(emailOrMobile);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             if (passwordEncoder.matches(password, user.getPassword())) {
-                completePendingRegistration(user);
                 user.setLastLoginAt(LocalDateTime.now());
                 userRepository.save(user);
                 auditLogService.log(user, "LOGIN", "AUTH", "User logged in");
@@ -211,20 +229,19 @@ public class UserService {
         return Optional.empty();
     }
 
-    private void completePendingRegistration(User user) {
-        if (user.getRole() == Role.ADMIN) {
-            return;
+    public Optional<User> findByEmailOrMobile(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            return Optional.empty();
         }
-        if (user.getApprovalStatus() == ApprovalStatus.PENDING_OTP || !user.isVerified()) {
-            user.setVerified(true);
-            if (user.getRole() == Role.PATIENT) {
-                user.setAdminApproved(true);
-                user.setApprovalStatus(ApprovalStatus.APPROVED);
-                user.setAccountStatus("ACTIVE");
-            } else if (user.getApprovalStatus() == ApprovalStatus.PENDING_OTP) {
-                user.setApprovalStatus(ApprovalStatus.PENDING_DOCUMENTS);
-            }
+        String trimmed = identifier.trim();
+        if (trimmed.contains("@")) {
+            return userRepository.findByEmail(normalizeEmail(trimmed));
         }
+        Optional<User> byMobile = userRepository.findByMobileNumber(normalizeMobile(trimmed));
+        if (byMobile.isPresent()) {
+            return byMobile;
+        }
+        return userRepository.findByEmail(normalizeEmail(trimmed));
     }
 
     public void initiatePasswordReset(String email) {
@@ -373,6 +390,9 @@ public class UserService {
         existingProfile.setEmergencyContactPhone(updatedProfile.getEmergencyContactPhone());
         existingProfile.setAllergies(updatedProfile.getAllergies());
         existingProfile.setMedicalHistory(updatedProfile.getMedicalHistory());
+        if (updatedProfile.getPhotoFileName() != null) {
+            existingProfile.setPhotoFileName(updatedProfile.getPhotoFileName());
+        }
 
         return patientProfileRepository.save(existingProfile);
     }
@@ -437,5 +457,12 @@ public class UserService {
 
     private static String normalizeEmail(String email) {
         return email == null ? "" : email.trim().toLowerCase();
+    }
+
+    private static String normalizeMobile(String mobile) {
+        if (mobile == null) {
+            return "";
+        }
+        return mobile.replaceAll("[^0-9]", "");
     }
 }

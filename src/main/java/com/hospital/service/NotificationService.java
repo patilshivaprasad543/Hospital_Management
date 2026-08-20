@@ -40,8 +40,10 @@ public class NotificationService {
 
     public Notification sendPortalNotification(User recipient, String title, String message,
                                                NotificationCategory category, String linkUrl) {
-        return notificationRepository.save(
+        Notification notification = notificationRepository.save(
                 new Notification(recipient, title, message, category, linkUrl));
+        dispatchExternalChannels(recipient, title, message, linkUrl);
+        return notification;
     }
 
     public void notifyBoth(User user1, User user2, String title, String message,

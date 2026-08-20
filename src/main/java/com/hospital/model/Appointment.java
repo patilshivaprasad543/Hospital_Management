@@ -46,6 +46,8 @@ public class Appointment {
 
     private LocalDateTime checkedInAt;
 
+    private boolean reminderSent = false;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public Appointment() {
@@ -163,5 +165,13 @@ public class Appointment {
 
     public void setCheckedInAt(LocalDateTime checkedInAt) {
         this.checkedInAt = checkedInAt;
+    }
+
+    public boolean isReminderSent() {
+        return reminderSent;
+    }
+
+    public void setReminderSent(boolean reminderSent) {
+        this.reminderSent = reminderSent;
     }
 }

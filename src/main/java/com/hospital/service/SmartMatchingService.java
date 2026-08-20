@@ -20,7 +20,8 @@ public class SmartMatchingService {
     private DoctorProfileRepository doctorProfileRepository;
 
     public List<Map<String, Object>> findRecommendedDoctors(String symptomCategory) {
-        List<User> allDoctors = userRepository.findByRole(com.hospital.model.Role.DOCTOR);
+        List<User> allDoctors = userRepository.findByRoleAndAdminApprovedTrueAndApprovalStatus(
+                com.hospital.model.Role.DOCTOR, com.hospital.model.ApprovalStatus.APPROVED);
         List<Map<String, Object>> result = new ArrayList<>();
 
         for (User doc : allDoctors) {

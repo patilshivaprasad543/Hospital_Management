@@ -29,7 +29,7 @@
 
             <h2>Sign In</h2>
             <p class="auth-subtitle" th:if="${portalRole.name() != 'ADMIN'}">
-                Enter your registered email and password to continue.
+                Enter your registered email or mobile number and password.
             </p>
             <p class="auth-subtitle" th:if="${portalRole.name() == 'ADMIN'}"
                th:text="${portalRole.description}">System administration</p>
@@ -40,9 +40,9 @@
             <form th:action="@{/login}" method="post">
                 <input type="hidden" name="portalRole" th:value="${portalRole.name()}" />
                 <div class="form-group">
-                    <label class="form-label">Email Address</label>
-                    <input type="email" name="email" class="form-control"
-                           placeholder="name@email.com"
+                    <label class="form-label">Email or Mobile Number</label>
+                    <input type="text" name="email" class="form-control"
+                           placeholder="name@email.com or 9876543210"
                            required autofocus>
                 </div>
                 <div class="form-group">
@@ -63,7 +63,7 @@
                    class="btn btn-secondary btn-block">
                     Create <span th:text="${portalRole.label}">Role</span> Account
                 </a>
-                <p class="form-hint mt-1">New users: create an account first, then sign in with the same email and password.</p>
+                <p class="form-hint mt-1">New users: register, verify OTP, then sign in.</p>
             </div>
 
             <p th:if="${portalRole.name() == 'ADMIN'}" class="form-hint text-center mt-2">

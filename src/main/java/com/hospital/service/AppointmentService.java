@@ -230,7 +230,8 @@ public class AppointmentService {
             throw new RuntimeException("Unauthorized cancellation.");
         }
         if (appointment.getStatus() == AppointmentStatus.COMPLETED
-                || appointment.getStatus() == AppointmentStatus.REJECTED) {
+                || appointment.getStatus() == AppointmentStatus.REJECTED
+                || appointment.getStatus() == AppointmentStatus.CANCELLED) {
             throw new RuntimeException("This appointment cannot be cancelled.");
         }
         if (appointment.getState() == AppointmentState.CHECKED_IN
@@ -238,7 +239,7 @@ public class AppointmentService {
             throw new RuntimeException("Cannot cancel after check-in. Contact the hospital desk.");
         }
 
-        appointment.setStatus(AppointmentStatus.REJECTED);
+        appointment.setStatus(AppointmentStatus.CANCELLED);
         appointment.setState(AppointmentState.CANCELLED);
         appointment.setNotes("Cancelled by patient");
         Appointment saved = appointmentRepository.save(appointment);
@@ -259,5 +260,78 @@ public class AppointmentService {
                 "/patient/appointments"
         );
         return saved;
+    }
+
+    public Appointment rescheduleAppointment(Long appointmentId, User patient, LocalDate newDate, LocalTime newTime) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        if (!appointment.getPatient().getId().equals(patient.getId())) {
+            throw new RuntimeException("Unauthorized reschedule.");
+        }
+        if (appointment.getStatus() == AppointmentStatus.COMPLETED
+                || appointment.getStatus() == AppointmentStatus.REJECTED
+                || appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new RuntimeException("This appointment cannot be rescheduled.");
+        }
+        if (appointment.getState() == AppointmentState.CHECKED_IN
+                || appointment.getState() == AppointmentState.IN_CONSULTATION) {
+            throw new RuntimeException("Cannot reschedule after check-in.");
+        }
+
+        doctorScheduleService.validateBooking(appointment.getDoctor(), newDate, newTime);
+        appointment.setAppointmentDate(newDate);
+        appointment.setAppointmentTime(newTime);
+        appointment.setStatus(AppointmentStatus.PENDING);
+        appointment.setState(AppointmentState.PENDING_DOCTOR_APPROVAL);
+        appointment.setReminderSent(false);
+        Appointment saved = appointmentRepository.save(appointment);
+
+        notificationService.sendPortalNotification(
+                appointment.getDoctor(),
+                "Appointment Rescheduled",
+                "Patient " + patient.getFullName() + " requested a new time: " + newDate + " at " + newTime + ".",
+                NotificationCategory.APPOINTMENT,
+                "/doctor/dashboard"
+        );
+        notificationService.sendPortalNotification(
+                patient,
+                "Appointment Rescheduled",
+                "Your appointment with Dr. " + appointment.getDoctor().getFullName()
+                        + " was moved to " + newDate + " at " + newTime + " and is pending doctor confirmation.",
+                NotificationCategory.APPOINTMENT,
+                "/patient/appointments"
+        );
+        return saved;
+    }
+
+    public void sendDueReminders(User patient) {
+        java.time.LocalDate tomorrow = java.time.LocalDate.now().plusDays(1);
+        for (Appointment appointment : getPatientAppointments(patient)) {
+            if (appointment.isReminderSent()) {
+                continue;
+            }
+            if (appointment.getStatus() != AppointmentStatus.CONFIRMED) {
+                continue;
+            }
+            if (appointment.getAppointmentDate() == null) {
+                continue;
+            }
+            if (appointment.getAppointmentDate().isAfter(tomorrow)) {
+                continue;
+            }
+            if (appointment.getAppointmentDate().isBefore(java.time.LocalDate.now())) {
+                continue;
+            }
+            notificationService.sendPortalNotification(
+                    patient,
+                    "Appointment Reminder",
+                    "Reminder: consultation with Dr. " + appointment.getDoctor().getFullName()
+                            + " on " + appointment.getAppointmentDate() + " at " + appointment.getAppointmentTime() + ".",
+                    NotificationCategory.APPOINTMENT,
+                    "/patient/appointments"
+            );
+            appointment.setReminderSent(true);
+            appointmentRepository.save(appointment);
+        }
     }
 }
