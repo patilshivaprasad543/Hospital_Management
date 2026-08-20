@@ -1,0 +1,14 @@
+.git
+.gradle
+build
+data
+*.md
+!README.md
+.env
+.env.*
+scripts
+terminals
+.idea
+.vscode
+bin
+out

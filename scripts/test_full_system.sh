@@ -3,6 +3,8 @@
 set -uo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:8080}"
+ADMIN_EMAIL="${SMARTCARE_ADMIN_EMAIL:-admin@smartcare360.com}"
+ADMIN_PASSWORD="${SMARTCARE_ADMIN_PASSWORD:-Admin@360}"
 TOMORROW="$(date -d '+2 day' +%Y-%m-%d 2>/dev/null || date -v+2d +%Y-%m-%d)"
 
 PASS=0
@@ -98,7 +100,7 @@ expect_public "/register/patient" "Patient registration page" "Register"
 section "3. Role authentication"
 declare -A COOKIES
 declare -A ROLES=(
-  [ADMIN]="admin@smartcare360.com|Admin@360|ADMIN"
+  [ADMIN]="${ADMIN_EMAIL}|${ADMIN_PASSWORD}|ADMIN"
   [PATIENT]="patient@smartcare360.com|patient123|PATIENT"
   [DOCTOR]="sarah.jenkins@smartcare360.com|doc123|DOCTOR"
   [LAB]="lab@smartcare360.com|vendor123|VENDOR"

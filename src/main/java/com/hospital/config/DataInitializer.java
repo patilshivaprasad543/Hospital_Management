@@ -14,16 +14,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    @Value("${smartcare.admin.email:admin@smartcare360.com}")
+    @Value("${smartcare.admin.email}")
     private String adminEmail;
 
-    @Value("${smartcare.admin.password:Admin@360}")
+    @Value("${smartcare.admin.password}")
     private String adminPassword;
 
-    @Value("${smartcare.admin.name:System Administrator}")
+    @Value("${smartcare.admin.name}")
     private String adminName;
 
-    @Value("${smartcare.admin.mobile:9999999999}")
+    @Value("${smartcare.admin.mobile}")
     private String adminMobile;
 
     @Autowired

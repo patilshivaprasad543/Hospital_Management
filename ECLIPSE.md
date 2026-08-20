@@ -41,14 +41,15 @@ Or right-click `HospitalManagementApplication.java` → **Run As → Java Applic
 
 The app starts at: **http://localhost:8080**
 
-## Default login accounts
+## Default login accounts (development only)
 
 | Role     | Email                         | Password   |
 |----------|-------------------------------|------------|
-| Admin    | admin@smartcare360.com        | Admin@360  |
 | Patient  | patient@smartcare360.com      | patient123 |
 | Doctor   | sarah.jenkins@smartcare360.com| doc123     |
 | Pharmacy | pharmacy@smartcare360.com     | vendor123  |
+
+**Admin credentials** are configured via environment variables (`SMARTCARE_ADMIN_EMAIL`, `SMARTCARE_ADMIN_PASSWORD`) and are never published in documentation or the public website.
 
 ## Troubleshooting
 
