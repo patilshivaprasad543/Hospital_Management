@@ -1,5 +1,6 @@
 package com.hospital.controller;
 
+import com.hospital.dto.PatientIntake;
 import com.hospital.model.ApprovalStatus;
 import com.hospital.model.PortalRole;
 import com.hospital.model.Role;
@@ -73,6 +74,12 @@ public class AuthController {
                                @RequestParam(value = "ownerName", required = false) String ownerName,
                                @RequestParam(value = "workingHours", required = false) String workingHours,
                                @RequestParam(value = "deliveryArea", required = false) String deliveryArea,
+                               @RequestParam(value = "description", required = false) String description,
+                               @RequestParam(value = "bloodGroup", required = false) String bloodGroup,
+                               @RequestParam(value = "emergencyContactName", required = false) String emergencyContactName,
+                               @RequestParam(value = "emergencyContactPhone", required = false) String emergencyContactPhone,
+                               @RequestParam(value = "allergies", required = false) String allergies,
+                               @RequestParam(value = "medicalHistory", required = false) String medicalHistory,
                                HttpSession session,
                                RedirectAttributes redirectAttributes,
                                Model model) {
@@ -88,7 +95,9 @@ public class AuthController {
                 user.setVendorType(selectedVendorType);
             }
 
-            User registeredUser = userService.registerUser(user, dateOfBirth, gender, address);
+            User registeredUser = userService.registerUser(user, new PatientIntake(
+                    dateOfBirth, gender, address, bloodGroup, emergencyContactName, emergencyContactPhone,
+                    allergies, medicalHistory));
             if (registeredUser.getRole() == Role.DOCTOR) {
                 userService.applyDoctorRegistrationDetails(registeredUser, specialization, qualification,
                         experienceYears, hospitalName, clinicAddress, licenseNumber);
@@ -96,7 +105,7 @@ public class AuthController {
             if (registeredUser.getRole() == Role.VENDOR) {
                 userService.applyVendorRegistrationDetails(registeredUser, businessName,
                         ownerName != null ? ownerName : registeredUser.getFullName(),
-                        address, licenseNumber, workingHours, deliveryArea);
+                        address, licenseNumber, workingHours, deliveryArea, description);
             }
             session.setAttribute("pendingVerificationUser", registeredUser);
             boolean mailReady = emailService.isSmtpConfigured();

@@ -45,6 +45,8 @@ public class User {
 
     private java.time.LocalDateTime lastLoginAt;
 
+    private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
+
     public User() {
     }
 
@@ -135,6 +137,14 @@ public class User {
 
     public void setLastLoginAt(java.time.LocalDateTime lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
+    }
+
+    public java.time.LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(java.time.LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     public ApprovalStatus getApprovalStatus() {

@@ -1,7 +1,9 @@
 package com.hospital.service;
 
+import com.hospital.dto.PatientIntake;
 import com.hospital.model.ApprovalStatus;
 import com.hospital.model.OtpPurpose;
+import com.hospital.model.PatientProfile;
 import com.hospital.model.Role;
 import com.hospital.model.User;
 import com.hospital.repository.*;
@@ -9,6 +11,7 @@ import com.hospital.service.mail.MailDeliveryDiagnostics;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -94,5 +97,33 @@ class UserServiceLoginTest {
         verify(patientProfileRepository).save(any());
         verify(otpService).store(eq("new.user@example.com"), any(), eq(OtpPurpose.REGISTRATION));
         verify(notificationChannelService).sendOtp(eq("new.user@example.com"), eq("9000000000"), any());
+    }
+
+    @Test
+    void registerUser_storesPatientProfileDetails() {
+        User incoming = new User("New Patient", "stored.patient@example.com", "9000000001", "MySecret1", Role.PATIENT);
+        when(userRepository.existsByEmail("stored.patient@example.com")).thenReturn(false);
+        when(userRepository.existsByMobileNumber("9000000001")).thenReturn(false);
+        when(passwordEncoder.encode("MySecret1")).thenReturn("hashed-secret");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User saved = invocation.getArgument(0);
+            saved.setId(43L);
+            return saved;
+        });
+        when(patientProfileRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(notificationChannelService.sendOtp(eq("stored.patient@example.com"), eq("9000000001"), any())).thenReturn(true);
+
+        userService.registerUser(incoming, new PatientIntake(
+                java.time.LocalDate.of(1992, 4, 15), "Female", "88 Care Lane",
+                "B+", "Jane Doe", "9876500000", "Penicillin", "Asthma"));
+
+        ArgumentCaptor<PatientProfile> captor = ArgumentCaptor.forClass(PatientProfile.class);
+        verify(patientProfileRepository).save(captor.capture());
+        PatientProfile stored = captor.getValue();
+        assertEquals("Female", stored.getGender());
+        assertEquals("88 Care Lane", stored.getAddress());
+        assertEquals("B+", stored.getBloodGroup());
+        assertEquals("Jane Doe", stored.getEmergencyContactName());
+        assertEquals("Asthma", stored.getMedicalHistory());
     }
 }

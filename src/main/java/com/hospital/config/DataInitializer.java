@@ -84,12 +84,15 @@ public class DataInitializer implements CommandLineRunner {
         User pharmacyVendor = createApprovedVendor("MediPlus Pharmacy", "pharmacy@smartcare360.com", "9876543216", "vendor123",
                 VendorType.PHARMACY, "MediPlus Central Pharmacy", "1800-MED-PLUS", "Ground Floor, Main Hospital Block",
                 "24x7 Authorized Hospital Pharmacy providing essential prescription medicines.");
-        VendorProfile pharmacyProfile = userService.getVendorProfile(pharmacyVendor).orElse(new VendorProfile(pharmacyVendor));
-        pharmacyProfile.setOwnerName("MediPlus Pharmacy");
-        pharmacyProfile.setLicenseNumber("DL-PHARM-360");
-        pharmacyProfile.setWorkingHours("24x7");
-        pharmacyProfile.setDeliveryArea("Hospital campus and 10 km city radius");
-        userService.updateVendorProfile(pharmacyVendor.getId(), pharmacyProfile);
+        userService.getVendorProfile(pharmacyVendor).ifPresent(pharmacyProfile -> {
+            if (pharmacyProfile.getLicenseNumber() == null || pharmacyProfile.getLicenseNumber().isBlank()) {
+                pharmacyProfile.setOwnerName("MediPlus Pharmacy");
+                pharmacyProfile.setLicenseNumber("DL-PHARM-360");
+                pharmacyProfile.setWorkingHours("24x7");
+                pharmacyProfile.setDeliveryArea("Hospital campus and 10 km city radius");
+                userService.updateVendorProfile(pharmacyVendor.getId(), pharmacyProfile);
+            }
+        });
         seedPharmacyItemsIfMissing(pharmacyVendor);
     }
 
@@ -125,6 +128,9 @@ public class DataInitializer implements CommandLineRunner {
                                       String specialization, String qualification, int experience,
                                       double fee, String schedule, Department department) {
         User doc = userService.createSeedUser(name, email, mobile, password, Role.DOCTOR);
+        if (userService.getDoctorProfile(doc).isPresent()) {
+            return doc;
+        }
         DoctorProfile profile = new DoctorProfile(doc);
         profile.setSpecialization(specialization);
         profile.setQualification(qualification);
@@ -143,6 +149,9 @@ public class DataInitializer implements CommandLineRunner {
     private User createApprovedPatient(String name, String email, String mobile, String password,
                                        int age, String bloodGroup, String gender, String address, String history) {
         User patient = userService.createSeedUser(name, email, mobile, password, Role.PATIENT);
+        if (userService.getPatientProfile(patient).isPresent()) {
+            return patient;
+        }
         PatientProfile profile = new PatientProfile(patient);
         profile.setAge(age);
         profile.setBloodGroup(bloodGroup);
@@ -161,6 +170,9 @@ public class DataInitializer implements CommandLineRunner {
         User vendor = userService.createSeedUser(name, email, mobile, password, Role.VENDOR);
         vendor.setVendorType(vendorType);
         userService.saveUser(vendor);
+        if (userService.getVendorProfile(vendor).isPresent()) {
+            return vendor;
+        }
         VendorProfile profile = new VendorProfile(vendor);
         profile.setBusinessName(businessName);
         profile.setVendorType(vendorType);

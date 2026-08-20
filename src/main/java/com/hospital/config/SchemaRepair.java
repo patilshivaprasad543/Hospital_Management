@@ -38,8 +38,31 @@ public class SchemaRepair implements CommandLineRunner {
         addColumnIfMissing("pharmacy_orders", "invoice_id", "BIGINT");
         addColumnIfMissing("pharmacy_orders", "payment_status", "VARCHAR(50)");
         addColumnIfMissing("pharmacy_orders", "pharmacy_notes", "VARCHAR(500)");
+        addColumnIfMissing("users", "created_at", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
         widenVarchar("pharmacy_orders", "status", 40);
         widenVarchar("pharmacy_orders", "payment_status", 40);
+        createIndexIfMissing("idx_users_role", "users", "role");
+        createIndexIfMissing("idx_users_mobile", "users", "mobile_number");
+        createIndexIfMissing("idx_appointments_patient", "appointments", "patient_id");
+        createIndexIfMissing("idx_appointments_doctor", "appointments", "doctor_id");
+        createIndexIfMissing("idx_pharmacy_items_vendor", "pharmacy_items", "vendor_id");
+        createIndexIfMissing("idx_pharmacy_orders_patient", "pharmacy_orders", "patient_id");
+        createIndexIfMissing("idx_lab_requests_patient", "lab_requests", "patient_id");
+        createIndexIfMissing("idx_invoices_patient", "invoices", "patient_id");
+        createIndexIfMissing("idx_notifications_recipient", "notifications", "recipient_id");
+        createIndexIfMissing("idx_otp_lookup", "otp_codes", "lookup_key, purpose");
+    }
+
+    private void createIndexIfMissing(String indexName, String table, String columns) {
+        try {
+            jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS " + indexName + " ON " + table + " (" + columns + ")");
+        } catch (Exception e) {
+            try {
+                jdbcTemplate.execute("CREATE INDEX " + indexName + " ON " + table + " (" + columns + ")");
+            } catch (Exception ignored) {
+                // Index already exists or the dialect does not support this syntax.
+            }
+        }
     }
 
     private void addColumnIfMissing(String table, String column, String definition) {

@@ -1,5 +1,6 @@
 package com.hospital.service;
 
+import com.hospital.dto.PatientIntake;
 import com.hospital.model.*;
 import com.hospital.repository.*;
 import com.hospital.service.mail.MailDeliveryDiagnostics;
@@ -48,11 +49,19 @@ public class UserService {
 
     @Transactional
     public User registerUser(User user) {
-        return registerUser(user, null, null, null);
+        return registerUser(user, PatientIntake.basic(null, null, null));
     }
 
     @Transactional
     public User registerUser(User user, java.time.LocalDate dateOfBirth, String gender, String address) {
+        return registerUser(user, PatientIntake.basic(dateOfBirth, gender, address));
+    }
+
+    @Transactional
+    public User registerUser(User user, PatientIntake intake) {
+        if (intake == null) {
+            intake = PatientIntake.basic(null, null, null);
+        }
         if (user.getRole() == Role.ADMIN) {
             throw new RuntimeException("Admin accounts cannot be self-registered. Contact system administrator.");
         }
@@ -87,11 +96,16 @@ public class UserService {
 
         if (user.getRole() == Role.PATIENT) {
             PatientProfile profile = new PatientProfile(savedUser);
-            profile.setDateOfBirth(dateOfBirth);
-            profile.setGender(gender);
-            profile.setAddress(address);
-            if (dateOfBirth != null) {
-                profile.setAge(java.time.Period.between(dateOfBirth, java.time.LocalDate.now()).getYears());
+            profile.setDateOfBirth(intake.dateOfBirth());
+            profile.setGender(trimToNull(intake.gender()));
+            profile.setAddress(trimToNull(intake.address()));
+            profile.setBloodGroup(trimToNull(intake.bloodGroup()));
+            profile.setEmergencyContactName(trimToNull(intake.emergencyContactName()));
+            profile.setEmergencyContactPhone(trimToNull(intake.emergencyContactPhone()));
+            profile.setAllergies(trimToNull(intake.allergies()));
+            profile.setMedicalHistory(trimToNull(intake.medicalHistory()));
+            if (intake.dateOfBirth() != null) {
+                profile.setAge(java.time.Period.between(intake.dateOfBirth(), java.time.LocalDate.now()).getYears());
             }
             patientProfileRepository.save(profile);
         } else if (user.getRole() == Role.DOCTOR) {
@@ -107,8 +121,8 @@ public class UserService {
             vendorProfile.setBusinessName(user.getFullName() + " Services");
             vendorProfile.setOwnerName(user.getFullName());
             vendorProfile.setContactPhone(user.getMobileNumber());
-            if (address != null && !address.isBlank()) {
-                vendorProfile.setAddress(address.trim());
+            if (intake.address() != null && !intake.address().isBlank()) {
+                vendorProfile.setAddress(intake.address().trim());
             }
             vendorProfileRepository.save(vendorProfile);
         }
@@ -498,6 +512,10 @@ public class UserService {
 
         existingProfile.setBusinessName(updatedProfile.getBusinessName());
         existingProfile.setVendorType(updatedProfile.getVendorType());
+        if (updatedProfile.getVendorType() != null && updatedProfile.getVendorType() != user.getVendorType()) {
+            user.setVendorType(updatedProfile.getVendorType());
+            userRepository.save(user);
+        }
         existingProfile.setContactPhone(updatedProfile.getContactPhone());
         existingProfile.setAddress(updatedProfile.getAddress());
         existingProfile.setDescription(updatedProfile.getDescription());
@@ -514,8 +532,9 @@ public class UserService {
 
     public void applyVendorRegistrationDetails(User vendor, String businessName, String ownerName,
                                                String address, String licenseNumber,
-                                               String workingHours, String deliveryArea) {
+                                               String workingHours, String deliveryArea, String description) {
         VendorProfile profile = vendorProfileRepository.findByUser(vendor).orElseGet(() -> new VendorProfile(vendor));
+        profile.setVendorType(vendor.getVendorType());
         if (businessName != null && !businessName.isBlank()) {
             profile.setBusinessName(businessName.trim());
         }
@@ -530,8 +549,11 @@ public class UserService {
         if (licenseNumber != null && !licenseNumber.isBlank()) {
             profile.setLicenseNumber(licenseNumber.trim());
         }
-        profile.setWorkingHours(workingHours);
-        profile.setDeliveryArea(deliveryArea);
+        profile.setWorkingHours(trimToNull(workingHours));
+        profile.setDeliveryArea(trimToNull(deliveryArea));
+        if (description != null && !description.isBlank()) {
+            profile.setDescription(description.trim());
+        }
         if (profile.getContactPhone() == null) {
             profile.setContactPhone(vendor.getMobileNumber());
         }
@@ -556,6 +578,14 @@ public class UserService {
 
     private String generateOtp() {
         return String.format("%06d", new Random().nextInt(900000) + 100000);
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private static String normalizeEmail(String email) {

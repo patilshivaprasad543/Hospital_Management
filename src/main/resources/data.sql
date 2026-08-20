@@ -1,6 +1,6 @@
 -- ============================================================
 -- SmartCare 360 — data.sql
 -- Admin is NOT seeded here (created from SMARTCARE_ADMIN_* env vars).
--- Sample users, departments, and catalog data are seeded by DataInitializer.
--- OTP codes are never stored in the database.
+-- Demo users and catalogs are created by DataInitializer only when missing.
+-- Live records persist in the application database and are not published.
 -- ============================================================

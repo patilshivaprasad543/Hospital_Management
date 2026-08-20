@@ -24,7 +24,7 @@ Register new patients, doctors, and vendors from the portal login page.
 - Pharmacy order workflow (placed → delivered)
 - Billing, invoices, PDF downloads
 - Admin dashboard (private access only)
-- Persistent database (H2 file or MySQL)
+- Persistent hospital records (not published)
 
 ## Quick start (local development)
 
@@ -49,7 +49,7 @@ Copy `.env.example` as a checklist.
 
 ## Tech stack
 
-Java 21 · Spring Boot 3.4 · Gradle · Thymeleaf · JPA · H2/MySQL
+Java 21 · Spring Boot 3.4 · Gradle · Thymeleaf · JPA
 
 ## Repository
 
