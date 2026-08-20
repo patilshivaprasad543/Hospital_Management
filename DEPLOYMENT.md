@@ -2,6 +2,37 @@
 
 This guide publishes the app on a public URL **without exposing admin credentials**.
 
+## Fix: `Couldn't find a package.json file`
+
+This error means Render is trying to deploy as **Node.js**, but SmartCare 360 is a **Java / Spring Boot** app.
+
+**You cannot change runtime on an existing service.** Do this:
+
+1. **Delete** the failed Render web service (Dashboard → Service → Settings → Delete).
+2. Create again using **one** of these methods:
+
+### Option A — Blueprint (recommended)
+
+1. Render Dashboard → **New** → **Blueprint**
+2. Connect repo `patilshivaprasad543/Hospital_Management`
+3. Render reads `render.yaml` at the repo root (`runtime: docker`)
+4. Add secret env vars (admin, Gmail) in the dashboard
+5. Deploy
+
+### Option B — Manual Docker web service
+
+1. Render Dashboard → **New** → **Web Service**
+2. Connect your GitHub repo
+3. Set **Language** to **Docker** (not Node, not Python)
+4. **Dockerfile Path:** `Dockerfile` (repo root)
+5. **Root Directory:** leave empty (or `.`)
+6. Add environment variables from the table below
+7. Deploy
+
+Do **not** use Node, npm, or `package.json` — this project uses Gradle (`build.gradle`) and Docker.
+
+---
+
 ## 1. Choose a host (recommended: Render — free tier)
 
 1. Push this repository to GitHub.

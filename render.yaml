@@ -1,13 +1,21 @@
+# Render Blueprint — SmartCare 360 (Spring Boot / Java)
+# IMPORTANT: Use runtime docker (NOT Node). If you see "Couldn't find package.json",
+# delete the service and redeploy with Language = Docker, or use this Blueprint.
+
 services:
   - type: web
     name: smartcare360
     runtime: docker
     plan: free
     region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
+      - key: PORT
+        value: "8080"
       - key: SMARTCARE_APP_URL
         sync: false
       - key: SMARTCARE_ADMIN_EMAIL
@@ -24,11 +32,5 @@ services:
         sync: false
       - key: SMARTCARE_WHATSAPP_ENABLED
         value: "false"
-      - key: TWILIO_ACCOUNT_SID
-        sync: false
-      - key: TWILIO_AUTH_TOKEN
-        sync: false
-      - key: TWILIO_WHATSAPP_FROM
-        sync: false
       - key: SMARTCARE_DB_URL
         value: jdbc:h2:file:/app/data/smartcare360;DB_CLOSE_DELAY=-1
