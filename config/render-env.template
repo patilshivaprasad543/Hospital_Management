@@ -1,22 +1,21 @@
-# Paste these into Render Dashboard → smartcare360 → Environment
-# Replace placeholder values with your real secrets.
+# Render Dashboard → smartcare360 → Environment
+# ALL FOUR are required for registration OTP on Render free tier:
 
-SPRING_PROFILES_ACTIVE=prod
-SMARTCARE_APP_URL=https://your-service.onrender.com
-
-SMARTCARE_ADMIN_EMAIL=your-admin@email.com
-SMARTCARE_ADMIN_PASSWORD=your-strong-admin-password
-SMARTCARE_ADMIN_NAME=System Administrator
-SMARTCARE_ADMIN_MOBILE=9999999999
-
-# Registration OTP — Render FREE blocks Gmail SMTP (port 587). Use Brevo:
-SMARTCARE_MAIL_PROVIDER=auto
-SMARTCARE_BREVO_API_KEY=your-brevo-api-key
+SMARTCARE_MAIL_PROVIDER=brevo
+SMARTCARE_BREVO_API_KEY=xkeysib-paste-your-real-key-here
 SMARTCARE_BREVO_SENDER_EMAIL=gillshubhaman46@gmail.com
 SMARTCARE_BREVO_SENDER_NAME=SmartCare 360
 
-# Optional fallback (only works on paid Render plans):
-# SMARTCARE_MAIL_USERNAME=your@gmail.com
-# SMARTCARE_MAIL_PASSWORD=your-gmail-app-password
-
+# Also required:
+SPRING_PROFILES_ACTIVE=prod
+SMARTCARE_APP_URL=https://your-service.onrender.com
+SMARTCARE_ADMIN_EMAIL=your-admin@email.com
+SMARTCARE_ADMIN_PASSWORD=your-strong-admin-password
 SMARTCARE_WHATSAPP_ENABLED=false
+
+# IMPORTANT — verify sender in Brevo BEFORE testing:
+# 1. brevo.com → Settings → Senders → Add gillshubhaman46@gmail.com
+# 2. Open the verification email from Brevo and click Verify
+# 3. API key must be v3 key from Settings → SMTP & API → API Keys (starts with xkeysib-)
+
+# Gmail SMTP does NOT work on Render free (ports 587/465 blocked).

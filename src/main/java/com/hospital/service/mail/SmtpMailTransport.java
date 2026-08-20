@@ -15,6 +15,7 @@ public class SmtpMailTransport implements MailTransport {
 
     private final JavaMailSender mailSender;
     private final NotificationLogService notificationLogService;
+    private final MailDeliveryDiagnostics diagnostics;
     private final String fromEmail;
     private final String mailPassword;
     private final boolean emailEnabled;
@@ -22,11 +23,13 @@ public class SmtpMailTransport implements MailTransport {
     public SmtpMailTransport(
             @org.springframework.beans.factory.annotation.Autowired(required = false) JavaMailSender mailSender,
             NotificationLogService notificationLogService,
+            MailDeliveryDiagnostics diagnostics,
             @Value("${spring.mail.username:}") String fromEmail,
             @Value("${spring.mail.password:}") String mailPassword,
             @Value("${smartcare.notifications.email-enabled:true}") boolean emailEnabled) {
         this.mailSender = mailSender;
         this.notificationLogService = notificationLogService;
+        this.diagnostics = diagnostics;
         this.fromEmail = trim(fromEmail);
         this.mailPassword = trim(mailPassword);
         this.emailEnabled = emailEnabled;
@@ -67,15 +70,16 @@ public class SmtpMailTransport implements MailTransport {
             mailSender.send(message);
             logger.info("SMTP email dispatched to {}", to);
             notificationLogService.log("EMAIL", to, subject, body, true, "Sent via SMTP");
+            diagnostics.recordSuccess();
             return true;
         } catch (Exception e) {
             String note = e.getMessage();
             if (isLikelySmtpPortBlock(note)) {
-                note = "SMTP connection blocked (common on Render free tier). "
-                        + "Use SMARTCARE_MAIL_PROVIDER=brevo with a Brevo API key instead.";
+                note = "SMTP blocked on this host (Render free). Configure Brevo: SMARTCARE_BREVO_API_KEY + SMARTCARE_BREVO_SENDER_EMAIL.";
             }
             logger.warn("Could not send SMTP email to {}: {}", to, e.getMessage());
             notificationLogService.log("EMAIL", to, subject, body, false, note);
+            diagnostics.recordFailure("Gmail SMTP", note);
             return false;
         }
     }

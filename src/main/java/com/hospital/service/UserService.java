@@ -2,6 +2,7 @@ package com.hospital.service;
 
 import com.hospital.model.*;
 import com.hospital.repository.*;
+import com.hospital.service.mail.MailDeliveryDiagnostics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,9 @@ public class UserService {
 
     @Autowired
     private OtpService otpService;
+
+    @Autowired
+    private MailDeliveryDiagnostics mailDeliveryDiagnostics;
 
     @Transactional
     public User registerUser(User user) {
@@ -84,11 +88,12 @@ public class UserService {
 
         otpService.store(savedUser.getEmail(), otp, OtpPurpose.REGISTRATION);
         if (!notificationChannelService.sendOtp(savedUser.getEmail(), savedUser.getMobileNumber(), otp)) {
+            String detail = mailDeliveryDiagnostics.getLastFailure();
+            if (detail == null || detail.isBlank()) {
+                detail = "Email is not configured on this server.";
+            }
             throw new RuntimeException(
-                    "We could not send a verification code to " + savedUser.getEmail() + ". "
-                            + "The server email is not set up yet. "
-                            + "Locally: add Gmail app password to .env and run ./scripts/start.sh. "
-                            + "On Render: add a real SMARTCARE_BREVO_API_KEY from brevo.com (free tier blocks Gmail SMTP).");
+                    "We could not send a verification code to " + savedUser.getEmail() + ". " + detail);
         }
         auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered, OTP sent via email");
         return savedUser;
@@ -181,8 +186,11 @@ public class UserService {
         String newOtp = generateOtp();
         otpService.store(user.getEmail(), newOtp, OtpPurpose.REGISTRATION);
         if (!notificationChannelService.sendOtp(user.getEmail(), user.getMobileNumber(), newOtp)) {
-            throw new RuntimeException(
-                    "Could not send a verification code. Check that email is configured and try again.");
+            String detail = mailDeliveryDiagnostics.getLastFailure();
+            if (detail == null || detail.isBlank()) {
+                detail = "Email is not configured on this server.";
+            }
+            throw new RuntimeException("Could not send a verification code to " + user.getEmail() + ". " + detail);
         }
     }
 

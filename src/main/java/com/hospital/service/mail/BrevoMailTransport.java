@@ -1,14 +1,18 @@
 package com.hospital.service.mail;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hospital.service.NotificationLogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.LinkedHashMap;
@@ -22,19 +26,24 @@ public class BrevoMailTransport implements MailTransport {
     private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
     private final NotificationLogService notificationLogService;
+    private final MailDeliveryDiagnostics diagnostics;
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final String apiKey;
     private final String senderEmail;
     private final String senderName;
     private final boolean emailEnabled;
 
+    @Autowired
     public BrevoMailTransport(
             NotificationLogService notificationLogService,
+            MailDeliveryDiagnostics diagnostics,
             @Value("${smartcare.mail.brevo.api-key:}") String apiKey,
             @Value("${smartcare.mail.brevo.sender-email:}") String senderEmail,
             @Value("${smartcare.mail.brevo.sender-name:SmartCare 360}") String senderName,
             @Value("${smartcare.notifications.email-enabled:true}") boolean emailEnabled) {
         this.notificationLogService = notificationLogService;
+        this.diagnostics = diagnostics;
         this.apiKey = trim(apiKey);
         this.senderEmail = trim(senderEmail);
         this.senderName = trim(senderName);
@@ -51,6 +60,16 @@ public class BrevoMailTransport implements MailTransport {
         return isValidApiKey(apiKey) && !senderEmail.isBlank();
     }
 
+    public String configurationHint() {
+        if (!isValidApiKey(apiKey)) {
+            return "Set SMARTCARE_BREVO_API_KEY (must start with xkeysib-).";
+        }
+        if (senderEmail.isBlank()) {
+            return "Set SMARTCARE_BREVO_SENDER_EMAIL to a verified sender in Brevo.";
+        }
+        return "Brevo is configured with sender " + senderEmail + ".";
+    }
+
     private static boolean isValidApiKey(String key) {
         if (key == null || key.isBlank()) {
             return false;
@@ -63,23 +82,19 @@ public class BrevoMailTransport implements MailTransport {
                 || lower.equals("your-brevo-api-key")) {
             return false;
         }
-        return trimmed.startsWith("xkeysib-") || trimmed.length() >= 32;
+        return trimmed.startsWith("xkeysib-");
     }
 
     @Override
     public boolean send(String to, String subject, String body, String type) {
         if (!emailEnabled) {
-            notificationLogService.log("EMAIL", to, subject, body, false, "Email channel disabled in settings");
-            return false;
+            return fail(to, subject, body, "Email channel disabled in settings");
         }
         if (to == null || to.isBlank()) {
-            notificationLogService.log("EMAIL", to, subject, body, false, "Recipient email is blank");
-            return false;
+            return fail(to, subject, body, "Recipient email is blank");
         }
         if (!isConfigured()) {
-            notificationLogService.log("EMAIL", to, subject, body, false,
-                    "Brevo not configured — set SMARTCARE_BREVO_API_KEY and SMARTCARE_BREVO_SENDER_EMAIL");
-            return false;
+            return fail(to, subject, body, configurationHint());
         }
 
         try {
@@ -99,17 +114,45 @@ public class BrevoMailTransport implements MailTransport {
             if (response.getStatusCode().is2xxSuccessful()) {
                 logger.info("Brevo email dispatched to {}", to);
                 notificationLogService.log("EMAIL", to, subject, body, true, "Sent via Brevo API (HTTPS)");
+                diagnostics.recordSuccess();
                 return true;
             }
 
-            String note = "Brevo API returned HTTP " + response.getStatusCode().value();
-            notificationLogService.log("EMAIL", to, subject, body, false, note);
-            return false;
+            return fail(to, subject, body, "Brevo API returned HTTP " + response.getStatusCode().value());
+        } catch (HttpStatusCodeException e) {
+            String note = parseBrevoError(e);
+            logger.warn("Could not send Brevo email to {}: {}", to, note);
+            return fail(to, subject, body, note);
         } catch (Exception e) {
             logger.warn("Could not send Brevo email to {}: {}", to, e.getMessage());
-            notificationLogService.log("EMAIL", to, subject, body, false, e.getMessage());
-            return false;
+            return fail(to, subject, body, e.getMessage());
         }
+    }
+
+    private boolean fail(String to, String subject, String body, String note) {
+        notificationLogService.log("EMAIL", to, subject, body, false, note);
+        diagnostics.recordFailure("Brevo", note);
+        return false;
+    }
+
+    private String parseBrevoError(HttpStatusCodeException e) {
+        String responseBody = e.getResponseBodyAsString();
+        try {
+            JsonNode root = objectMapper.readTree(responseBody);
+            if (root.hasNonNull("message")) {
+                String message = root.get("message").asText();
+                if (e.getStatusCode().value() == 401) {
+                    return "Invalid Brevo API key (401). Create a new v3 API key in Brevo → Settings → SMTP & API.";
+                }
+                if (message.toLowerCase().contains("sender")) {
+                    return message + " Verify " + senderEmail + " under Brevo → Settings → Senders.";
+                }
+                return message;
+            }
+        } catch (Exception ignored) {
+            // fall through
+        }
+        return "Brevo HTTP " + e.getStatusCode().value() + ": " + responseBody;
     }
 
     private static String trim(String value) {
