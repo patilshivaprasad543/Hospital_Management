@@ -118,6 +118,24 @@
     </ul>
 </nav>
 
+<!-- Role-aware navbar (use on shared pages like /notifications) -->
+<th:block th:fragment="role-nav">
+    <th:block th:if="${loggedInUser != null and loggedInUser.role != null}" th:switch="${loggedInUser.role.name()}">
+        <th:block th:case="'PATIENT'">
+            <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+        </th:block>
+        <th:block th:case="'DOCTOR'">
+            <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
+        </th:block>
+        <th:block th:case="'VENDOR'">
+            <nav th:replace="~{fragments/layout :: vendor-nav}"></nav>
+        </th:block>
+        <th:block th:case="'ADMIN'">
+            <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+        </th:block>
+    </th:block>
+</th:block>
+
 <footer th:fragment="footer" class="site-footer">
     <div class="footer-inner footer-grid">
         <div class="footer-col footer-brand-col">

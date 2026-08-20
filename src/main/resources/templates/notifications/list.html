@@ -2,10 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Notifications')}"></head>
 <body>
-    <nav th:if="${loggedInUser.role.name() == 'PATIENT'}" th:replace="~{fragments/layout :: patient-nav}"></nav>
-    <nav th:if="${loggedInUser.role.name() == 'DOCTOR'}" th:replace="~{fragments/layout :: doctor-nav}"></nav>
-    <nav th:if="${loggedInUser.role.name() == 'VENDOR'}" th:replace="~{fragments/layout :: vendor-nav}"></nav>
-    <nav th:if="${loggedInUser.role.name() == 'ADMIN'}" th:replace="~{fragments/layout :: admin-nav}"></nav>
+    <div th:replace="~{fragments/layout :: role-nav}"></div>
 
 <div class="container">
         <div class="page-header">
