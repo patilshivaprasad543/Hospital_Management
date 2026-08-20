@@ -1,0 +1,6 @@
+# Public URLs GitHub Actions will ping every 5 minutes (Render Free keep-alive).
+# One URL per line. Lines starting with # are ignored.
+#
+# After Render gives you a URL, replace the line below with that exact address
+# (no trailing slash), merge to main, and the free pings start automatically.
+https://hospital-management.onrender.com

@@ -1,31 +1,29 @@
-# Keep the public site awake (Render free instances sleep when idle).
-# Required: GitHub repo secret or variable SMARTCARE_APP_URL
-# Example: https://smartcare360.onrender.com
-#
-# This is a workaround. For guaranteed 24/7 uptime, upgrade the Render
-# web service from Free to Starter (paid) — see DEPLOYMENT.md.
+# Ping the public site every 5 minutes so Render Free does not idle-sleep.
+# Runs on GitHub's free runners (no Render paid plan required).
+# Scheduled jobs only run after this file is on the repository default branch (main).
 
 name: Keep site live
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/keep-alive.yml"
+      - ".github/keep-alive-urls.txt"
+      - "scripts/keep_alive.sh"
+
+permissions:
+  contents: read
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping /health
+      - uses: actions/checkout@v4
+      - name: Ping live URLs
         env:
-          APP_URL: ${{ secrets.SMARTCARE_APP_URL }}
-        run: |
-          set -euo pipefail
-          if [ -z "${APP_URL:-}" ]; then
-            echo "Set GitHub secret or variable SMARTCARE_APP_URL to your public site (no trailing slash)."
-            echo "Skipping ping."
-            exit 0
-          fi
-          url="${APP_URL%/}/health"
-          echo "Pinging $url"
-          curl -fsS --retry 3 --retry-delay 10 --max-time 90 "$url"
+          SECRET_URL: ${{ secrets.SMARTCARE_APP_URL }}
+          HOMEPAGE: ${{ github.event.repository.homepage }}
+        run: bash scripts/keep_alive.sh

@@ -161,11 +161,16 @@ Render **free** web services **sleep after about 15 minutes with no traffic**. T
 
 Do not leave `plan: free` in the dashboard if you need zero sleep. Blueprint YAML still says `free` so new Blueprint deploys stay free until you upgrade.
 
-### Option B — Free keep-alive (reduce sleep)
+### Option B — Free keep-alive (already in this repo)
 
-1. Confirm `GET https://YOUR-URL/health` returns `{"status":"ok"}`.
-2. **UptimeRobot** (or cron-job.org): create an HTTPS monitor every **5 minutes** to `https://YOUR-URL/health`.
-3. **GitHub Actions:** repo **Settings → Secrets and variables → Actions** → add secret `SMARTCARE_APP_URL` = `https://YOUR-URL` (no trailing slash). The workflow `.github/workflows/keep-alive.yml` pings `/health` every 10 minutes.
+This is the free path. No paid Render plan.
+
+1. Merge this branch to **main** (GitHub scheduled workflows only run on the default branch).
+2. Put your real Render URL in `.github/keep-alive-urls.txt` (one URL, no trailing slash). A GitHub Action then pings `/health` every **5 minutes** at no cost.
+3. Optional: repo **Settings → Secrets → Actions** → `SMARTCARE_APP_URL` = the same URL.
+4. Optional extra: [UptimeRobot](https://uptimerobot.com) HTTPS monitor every 5 minutes to `https://YOUR-URL/health`.
+
+GitHub’s 5-minute cron is often a bit late, but it is enough to stop most Render Free sleep cycles.
 
 Pings cannot help if Render pauses the service for other reasons (account limits, deploy in progress, disk/build failure).
 
