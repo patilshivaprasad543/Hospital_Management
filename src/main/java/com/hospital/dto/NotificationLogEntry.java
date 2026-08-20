@@ -42,10 +42,21 @@ public class NotificationLogEntry {
                 entity.getChannel(),
                 entity.getRecipient(),
                 entity.getSubject(),
-                entity.getBody(),
+                maskSensitiveContent(entity.getSubject(), entity.getBody()),
                 entity.isDelivered(),
                 entity.getNote()
         );
+    }
+
+    /** Redact OTP codes from message bodies shown in the admin portal. */
+    private static String maskSensitiveContent(String subject, String body) {
+        if (body == null) {
+            return null;
+        }
+        if (subject != null && subject.toLowerCase().contains("otp")) {
+            return body.replaceAll("\\b\\d{6}\\b", "******");
+        }
+        return body;
     }
 
     public LocalDateTime getTimestamp() {

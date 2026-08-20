@@ -8,13 +8,9 @@ import com.hospital.model.VendorType;
 import com.hospital.service.NotificationChannelService;
 import com.hospital.service.UserService;
 import com.hospital.service.EmailService;
-import com.hospital.service.NotificationLogService;
-import com.hospital.service.OtpService;
 import com.hospital.service.WhatsAppService;
-import com.hospital.model.OtpPurpose;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -32,19 +28,10 @@ public class AuthController {
     private EmailService emailService;
 
     @Autowired
-    private NotificationLogService notificationLogService;
-
-    @Autowired
-    private OtpService otpService;
-
-    @Autowired
     private WhatsAppService whatsAppService;
 
     @Autowired
     private NotificationChannelService notificationChannelService;
-
-    @Value("${smartcare.dev.expose-otp:true}")
-    private boolean exposeOtp;
 
     @GetMapping("/register")
     public String redirectRegisterPortal() {
@@ -107,11 +94,6 @@ public class AuthController {
             model.addAttribute("userEmail", user.getEmail());
             model.addAttribute("userMobile", maskMobile(user.getMobileNumber()));
             model.addAttribute("userRole", user.getRole());
-            if (!emailService.isSmtpConfigured() || exposeOtp) {
-                otpService.peekForDev(user.getEmail(), OtpPurpose.REGISTRATION)
-                        .or(() -> notificationLogService.findLatestOtpForEmail(user.getEmail()))
-                        .ifPresent(otp -> model.addAttribute("devOtp", otp));
-            }
             if (user.getRole() == Role.VENDOR) {
                 model.addAttribute("portalRole", user.getVendorType() == VendorType.PHARMACY
                         ? PortalRole.PHARMACY : PortalRole.VENDOR);

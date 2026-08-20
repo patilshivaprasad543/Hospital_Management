@@ -26,17 +26,12 @@ USER_ID=$(grep -i '^Location:' "$REG_HEADERS" | grep -oP 'userId=\K[0-9]+' | hea
 [[ -n "$USER_ID" ]] || { echo "FAIL: could not parse userId from redirect"; exit 1; }
 echo "Registered user #$USER_ID"
 
-# 2. Open verify-otp page — should show dev OTP when SMTP not configured
-echo "==> 2. Verify OTP page shows dev OTP panel"
+# 2. Open verify-otp page (OTP is never shown in the portal)
+echo "==> 2. Verify OTP page loads"
 VERIFY_HTML=$(curl -s "$BASE_URL/verify-otp?userId=$USER_ID")
-echo "$VERIFY_HTML" | grep -q "dev-otp-panel\|Enter 6-Digit OTP" || { echo "FAIL: verify-otp page missing"; exit 1; }
-OTP=$(echo "$VERIFY_HTML" | grep -oP 'class="dev-otp-code"[^>]*>\K[0-9]{6}' || true)
-if [[ -n "$OTP" ]]; then
-  echo "Dev OTP retrieved: $OTP"
-else
-  echo "Note: Dev OTP not on page (SMTP may be configured). Check Admin Notification Log."
-  OTP="000000"
-fi
+echo "$VERIFY_HTML" | grep -q "Enter 6-Digit OTP" || { echo "FAIL: verify-otp page missing"; exit 1; }
+echo "$VERIFY_HTML" | grep -q "dev-otp-code" && { echo "FAIL: OTP must not be displayed in portal"; exit 1; }
+echo "OTP page OK (code sent to email only)"
 
 # 3. Admin login and check notification log
 echo "==> 3. Admin notification log"
@@ -51,15 +46,9 @@ grep -q "Notification Delivery Log" "$LOG_FILE" || { echo "FAIL: notification lo
 grep -qE "$TEST_EMAIL|EMAIL|OTP" "$LOG_FILE" && echo "Notification log contains OTP/email entries" || echo "WARN: log may be empty if async pending"
 rm -f "$LOG_FILE"
 
-# 4. Verify OTP if we have code
-if [[ "$OTP" != "000000" ]]; then
-  echo "==> 4. Verify OTP"
-  curl -s -c /tmp/patient.cookie -b /tmp/patient.cookie \
-    -X POST "$BASE_URL/verify-otp" \
-    --data-urlencode "userId=$USER_ID" \
-    --data-urlencode "otp=$OTP" -o /dev/null
-  echo "OTP verification submitted"
-fi
+# 4. Verify OTP skipped — OTP is only delivered via email, not shown in portal
+echo "==> 4. OTP verification (email delivery only)"
+echo "Skipped automated OTP entry — users receive codes by email only"
 
 # 5. Patient login + book appointment (triggers notifications)
 echo "==> 5. Appointment booking notifications"

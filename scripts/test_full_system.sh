@@ -304,15 +304,9 @@ NEW_UID="$(grep -i '^Location:' "$REG_HDR" | grep -oP 'userId=\K[0-9]+' | head -
 if [[ -n "$NEW_UID" ]]; then
   pass "New patient registration → verify-otp redirect"
   VERIFY_HTML="$(curl -s "$BASE_URL/verify-otp?userId=$NEW_UID")"
-  echo "$VERIFY_HTML" | grep -q "otp-channel-list" && pass "OTP page shows email + WhatsApp channels" || fail "OTP page layout"
-  OTP="$(echo "$VERIFY_HTML" | grep -oP 'dev-otp-code[^>]*>\K[0-9]{6}' || true)"
-  if [[ -n "$OTP" ]]; then
-    curl -s -o /dev/null -X POST "$BASE_URL/verify-otp" \
-      --data-urlencode "userId=$NEW_UID" --data-urlencode "otp=$OTP"
-    pass "OTP verification for new patient"
-  else
-    skip "OTP verification (SMTP configured — no dev OTP)"
-  fi
+  echo "$VERIFY_HTML" | grep -q "Enter 6-Digit OTP" && pass "OTP verification page loads" || fail "OTP page layout"
+  echo "$VERIFY_HTML" | grep -q "dev-otp-code" && fail "OTP must not be displayed in portal"
+  skip "OTP verification (codes sent by email only, not shown in portal)"
   curl -s -o /dev/null "$BASE_URL/resend-otp?userId=$NEW_UID"
   pass "OTP resend endpoint"
 else

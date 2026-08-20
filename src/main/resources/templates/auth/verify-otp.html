@@ -33,12 +33,6 @@
                 </div>
             </div>
 
-            <div th:if="${devOtp != null}" class="dev-otp-panel">
-                <strong>Development OTP</strong>
-                <p class="dev-otp-code" th:text="${devOtp}">123456</p>
-                <p class="text-muted" style="font-size:0.85rem;">Shown when SMTP is not configured. OTP is also in server logs and Admin → Notification Log.</p>
-            </div>
-
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
             <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
