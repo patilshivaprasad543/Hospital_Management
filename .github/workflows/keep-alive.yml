@@ -1,7 +1,4 @@
-# Ping the public site every 5 minutes so Render Free does not idle-sleep.
-# Read-only token only — no approval, secrets, or extra GitHub permissions.
-# Must live on main so the schedule runs.
-
+# Keep Render Free awake. URL is hardcoded — no secrets and no extra GitHub permissions.
 name: Keep site live
 
 on:
@@ -11,16 +8,24 @@ on:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Ping live URLs
-        env:
-          SECRET_URL: ${{ secrets.SMARTCARE_APP_URL }}
-          HOMEPAGE: ${{ github.event.repository.homepage }}
-        run: bash scripts/keep_alive.sh
+      - name: Ping live site
+        run: |
+          set +e
+          for url in \
+            https://smartcare360.onrender.com \
+            https://hospital-management.onrender.com
+          do
+            echo "Pinging $url"
+            if curl -fsS --max-time 90 "$url/health" || curl -fsS --max-time 90 "$url/"; then
+              echo "Reachable: $url"
+              exit 0
+            fi
+          done
+          echo "Host did not answer this run; next ping is in 5 minutes."
+          exit 0

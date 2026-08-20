@@ -25,7 +25,7 @@ services:
       - key: PORT
         value: "8080"
       - key: SMARTCARE_APP_URL
-        sync: false
+        value: https://smartcare360.onrender.com
       - key: SMARTCARE_ADMIN_EMAIL
         sync: false
       - key: SMARTCARE_ADMIN_PASSWORD

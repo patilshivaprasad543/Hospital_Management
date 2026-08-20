@@ -2,7 +2,7 @@
 
 Integrated digital hospital platform: patient appointments, doctor consultations, laboratory workflows, pharmacy orders, billing, email/WhatsApp notifications, and role-based portals.
 
-**Live demo:** Deploy using [DEPLOYMENT.md](DEPLOYMENT.md) and set `SMARTCARE_APP_URL` to your public URL.
+**Live demo:** [https://smartcare360.onrender.com](https://smartcare360.onrender.com)
 
 ## Public demo accounts
 
