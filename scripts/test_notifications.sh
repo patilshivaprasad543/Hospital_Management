@@ -45,9 +45,11 @@ curl -s -c "$A_COOKIE" -b "$A_COOKIE" -X POST "$BASE_URL/login" \
   --data-urlencode "email=admin@smartcare360.com" \
   --data-urlencode "password=Admin@360" \
   --data-urlencode "portalRole=ADMIN" -o /dev/null
-LOG_HTML=$(curl -s -b "$A_COOKIE" "$BASE_URL/admin/notification-log")
-echo "$LOG_HTML" | grep -q "Notification Delivery Log" || { echo "FAIL: notification log page"; exit 1; }
-echo "$LOG_HTML" | grep -q "$TEST_EMAIL\|EMAIL\|OTP" && echo "Notification log contains OTP/email entries" || echo "WARN: log may be empty if async pending"
+LOG_FILE=$(mktemp)
+curl -s -b "$A_COOKIE" "$BASE_URL/admin/notification-log" > "$LOG_FILE"
+grep -q "Notification Delivery Log" "$LOG_FILE" || { echo "FAIL: notification log page"; exit 1; }
+grep -qE "$TEST_EMAIL|EMAIL|OTP" "$LOG_FILE" && echo "Notification log contains OTP/email entries" || echo "WARN: log may be empty if async pending"
+rm -f "$LOG_FILE"
 
 # 4. Verify OTP if we have code
 if [[ "$OTP" != "000000" ]]; then
@@ -84,8 +86,10 @@ echo "==> 6. Password reset OTP"
 curl -s -X POST "$BASE_URL/forgot-password" \
   --data-urlencode "email=patient@smartcare360.com" -o /dev/null
 sleep 1
-LOG2=$(curl -s -b "$A_COOKIE" "$BASE_URL/admin/notification-log")
-echo "$LOG2" | grep -qi "password reset\|PASSWORD RESET" && echo "Password reset notification logged" || echo "WARN: check async log"
+LOG2_FILE=$(mktemp)
+curl -s -b "$A_COOKIE" "$BASE_URL/admin/notification-log" > "$LOG2_FILE"
+grep -qi "password reset\|PASSWORD RESET" "$LOG2_FILE" && echo "Password reset notification logged" || echo "WARN: check async log"
+rm -f "$LOG2_FILE"
 
 echo ""
 echo "=========================================="

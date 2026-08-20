@@ -3,7 +3,6 @@ package com.hospital.service;
 import com.hospital.model.*;
 import com.hospital.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -40,10 +39,10 @@ public class UserService {
     private AuditLogService auditLogService;
 
     @Autowired
-    private WhatsAppService whatsAppService;
+    private OtpService otpService;
 
-    @Value("${smartcare.otp.expiry-minutes:10}")
-    private int otpExpiryMinutes;
+    @Autowired
+    private WhatsAppService whatsAppService;
 
     public User registerUser(User user) {
         if (user.getRole() == Role.ADMIN) {
@@ -55,8 +54,6 @@ public class UserService {
         }
 
         String otp = generateOtp();
-        user.setOtpCode(otp);
-        user.setOtpExpiresAt(LocalDateTime.now().plusMinutes(otpExpiryMinutes));
         user.setVerified(false);
         user.setAdminApproved(user.getRole() == Role.PATIENT);
         user.setApprovalStatus(ApprovalStatus.PENDING_OTP);
@@ -81,6 +78,7 @@ public class UserService {
         }
 
         notificationChannelService.sendOtp(user.getEmail(), user.getMobileNumber(), otp);
+        otpService.store(savedUser.getEmail(), otp, OtpPurpose.REGISTRATION);
         auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered, OTP sent via email & WhatsApp");
         return savedUser;
     }
@@ -89,29 +87,22 @@ public class UserService {
         Optional<User> optionalUser = userRepository.findById(userId);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if (user.getOtpCode() == null) {
+            if (!otpService.validate(user.getEmail(), enteredOtp, OtpPurpose.REGISTRATION)) {
                 return false;
             }
-            if (user.getOtpExpiresAt() != null && LocalDateTime.now().isAfter(user.getOtpExpiresAt())) {
-                return false;
-            }
-            if (user.getOtpCode().equals(enteredOtp.trim())) {
-                user.setVerified(true);
-                user.setOtpCode(null);
-                user.setOtpExpiresAt(null);
+            user.setVerified(true);
 
-                if (user.getRole() == Role.PATIENT) {
-                    user.setApprovalStatus(ApprovalStatus.APPROVED);
-                    user.setAdminApproved(true);
-                } else if (user.getRole() == Role.DOCTOR || user.getRole() == Role.VENDOR) {
-                    user.setApprovalStatus(ApprovalStatus.PENDING_DOCUMENTS);
-                    user.setAdminApproved(false);
-                }
-
-                userRepository.save(user);
-                auditLogService.log(user, "OTP_VERIFIED", "AUTH", "Account OTP verified");
-                return true;
+            if (user.getRole() == Role.PATIENT) {
+                user.setApprovalStatus(ApprovalStatus.APPROVED);
+                user.setAdminApproved(true);
+            } else if (user.getRole() == Role.DOCTOR || user.getRole() == Role.VENDOR) {
+                user.setApprovalStatus(ApprovalStatus.PENDING_DOCUMENTS);
+                user.setAdminApproved(false);
             }
+
+            userRepository.save(user);
+            auditLogService.log(user, "OTP_VERIFIED", "AUTH", "Account OTP verified");
+            return true;
         }
         return false;
     }
@@ -177,9 +168,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found for OTP resend."));
 
         String newOtp = generateOtp();
-        user.setOtpCode(newOtp);
-        user.setOtpExpiresAt(LocalDateTime.now().plusMinutes(otpExpiryMinutes));
-        userRepository.save(user);
+        otpService.store(user.getEmail(), newOtp, OtpPurpose.REGISTRATION);
         notificationChannelService.sendOtp(user.getEmail(), user.getMobileNumber(), newOtp);
     }
 
@@ -206,9 +195,7 @@ public class UserService {
         }
 
         String resetOtp = generateOtp();
-        user.setResetOtpCode(resetOtp);
-        user.setResetOtpExpiresAt(LocalDateTime.now().plusMinutes(otpExpiryMinutes));
-        userRepository.save(user);
+        otpService.store(user.getEmail(), resetOtp, OtpPurpose.PASSWORD_RESET);
         notificationChannelService.sendPasswordResetOtp(user.getEmail(), user.getMobileNumber(), resetOtp);
         auditLogService.log(user, "PASSWORD_RESET_REQUESTED", "AUTH", "Password reset OTP sent via email & WhatsApp");
     }
@@ -217,20 +204,13 @@ public class UserService {
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            if (user.getResetOtpCode() == null) {
+            if (!otpService.validate(email, resetOtp, OtpPurpose.PASSWORD_RESET)) {
                 return false;
             }
-            if (user.getResetOtpExpiresAt() != null && LocalDateTime.now().isAfter(user.getResetOtpExpiresAt())) {
-                return false;
-            }
-            if (user.getResetOtpCode().equals(resetOtp.trim())) {
-                user.setPassword(passwordEncoder.encode(newPassword));
-                user.setResetOtpCode(null);
-                user.setResetOtpExpiresAt(null);
-                userRepository.save(user);
-                auditLogService.log(user, "PASSWORD_RESET", "AUTH", "Password reset completed");
-                return true;
-            }
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            auditLogService.log(user, "PASSWORD_RESET", "AUTH", "Password reset completed");
+            return true;
         }
         return false;
     }
