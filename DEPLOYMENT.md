@@ -120,20 +120,42 @@ Upgrade the Render web service to any **paid** instance type. Then set `SMARTCAR
 
 Production startup **fails** if admin password is missing or still the default `Admin@360`.
 
-## 5. Docker (any VPS)
+## 5. Docker for free (your PC or a free VM)
+
+Docker Desktop / Docker Engine is free. The app stays up as long as the machine stays on (`restart: unless-stopped`).
+
+```bash
+cp .env.example .env
+# Edit .env: set SMARTCARE_ADMIN_EMAIL and SMARTCARE_ADMIN_PASSWORD
+# For a VM, also set SMARTCARE_APP_URL=http://YOUR_PUBLIC_IP:8080
+
+docker compose up -d --build
+```
+
+Open http://localhost:8080 (or `http://YOUR_PUBLIC_IP:8080` on a VM).
+
+Useful commands:
+
+```bash
+docker compose logs -f
+docker compose ps
+docker compose down          # stop
+```
+
+Data is stored in the Docker volume `smartcare-data`, so restarts keep records.
+
+Without Compose:
 
 ```bash
 docker build -t smartcare360 .
-docker run -p 8080:8080 \
-  -e SPRING_PROFILES_ACTIVE=prod \
-  -e SMARTCARE_APP_URL=https://your-domain.com \
-  -e SMARTCARE_ADMIN_EMAIL=your@email.com \
-  -e SMARTCARE_ADMIN_PASSWORD=your-strong-password \
-  -e SMARTCARE_MAIL_USERNAME=... \
-  -e SMARTCARE_MAIL_PASSWORD=... \
+docker run -d --restart unless-stopped --name smartcare360 \
+  -p 8080:8080 --env-file .env \
+  -e SPRING_PROFILES_ACTIVE=prod -e PORT=8080 \
   -v smartcare-data:/app/data \
   smartcare360
 ```
+
+A free always-on host is your own computer left running, or an Oracle Cloud Always Free VM with Docker installed (see previous steps: open ports 22 and 8080, then run the same `docker compose up -d --build`).
 
 ## 6. After deployment
 

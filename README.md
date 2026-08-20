@@ -34,6 +34,13 @@ Register new patients, doctors, and vendors from the portal login page.
 
 Open http://localhost:8080 — uses `dev` profile with local defaults.
 
+**Free 24/7 with Docker** (PC left on, or a free VM):
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
 ## Production deployment
 
 See **[DEPLOYMENT.md](DEPLOYMENT.md)** for publishing to Render or Docker.

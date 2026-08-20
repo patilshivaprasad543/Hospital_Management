@@ -1,0 +1,23 @@
+# Free 24/7 run: your PC (leave it on) or any free Linux VM with Docker.
+# Copy .env.example to .env, set admin email/password, then:
+#   docker compose up -d --build
+
+services:
+  smartcare360:
+    build: .
+    image: smartcare360:local
+    container_name: smartcare360
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORT: "8080"
+      SMARTCARE_APP_URL: ${SMARTCARE_APP_URL:-http://localhost:8080}
+    volumes:
+      - smartcare-data:/app/data
+
+volumes:
+  smartcare-data:
