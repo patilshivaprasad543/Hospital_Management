@@ -18,6 +18,7 @@
                         <th>Time</th>
                         <th>Status</th>
                         <th>Created At</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,9 +34,10 @@
                                   th:text="${app.status.label}">Status</span>
                         </td>
                         <td th:text="${#temporals.format(app.createdAt, 'dd-MMM-yyyy HH:mm')}">Time</td>
+                        <td><a th:href="@{/admin/appointment/{id}/pdf(id=${app.id})}" class="btn btn-secondary btn-sm">PDF</a></td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(appointments)}">
-                        <td colspan="7" style="text-align: center; color: var(--text-muted);">No appointments recorded.</td>
+                        <td colspan="8" style="text-align: center; color: var(--text-muted);">No appointments recorded.</td>
                     </tr>
                 </tbody>
             </table>

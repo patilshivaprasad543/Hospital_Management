@@ -9,7 +9,7 @@
         <div class="table-container">
             <table class="table">
                 <thead>
-                    <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Diagnosis</th><th>Medicines</th><th>Date</th></tr>
+                    <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Diagnosis</th><th>Medicines</th><th>Date</th><th></th></tr>
                 </thead>
                 <tbody>
                     <tr th:each="rx : ${prescriptions}">
@@ -21,9 +21,10 @@
                             <span th:each="item, iter : ${rx.items}" th:text="${item.medicineName + (iter.last ? '' : ', ')}">med</span>
                         </td>
                         <td th:text="${#temporals.format(rx.createdAt, 'dd MMM yyyy HH:mm')}">dt</td>
+                        <td><a th:href="@{/admin/prescription/{id}/pdf(id=${rx.id})}" class="btn btn-secondary btn-sm">PDF</a></td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(prescriptions)}">
-                        <td colspan="6" style="text-align:center;color:var(--text-muted);">No prescriptions yet.</td>
+                        <td colspan="7" style="text-align:center;color:var(--text-muted);">No prescriptions yet.</td>
                     </tr>
                 </tbody>
             </table>

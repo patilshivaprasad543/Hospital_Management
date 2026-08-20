@@ -189,6 +189,22 @@ public class PharmacyWorkflowService {
         return requireVendorOrder(orderId, vendor);
     }
 
+    public PharmacyOrder getPatientOrder(Long orderId, User patient) {
+        PharmacyOrder order = pharmacyOrderRepository.findDetailedById(orderId)
+                .orElseThrow(() -> new RuntimeException("Pharmacy order not found"));
+        if (patient == null || order.getPatient() == null
+                || !order.getPatient().getId().equals(patient.getId())) {
+            throw new RuntimeException("You are not authorized to view this order");
+        }
+        return order;
+    }
+
+    public PharmacyOrder requireOrder(Long orderId) {
+        return pharmacyOrderRepository.findDetailedById(orderId)
+                .orElseGet(() -> pharmacyOrderRepository.findById(orderId)
+                        .orElseThrow(() -> new RuntimeException("Pharmacy order not found")));
+    }
+
     public List<PharmacyOrder> getPatientOrders(User patient) {
         return pharmacyOrderRepository.findByPatientOrderByCreatedAtDesc(patient);
     }

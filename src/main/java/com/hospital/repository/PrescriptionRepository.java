@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PrescriptionRepository extends JpaRepository<Prescription, Long> {
@@ -30,4 +31,11 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
            "LEFT JOIN FETCH p.items " +
            "ORDER BY p.createdAt DESC")
     List<Prescription> findAllDetailed();
+
+    @Query("SELECT DISTINCT p FROM Prescription p " +
+           "LEFT JOIN FETCH p.patient " +
+           "LEFT JOIN FETCH p.doctor " +
+           "LEFT JOIN FETCH p.items " +
+           "WHERE p.id = :id")
+    Optional<Prescription> findDetailedById(@Param("id") Long id);
 }

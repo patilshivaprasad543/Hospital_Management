@@ -10,7 +10,6 @@ import com.hospital.service.VendorService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -226,10 +225,31 @@ public class VendorController {
         Invoice invoice = pharmacyWorkflowService.getOrderInvoice(order)
                 .orElseThrow(() -> new RuntimeException("Invoice is created after the order is accepted."));
         byte[] pdf = pdfService.generateInvoicePdf(invoice, order.getPatient());
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=pharmacy-invoice-" + invoice.getInvoiceNumber() + ".pdf")
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(pdf);
+        return pdfService.download(pdf, "pharmacy-invoice-" + invoice.getInvoiceNumber() + ".pdf");
+    }
+
+    @GetMapping("/orders/{id}/pdf")
+    public ResponseEntity<byte[]> downloadOrderPdf(@PathVariable("id") Long id, HttpSession session) {
+        User vendor = requirePharmacy(session);
+        if (vendor == null) {
+            return ResponseEntity.status(302).header(HttpHeaders.LOCATION, "/login").build();
+        }
+        PharmacyOrder order = pharmacyWorkflowService.getVendorOrder(id, vendor);
+        return pdfService.download(pdfService.generatePharmacyOrderPdf(order),
+                "pharmacy-order-" + order.getId() + ".pdf");
+    }
+
+    @GetMapping("/lab-request/{id}/pdf")
+    public ResponseEntity<byte[]> downloadLabReportPdf(@PathVariable("id") Long id, HttpSession session) {
+        User vendor = requireLaboratory(session);
+        if (vendor == null) {
+            return ResponseEntity.status(302).header(HttpHeaders.LOCATION, "/login").build();
+        }
+        return labWorkflowService.findByIdForVendor(id, vendor)
+                .filter(lab -> lab.getReportResult() != null)
+                .map(lab -> pdfService.download(pdfService.generateLabReportPdf(lab, lab.getPatient()),
+                        "lab-report-" + lab.getId() + ".pdf"))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/lab-test/add")
@@ -373,6 +393,14 @@ public class VendorController {
     private User requirePharmacy(HttpSession session) {
         User vendor = getLoggedInVendor(session);
         if (vendor == null || vendor.getVendorType() != VendorType.PHARMACY) {
+            return null;
+        }
+        return vendor;
+    }
+
+    private User requireLaboratory(HttpSession session) {
+        User vendor = getLoggedInVendor(session);
+        if (vendor == null || vendor.getVendorType() != VendorType.LABORATORY) {
             return null;
         }
         return vendor;

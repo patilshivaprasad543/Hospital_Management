@@ -8,7 +8,7 @@
         <div class="table-container">
             <table class="table">
                 <thead>
-                    <tr><th>Order</th><th>Patient</th><th>Pharmacy</th><th>Total</th><th>Payment</th><th>Status</th><th>Updated</th></tr>
+                    <tr><th>Order</th><th>Patient</th><th>Pharmacy</th><th>Total</th><th>Payment</th><th>Status</th><th>Updated</th><th></th></tr>
                 </thead>
                 <tbody>
                     <tr th:each="ord : ${pharmacyOrders}">
@@ -22,9 +22,10 @@
                                   th:text="${ord.status.displayName}">s</span>
                         </td>
                         <td th:text="${#temporals.format(ord.updatedAt, 'dd MMM yyyy HH:mm')}">dt</td>
+                        <td><a th:href="@{/admin/pharmacy-order/{id}/pdf(id=${ord.id})}" class="btn btn-secondary btn-sm">PDF</a></td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(pharmacyOrders)}">
-                        <td colspan="7" style="text-align:center;color:var(--text-muted);">No pharmacy orders.</td>
+                        <td colspan="8" style="text-align:center;color:var(--text-muted);">No pharmacy orders.</td>
                     </tr>
                 </tbody>
             </table>

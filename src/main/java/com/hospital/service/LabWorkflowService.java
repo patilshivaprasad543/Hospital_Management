@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class LabWorkflowService {
@@ -91,5 +92,22 @@ public class LabWorkflowService {
 
     public List<LabRequest> getAllLabRequests() {
         return labRequestRepository.findAllDetailed();
+    }
+
+    public Optional<LabRequest> findById(Long id) {
+        return labRequestRepository.findDetailedById(id)
+                .or(() -> labRequestRepository.findById(id));
+    }
+
+    public Optional<LabRequest> findByIdForDoctor(Long id, User doctor) {
+        return getDoctorLabRequests(doctor).stream()
+                .filter(r -> r.getId().equals(id))
+                .findFirst();
+    }
+
+    public Optional<LabRequest> findByIdForVendor(Long id, User vendor) {
+        return getVendorLabRequests(vendor).stream()
+                .filter(r -> r.getId().equals(id))
+                .findFirst();
     }
 }

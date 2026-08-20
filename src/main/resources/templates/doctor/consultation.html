@@ -14,6 +14,7 @@
                 <p th:text="${appointment.appointmentDate + ' at ' + appointment.appointmentTime}">Appointment</p>
             </div>
             <div class="page-header-actions">
+                <a th:if="${consultation != null}" th:href="@{/doctor/consultation/{id}/pdf(id=${appointment.id})}" class="btn btn-secondary">Download consultation PDF</a>
                 <a href="/doctor/dashboard" class="btn btn-outline">Back to Dashboard</a>
             </div>
         </div>

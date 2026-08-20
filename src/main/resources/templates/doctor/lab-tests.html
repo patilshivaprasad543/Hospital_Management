@@ -15,6 +15,7 @@
                 <div th:if="${lab.reportResult != null}">
                     <strong>Report</strong>
                     <pre th:text="${lab.reportResult}">result</pre>
+                    <a th:href="@{/doctor/lab-report/{id}/pdf(id=${lab.id})}" class="btn btn-secondary btn-sm">Download PDF</a>
                 </div>
             </div>
             <p th:if="${#lists.isEmpty(labRequests)}" class="text-muted">No lab requests yet.</p>

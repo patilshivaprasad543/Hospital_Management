@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LabRequestRepository extends JpaRepository<LabRequest, Long> {
@@ -27,4 +28,7 @@ public interface LabRequestRepository extends JpaRepository<LabRequest, Long> {
 
     @Query("SELECT r FROM LabRequest r LEFT JOIN FETCH r.patient LEFT JOIN FETCH r.doctor LEFT JOIN FETCH r.labVendor ORDER BY r.createdAt DESC")
     List<LabRequest> findAllDetailed();
+
+    @Query("SELECT r FROM LabRequest r LEFT JOIN FETCH r.patient LEFT JOIN FETCH r.doctor LEFT JOIN FETCH r.labVendor WHERE r.id = :id")
+    Optional<LabRequest> findDetailedById(@Param("id") Long id);
 }

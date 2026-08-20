@@ -9,6 +9,7 @@ import com.hospital.repository.PharmacyOrderRepository;
 import com.hospital.service.*;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,7 @@ public class AdminController {
     @Autowired private HospitalSettingService hospitalSettingService;
     @Autowired private ConsultationRepository consultationRepository;
     @Autowired private AuditLogRepository auditLogRepository;
+    @Autowired private PdfService pdfService;
 
     private User getLoggedInAdmin(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
@@ -555,6 +557,67 @@ public class AdminController {
             return "/admin/laboratories";
         }
         return "/admin/vendors";
+    }
+
+    @GetMapping("/invoice/{id}/pdf")
+    public ResponseEntity<byte[]> downloadInvoicePdf(@PathVariable Long id, HttpSession session) {
+        if (getLoggedInAdmin(session) == null) return ResponseEntity.status(401).build();
+        try {
+            Invoice invoice = billingService.requireInvoice(id);
+            return pdfService.download(pdfService.generateInvoicePdf(invoice, invoice.getPatient()),
+                    "invoice-" + invoice.getInvoiceNumber() + ".pdf");
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/prescription/{id}/pdf")
+    public ResponseEntity<byte[]> downloadPrescriptionPdf(@PathVariable Long id, HttpSession session) {
+        if (getLoggedInAdmin(session) == null) return ResponseEntity.status(401).build();
+        return prescriptionService.findById(id)
+                .map(rx -> pdfService.download(pdfService.generatePrescriptionPdf(rx, rx.getDoctor(), rx.getPatient()),
+                        "prescription-" + rx.getId() + ".pdf"))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/lab-report/{id}/pdf")
+    public ResponseEntity<byte[]> downloadLabReportPdf(@PathVariable Long id, HttpSession session) {
+        if (getLoggedInAdmin(session) == null) return ResponseEntity.status(401).build();
+        return labWorkflowService.findById(id)
+                .map(lab -> pdfService.download(pdfService.generateLabReportPdf(lab, lab.getPatient()),
+                        "lab-report-" + lab.getId() + ".pdf"))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/pharmacy-order/{id}/pdf")
+    public ResponseEntity<byte[]> downloadPharmacyOrderPdf(@PathVariable Long id, HttpSession session) {
+        if (getLoggedInAdmin(session) == null) return ResponseEntity.status(401).build();
+        try {
+            PharmacyOrder order = pharmacyWorkflowService.requireOrder(id);
+            return pdfService.download(pdfService.generatePharmacyOrderPdf(order),
+                    "pharmacy-order-" + order.getId() + ".pdf");
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/appointment/{id}/pdf")
+    public ResponseEntity<byte[]> downloadAppointmentPdf(@PathVariable Long id, HttpSession session) {
+        if (getLoggedInAdmin(session) == null) return ResponseEntity.status(401).build();
+        return appointmentService.findById(id)
+                .map(app -> pdfService.download(pdfService.generateAppointmentPdf(app),
+                        "appointment-" + app.getId() + ".pdf"))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/consultation/{id}/pdf")
+    public ResponseEntity<byte[]> downloadConsultationPdf(@PathVariable Long id, HttpSession session) {
+        if (getLoggedInAdmin(session) == null) return ResponseEntity.status(401).build();
+        return consultationRepository.findDetailedById(id)
+                .or(() -> consultationRepository.findById(id))
+                .map(c -> pdfService.download(pdfService.generateConsultationPdf(c),
+                        "consultation-" + c.getId() + ".pdf"))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     private String safeAdminRedirect(String returnTo, String fallback) {

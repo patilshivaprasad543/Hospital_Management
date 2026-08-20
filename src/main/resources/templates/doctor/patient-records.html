@@ -17,7 +17,10 @@
                     <tr th:each="app : ${appointments}">
                         <td th:text="${app.appointmentDate + ' ' + app.appointmentTime}">dt</td>
                         <td th:text="${app.status.label}">st</td>
-                        <td th:text="${app.reason}">r</td>
+                        <td>
+                            <span th:text="${app.reason}">r</span>
+                            <a th:href="@{/doctor/appointment/{id}/pdf(id=${app.id})}" class="btn btn-secondary btn-sm">PDF</a>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -26,11 +29,22 @@
         <div class="card" th:each="c : ${consultations}">
             <p><strong th:text="${c.diagnosis}">dx</strong></p>
             <p th:text="${c.treatment}">tx</p>
+            <a th:href="@{/doctor/consultations/{id}/pdf(id=${c.id})}" class="btn btn-secondary btn-sm">Download PDF</a>
         </div>
         <h3>Prescriptions</h3>
-        <ul><li th:each="rx : ${prescriptions}" th:text="${'#' + rx.id + ' — ' + rx.diagnosis}">rx</li></ul>
+        <ul>
+            <li th:each="rx : ${prescriptions}">
+                <span th:text="${'#' + rx.id + ' — ' + rx.diagnosis}">rx</span>
+                <a th:href="@{/doctor/prescription/{id}/pdf(id=${rx.id})}" class="btn btn-secondary btn-sm">PDF</a>
+            </li>
+        </ul>
         <h3>Lab reports</h3>
-        <ul><li th:each="lab : ${labRequests}" th:text="${lab.testName + ' — ' + lab.status}">lab</li></ul>
+        <ul>
+            <li th:each="lab : ${labRequests}">
+                <span th:text="${lab.testName + ' — ' + lab.status}">lab</span>
+                <a th:if="${lab.reportResult != null}" th:href="@{/doctor/lab-report/{id}/pdf(id=${lab.id})}" class="btn btn-secondary btn-sm">PDF</a>
+            </li>
+        </ul>
         <a href="/doctor/patients" class="btn btn-outline">Back</a>
     </div>
     <footer th:replace="~{fragments/layout :: footer}"></footer>

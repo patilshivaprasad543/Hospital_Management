@@ -9,6 +9,7 @@
 
         <p><a href="/vendor/orders">← All orders</a></p>
         <h1 th:text="${'Order #ORD-' + order.id}">Order</h1>
+        <p><a th:href="@{/vendor/orders/{id}/pdf(id=${order.id})}" class="btn btn-secondary btn-sm">Download order PDF</a></p>
         <p>
             <span class="badge pharmacy-status-badge" th:classappend="${' status-' + order.status.name()}"
                   th:text="${order.status.displayName}">Pending</span>

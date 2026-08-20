@@ -31,6 +31,7 @@
                         <th>Tracking</th>
                         <th>Ordered On</th>
                         <th>Last Updated</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,9 +49,10 @@
                         <td th:text="${ord.trackingNotes != null ? ord.trackingNotes : '—'}">—</td>
                         <td th:text="${#temporals.format(ord.createdAt, 'dd MMM yyyy, HH:mm')}">Date</td>
                         <td th:text="${#temporals.format(ord.updatedAt, 'dd MMM yyyy, HH:mm')}">Updated</td>
+                        <td><a th:href="@{/patient/pharmacy-order/{id}/pdf(id=${ord.id})}" class="btn btn-secondary btn-sm">PDF</a></td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(pharmacyOrders)}">
-                        <td colspan="9" style="text-align: center; color: var(--text-muted);">
+                        <td colspan="10" style="text-align: center; color: var(--text-muted);">
                             No pharmacy orders yet.
                             <a href="/patient/prescriptions">Place an order</a> from your prescriptions.
                         </td>

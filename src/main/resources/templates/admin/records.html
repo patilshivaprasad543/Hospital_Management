@@ -9,7 +9,7 @@
         <div class="table-container">
             <table class="table">
                 <thead>
-                    <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Diagnosis</th><th>Started</th><th>Completed</th></tr>
+                    <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Diagnosis</th><th>Started</th><th>Completed</th><th></th></tr>
                 </thead>
                 <tbody>
                     <tr th:each="c : ${consultations}">
@@ -19,9 +19,10 @@
                         <td th:text="${c.diagnosis}">dx</td>
                         <td th:text="${#temporals.format(c.startedAt, 'dd MMM yyyy HH:mm')}">s</td>
                         <td th:text="${c.completedAt != null ? #temporals.format(c.completedAt, 'dd MMM yyyy HH:mm') : 'In progress'}">c</td>
+                        <td><a th:href="@{/admin/consultation/{id}/pdf(id=${c.id})}" class="btn btn-secondary btn-sm">PDF</a></td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(consultations)}">
-                        <td colspan="6" style="text-align:center;color:var(--text-muted);">No consultation records.</td>
+                        <td colspan="7" style="text-align:center;color:var(--text-muted);">No consultation records.</td>
                     </tr>
                 </tbody>
             </table>

@@ -75,4 +75,15 @@ public class PrescriptionService {
                 .filter(p -> p.getId().equals(prescriptionId))
                 .findFirst();
     }
+
+    public Optional<Prescription> findById(Long prescriptionId) {
+        return prescriptionRepository.findDetailedById(prescriptionId)
+                .or(() -> prescriptionRepository.findById(prescriptionId));
+    }
+
+    public Optional<Prescription> findByIdForDoctor(Long prescriptionId, User doctor) {
+        return getDoctorPrescriptions(doctor).stream()
+                .filter(p -> p.getId().equals(prescriptionId))
+                .findFirst();
+    }
 }

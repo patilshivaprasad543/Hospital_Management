@@ -58,6 +58,7 @@
                                 <button class="btn btn-danger btn-sm" type="submit">Reject</button>
                             </form>
                             <a th:if="${app.status.name() == 'CONFIRMED'}" th:href="@{/doctor/consultation/{id}(id=${app.id})}" class="btn btn-primary btn-sm">Consult</a>
+                            <a th:href="@{/doctor/appointment/{id}/pdf(id=${app.id})}" class="btn btn-secondary btn-sm">PDF</a>
                             <details th:if="${app.status.name() == 'PENDING' or app.status.name() == 'CONFIRMED'}" style="display:inline-block;">
                                 <summary class="btn btn-secondary btn-sm">Reschedule</summary>
                                 <form th:action="@{/doctor/appointment/{id}/reschedule(id=${app.id})}" method="post" style="margin-top:0.5rem;">

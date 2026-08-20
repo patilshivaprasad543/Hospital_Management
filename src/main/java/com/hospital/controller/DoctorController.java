@@ -5,6 +5,7 @@ import com.hospital.service.*;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -52,6 +53,9 @@ public class DoctorController {
 
     @Autowired
     private DepartmentService departmentService;
+
+    @Autowired
+    private PdfService pdfService;
 
     private User getLoggedInDoctor(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
@@ -445,5 +449,59 @@ public class DoctorController {
         model.addAttribute("completedCount", appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.COMPLETED).count());
         model.addAttribute("cancelledCount", appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.CANCELLED || a.getStatus() == AppointmentStatus.REJECTED).count());
         return "doctor/reports";
+    }
+
+    @GetMapping("/prescription/{id}/pdf")
+    public ResponseEntity<byte[]> downloadPrescriptionPdf(@PathVariable Long id, HttpSession session) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return ResponseEntity.status(401).build();
+        return prescriptionService.findByIdForDoctor(id, doctor)
+                .map(rx -> pdfService.download(pdfService.generatePrescriptionPdf(rx, rx.getDoctor(), rx.getPatient()),
+                        "prescription-" + rx.getId() + ".pdf"))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/lab-report/{id}/pdf")
+    public ResponseEntity<byte[]> downloadLabReportPdf(@PathVariable Long id, HttpSession session) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return ResponseEntity.status(401).build();
+        return labWorkflowService.findByIdForDoctor(id, doctor)
+                .filter(lab -> lab.getReportResult() != null)
+                .map(lab -> pdfService.download(pdfService.generateLabReportPdf(lab, lab.getPatient()),
+                        "lab-report-" + lab.getId() + ".pdf"))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/consultation/{id}/pdf")
+    public ResponseEntity<byte[]> downloadConsultationPdf(@PathVariable Long id, HttpSession session) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return ResponseEntity.status(401).build();
+        return consultationService.findByAppointment(id)
+                .filter(c -> c.getDoctor() != null && c.getDoctor().getId().equals(doctor.getId()))
+                .map(c -> pdfService.download(pdfService.generateConsultationPdf(c),
+                        "consultation-" + c.getId() + ".pdf"))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/consultations/{id}/pdf")
+    public ResponseEntity<byte[]> downloadConsultationRecordPdf(@PathVariable Long id, HttpSession session) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return ResponseEntity.status(401).build();
+        return consultationService.findById(id)
+                .filter(c -> c.getDoctor() != null && c.getDoctor().getId().equals(doctor.getId()))
+                .map(c -> pdfService.download(pdfService.generateConsultationPdf(c),
+                        "consultation-" + c.getId() + ".pdf"))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/appointment/{id}/pdf")
+    public ResponseEntity<byte[]> downloadAppointmentPdf(@PathVariable Long id, HttpSession session) {
+        User doctor = getLoggedInDoctor(session);
+        if (doctor == null) return ResponseEntity.status(401).build();
+        return appointmentService.findById(id)
+                .filter(app -> app.getDoctor() != null && app.getDoctor().getId().equals(doctor.getId()))
+                .map(app -> pdfService.download(pdfService.generateAppointmentPdf(app),
+                        "appointment-" + app.getId() + ".pdf"))
+                .orElse(ResponseEntity.notFound().build());
     }
 }

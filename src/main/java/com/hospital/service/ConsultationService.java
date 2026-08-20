@@ -78,6 +78,12 @@ public class ConsultationService {
     }
 
     public Optional<Consultation> findByAppointment(Long appointmentId) {
-        return consultationRepository.findByAppointmentId(appointmentId);
+        return consultationRepository.findDetailedByAppointmentId(appointmentId)
+                .or(() -> consultationRepository.findByAppointmentId(appointmentId));
+    }
+
+    public Optional<Consultation> findById(Long consultationId) {
+        return consultationRepository.findDetailedById(consultationId)
+                .or(() -> consultationRepository.findById(consultationId));
     }
 }

@@ -14,15 +14,16 @@
         <h3 class="section-title">Appointments &amp; diagnoses</h3>
         <div class="table-container">
             <table class="table">
-                <thead><tr><th>Date</th><th>Doctor</th><th>Status</th><th>Reason</th></tr></thead>
+                <thead><tr><th>Date</th><th>Doctor</th><th>Status</th><th>Reason</th><th></th></tr></thead>
                 <tbody>
                     <tr th:each="app : ${appointments}">
                         <td th:text="${app.appointmentDate + ' ' + app.appointmentTime}">Date</td>
                         <td th:text="${app.doctor.fullName}">Doctor</td>
                         <td th:text="${app.status.label}">Pending</td>
                         <td th:text="${app.reason}">Reason</td>
+                        <td><a th:href="@{/patient/appointment/{id}/pdf(id=${app.id})}" class="btn btn-secondary btn-sm">PDF</a></td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(appointments)}" class="table-empty"><td colspan="4">No appointments yet.</td></tr>
+                    <tr th:if="${#lists.isEmpty(appointments)}" class="table-empty"><td colspan="5">No appointments yet.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -34,6 +35,7 @@
                 <p>Doctor: <span th:text="${c.doctor.fullName}">Dr</span></p>
                 <p th:if="${c.symptoms != null}">Symptoms: <span th:text="${c.symptoms}">s</span></p>
                 <p th:if="${c.treatment != null}">Treatment: <span th:text="${c.treatment}">t</span></p>
+                <a th:href="@{/patient/consultation/{id}/pdf(id=${c.id})}" class="btn btn-secondary btn-sm">Download PDF</a>
             </div>
             <p th:if="${#lists.isEmpty(consultations)}" class="text-muted">No completed consultations yet.</p>
         </div>

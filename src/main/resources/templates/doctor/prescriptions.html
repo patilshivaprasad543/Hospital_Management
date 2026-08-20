@@ -12,6 +12,7 @@
                 <ul>
                     <li th:each="item : ${rx.items}" th:text="${item.medicineName + ' ' + item.dosage + ' × ' + item.duration}">med</li>
                 </ul>
+                <a th:href="@{/doctor/prescription/{id}/pdf(id=${rx.id})}" class="btn btn-secondary btn-sm">Download PDF</a>
             </div>
             <p th:if="${#lists.isEmpty(prescriptions)}" class="text-muted">No prescriptions yet. Issue them from a consultation.</p>
         </div>

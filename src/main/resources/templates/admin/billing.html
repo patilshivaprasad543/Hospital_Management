@@ -26,8 +26,9 @@
                         <td th:text="${inv.paymentStatus}">PENDING</td>
                         <td th:text="${#temporals.format(inv.createdAt, 'dd MMM yyyy')}">d</td>
                         <td>
+                            <a th:href="@{/admin/invoice/{id}/pdf(id=${inv.id})}" class="btn btn-secondary btn-sm">PDF</a>
                             <form th:if="${inv.paymentStatus.name() != 'PAID'}"
-                                  th:action="@{/admin/billing/{id}/record-payment(id=${inv.id})}" method="post">
+                                  th:action="@{/admin/billing/{id}/record-payment(id=${inv.id})}" method="post" style="display:inline;">
                                 <button type="submit" class="btn btn-primary btn-sm">Record payment</button>
                             </form>
                         </td>

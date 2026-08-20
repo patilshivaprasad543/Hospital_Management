@@ -48,6 +48,7 @@
                             <span th:if="${app.queueTicket != null}" class="badge badge-role" th:text="${'Ticket ' + app.queueTicket}">#A101</span>
                             <a th:if="${(app.status.name() == 'PENDING' or app.status.name() == 'CONFIRMED') and app.queueTicket == null}"
                                th:href="@{/patient/appointments/{id}/reschedule(id=${app.id})}" class="btn btn-secondary btn-sm">Reschedule</a>
+                            <a th:href="@{/patient/appointment/{id}/pdf(id=${app.id})}" class="btn btn-secondary btn-sm">PDF</a>
                             <form th:if="${app.status.name() != 'COMPLETED' && app.status.name() != 'CANCELLED' && app.status.name() != 'REJECTED' && app.queueTicket == null}"
                                   th:action="@{/patient/appointments/{id}/cancel(id=${app.id})}" method="post" style="display:inline;">
                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Cancel this appointment?')">Cancel</button>

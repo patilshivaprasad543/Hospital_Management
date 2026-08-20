@@ -85,6 +85,12 @@ public class BillingService {
         return invoiceRepository.findAllWithPatient();
     }
 
+    public Invoice requireInvoice(Long invoiceId) {
+        return invoiceRepository.findDetailedById(invoiceId)
+                .or(() -> invoiceRepository.findById(invoiceId))
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+    }
+
     public List<Payment> getAllPayments() {
         return paymentRepository.findAllDetailed();
     }

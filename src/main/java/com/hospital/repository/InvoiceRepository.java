@@ -20,4 +20,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
     @org.springframework.data.jpa.repository.Query("SELECT i FROM Invoice i LEFT JOIN FETCH i.patient ORDER BY i.createdAt DESC")
     List<Invoice> findAllWithPatient();
+
+    @org.springframework.data.jpa.repository.Query("SELECT i FROM Invoice i LEFT JOIN FETCH i.patient WHERE i.id = :id")
+    java.util.Optional<Invoice> findDetailedById(@org.springframework.data.repository.query.Param("id") Long id);
 }

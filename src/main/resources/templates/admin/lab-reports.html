@@ -8,7 +8,7 @@
         <div class="table-container">
             <table class="table">
                 <thead>
-                    <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Test</th><th>Lab</th><th>Status</th></tr>
+                    <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Test</th><th>Lab</th><th>Status</th><th></th></tr>
                 </thead>
                 <tbody>
                     <tr th:each="req : ${labRequests}">
@@ -18,9 +18,10 @@
                         <td th:text="${req.testName}">test</td>
                         <td th:text="${req.labVendor != null ? req.labVendor.fullName : 'Unassigned'}">Lab</td>
                         <td th:text="${req.status}">STATUS</td>
+                        <td><a th:href="@{/admin/lab-report/{id}/pdf(id=${req.id})}" class="btn btn-secondary btn-sm">PDF</a></td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(labRequests)}">
-                        <td colspan="6" style="text-align:center;color:var(--text-muted);">No lab requests.</td>
+                        <td colspan="7" style="text-align:center;color:var(--text-muted);">No lab requests.</td>
                     </tr>
                 </tbody>
             </table>

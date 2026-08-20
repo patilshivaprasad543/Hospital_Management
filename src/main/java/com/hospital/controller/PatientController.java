@@ -6,8 +6,6 @@ import com.hospital.service.*;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -530,10 +528,8 @@ public class PatientController {
         return billingService.getPatientInvoices(patient).stream()
                 .filter(i -> i.getId().equals(id))
                 .findFirst()
-                .map(inv -> ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoice-" + inv.getInvoiceNumber() + ".pdf")
-                        .contentType(MediaType.APPLICATION_PDF)
-                        .body(pdfService.generateInvoicePdf(inv, patient)))
+                .map(inv -> pdfService.download(pdfService.generateInvoicePdf(inv, patient),
+                        "invoice-" + inv.getInvoiceNumber() + ".pdf"))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -544,10 +540,8 @@ public class PatientController {
         return prescriptionService.getPatientPrescriptions(patient).stream()
                 .filter(p -> p.getId().equals(id))
                 .findFirst()
-                .map(rx -> ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=prescription-" + rx.getId() + ".pdf")
-                        .contentType(MediaType.APPLICATION_PDF)
-                        .body(pdfService.generatePrescriptionPdf(rx, rx.getDoctor(), patient)))
+                .map(rx -> pdfService.download(pdfService.generatePrescriptionPdf(rx, rx.getDoctor(), patient),
+                        "prescription-" + rx.getId() + ".pdf"))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -558,10 +552,46 @@ public class PatientController {
         return labWorkflowService.getPatientLabRequests(patient).stream()
                 .filter(r -> r.getId().equals(id) && r.getReportResult() != null)
                 .findFirst()
-                .map(lab -> ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=lab-report-" + lab.getId() + ".pdf")
-                        .contentType(MediaType.APPLICATION_PDF)
-                        .body(pdfService.generateLabReportPdf(lab, patient)))
+                .map(lab -> pdfService.download(pdfService.generateLabReportPdf(lab, patient),
+                        "lab-report-" + lab.getId() + ".pdf"))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/pharmacy-order/{id}/pdf")
+    public ResponseEntity<byte[]> downloadPharmacyOrderPdf(@PathVariable Long id, HttpSession session) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return ResponseEntity.status(401).build();
+        try {
+            PharmacyOrder order = pharmacyWorkflowService.getPatientOrder(id, patient);
+            return pharmacyWorkflowService.getOrderInvoice(order)
+                    .map(inv -> pdfService.download(pdfService.generateInvoicePdf(inv, patient),
+                            "pharmacy-invoice-" + inv.getInvoiceNumber() + ".pdf"))
+                    .orElse(pdfService.download(pdfService.generatePharmacyOrderPdf(order),
+                            "pharmacy-order-" + order.getId() + ".pdf"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/appointment/{id}/pdf")
+    public ResponseEntity<byte[]> downloadAppointmentPdf(@PathVariable Long id, HttpSession session) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return ResponseEntity.status(401).build();
+        return appointmentService.findById(id)
+                .filter(app -> app.getPatient() != null && app.getPatient().getId().equals(patient.getId()))
+                .map(app -> pdfService.download(pdfService.generateAppointmentPdf(app),
+                        "appointment-" + app.getId() + ".pdf"))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/consultation/{id}/pdf")
+    public ResponseEntity<byte[]> downloadConsultationPdf(@PathVariable Long id, HttpSession session) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return ResponseEntity.status(401).build();
+        return consultationService.findById(id)
+                .filter(c -> c.getPatient() != null && c.getPatient().getId().equals(patient.getId()))
+                .map(c -> pdfService.download(pdfService.generateConsultationPdf(c),
+                        "consultation-" + c.getId() + ".pdf"))
                 .orElse(ResponseEntity.notFound().build());
     }
 }

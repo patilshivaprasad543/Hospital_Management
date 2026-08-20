@@ -36,6 +36,7 @@
                         <th>Payment</th>
                         <th>Status</th>
                         <th>Update</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -65,10 +66,11 @@
                                 <button type="submit" class="btn btn-primary btn-sm">Update</button>
                             </form>
                             <span th:if="${ord.status.terminal}" class="text-muted">Closed</span>
+                            <a th:href="@{/vendor/orders/{id}/pdf(id=${ord.id})}" class="btn btn-secondary btn-sm">PDF</a>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(pharmacyOrders)}">
-                        <td colspan="9" style="text-align: center; color: var(--text-muted);">No orders in this view.</td>
+                        <td colspan="10" style="text-align: center; color: var(--text-muted);">No orders in this view.</td>
                     </tr>
                 </tbody>
             </table>
