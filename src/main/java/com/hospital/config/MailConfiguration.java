@@ -31,7 +31,7 @@ public class MailConfiguration {
         if (transport.isConfigured()) {
             logger.info("Email provider ready: {}", transport.providerName());
         } else {
-            logger.warn("Email is NOT configured — registration OTP will fail.");
+            logger.warn("Email is NOT configured — password-reset OTP and notification emails will not send.");
             logger.warn("Render: set SMARTCARE_BREVO_API_KEY (xkeysib-...), SMARTCARE_BREVO_SENDER_EMAIL (verified in Brevo), SMARTCARE_MAIL_PROVIDER=brevo");
             logger.warn("Local: set SMARTCARE_MAIL_USERNAME + SMARTCARE_MAIL_PASSWORD in .env, run ./scripts/start.sh");
         }

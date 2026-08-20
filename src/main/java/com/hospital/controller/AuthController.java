@@ -72,16 +72,21 @@ public class AuthController {
             }
 
             User registeredUser = userService.registerUser(user);
-            session.setAttribute("pendingVerificationUser", registeredUser);
+            if (registeredUser.getRole() == Role.PATIENT) {
+                session.setAttribute("loggedInUser", registeredUser);
+                redirectAttributes.addFlashAttribute("successMessage",
+                        "Account created. You are signed in. Next time, use this email and password to log in.");
+                return getRedirectUrlForRole(registeredUser.getRole());
+            }
             redirectAttributes.addFlashAttribute("successMessage",
-                    "A 6-digit verification code was sent to " + registeredUser.getEmail()
-                            + ". Check your inbox and spam folder, then enter the code below.");
-            return "redirect:/verify-otp?userId=" + registeredUser.getId();
+                    "Account created and saved. Submit your documents, then sign in with the same email and password after admin approval.");
+            return "redirect:/submit-documents?userId=" + registeredUser.getId();
         } catch (Exception e) {
             Optional<User> existingUser = userService.findByEmail(user.getEmail());
-            if (existingUser.isPresent() && !existingUser.get().isVerified()) {
-                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-                return "redirect:/verify-otp?userId=" + existingUser.get().getId();
+            if (existingUser.isPresent()) {
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        "This email is already registered. Please sign in with your password.");
+                return "redirect:" + PortalRole.loginPathForUser(existingUser.get());
             }
             role.applyToUser(user);
             model.addAttribute("portalRole", role);

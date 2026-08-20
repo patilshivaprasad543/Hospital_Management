@@ -78,6 +78,16 @@ public class EmailService {
                 "SmartCare 360 - New Appointment Request", doctorBody, "APPOINTMENT BOOKED (DOCTOR)");
     }
 
+    @Async
+    public void sendWelcomeEmail(String recipientEmail, String fullName, String message) {
+        String subject = "SmartCare 360 - Account Created";
+        String body = String.format(
+                "Dear %s,\n\n%s\n\nYou can sign in anytime at the SmartCare 360 portal using this email and your password.\n\n— SmartCare 360 Team",
+                fullName != null ? fullName : "User",
+                message != null ? message : "Your account has been created.");
+        sendEmail(recipientEmail, subject, body, "WELCOME");
+    }
+
     public boolean sendOtpEmail(String recipientEmail, String otpCode) {
         String subject = "SmartCare 360 - Email Verification OTP";
         String body = String.format(

@@ -59,14 +59,19 @@ public class UserService {
         user.setEmail(email);
 
         if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email address is already registered.");
+            throw new RuntimeException("This email is already registered. Please sign in with your password.");
         }
 
-        String otp = generateOtp();
-        user.setVerified(false);
-        user.setAdminApproved(user.getRole() == Role.PATIENT);
-        user.setApprovalStatus(ApprovalStatus.PENDING_OTP);
+        user.setVerified(true);
+        user.setAccountStatus("ACTIVE");
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (user.getRole() == Role.PATIENT) {
+            user.setAdminApproved(true);
+            user.setApprovalStatus(ApprovalStatus.APPROVED);
+        } else {
+            user.setAdminApproved(false);
+            user.setApprovalStatus(ApprovalStatus.PENDING_DOCUMENTS);
+        }
 
         User savedUser = userRepository.save(user);
 
@@ -86,16 +91,13 @@ public class UserService {
             vendorProfileRepository.save(vendorProfile);
         }
 
-        otpService.store(savedUser.getEmail(), otp, OtpPurpose.REGISTRATION);
-        if (!notificationChannelService.sendOtp(savedUser.getEmail(), savedUser.getMobileNumber(), otp)) {
-            String detail = mailDeliveryDiagnostics.getLastFailure();
-            if (detail == null || detail.isBlank()) {
-                detail = "Email is not configured on this server.";
-            }
-            throw new RuntimeException(
-                    "We could not send a verification code to " + savedUser.getEmail() + ". " + detail);
+        auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered and credentials stored");
+        try {
+            notificationChannelService.sendWelcomeNotice(
+                    savedUser.getEmail(), savedUser.getMobileNumber(), savedUser.getFullName(), savedUser.getRole().name());
+        } catch (Exception e) {
+            // Account is already saved; email is optional.
         }
-        auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered, OTP sent via email");
         return savedUser;
     }
 
@@ -199,6 +201,7 @@ public class UserService {
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             if (passwordEncoder.matches(password, user.getPassword())) {
+                completePendingRegistration(user);
                 user.setLastLoginAt(LocalDateTime.now());
                 userRepository.save(user);
                 auditLogService.log(user, "LOGIN", "AUTH", "User logged in");
@@ -206,6 +209,22 @@ public class UserService {
             }
         }
         return Optional.empty();
+    }
+
+    private void completePendingRegistration(User user) {
+        if (user.getRole() == Role.ADMIN) {
+            return;
+        }
+        if (user.getApprovalStatus() == ApprovalStatus.PENDING_OTP || !user.isVerified()) {
+            user.setVerified(true);
+            if (user.getRole() == Role.PATIENT) {
+                user.setAdminApproved(true);
+                user.setApprovalStatus(ApprovalStatus.APPROVED);
+                user.setAccountStatus("ACTIVE");
+            } else if (user.getApprovalStatus() == ApprovalStatus.PENDING_OTP) {
+                user.setApprovalStatus(ApprovalStatus.PENDING_DOCUMENTS);
+            }
+        }
     }
 
     public void initiatePasswordReset(String email) {
