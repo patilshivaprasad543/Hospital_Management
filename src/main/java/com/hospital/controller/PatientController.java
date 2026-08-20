@@ -252,9 +252,30 @@ public class PatientController {
         if (patient == null) return "redirect:/login/patient";
 
         PatientProfile profile = userService.getPatientProfile(patient).orElse(new PatientProfile(patient));
-        model.addAttribute("prescriptions", prescriptionService.getPatientPrescriptions(patient));
-        model.addAttribute("pharmacyVendors", userService.findPharmacyVendors());
+        List<Prescription> prescriptions = prescriptionService.getPatientPrescriptions(patient);
+        List<User> pharmacyVendors = userService.findPharmacyVendors();
+
+        Map<Long, PharmacyOrder> latestOrderByPrescription = new HashMap<>();
+        for (PharmacyOrder order : pharmacyWorkflowService.getPatientOrders(patient)) {
+            if (order.getPrescription() != null) {
+                latestOrderByPrescription.putIfAbsent(order.getPrescription().getId(), order);
+            }
+        }
+
+        Map<Long, Map<Long, Double>> priceEstimates = new HashMap<>();
+        for (Prescription rx : prescriptions) {
+            Map<Long, Double> vendorPrices = new HashMap<>();
+            for (User vendor : pharmacyVendors) {
+                vendorPrices.put(vendor.getId(), pharmacyWorkflowService.estimateOrderTotal(rx, vendor));
+            }
+            priceEstimates.put(rx.getId(), vendorPrices);
+        }
+
+        model.addAttribute("prescriptions", prescriptions);
+        model.addAttribute("pharmacyVendors", pharmacyVendors);
         model.addAttribute("patientProfile", profile);
+        model.addAttribute("latestOrderByPrescription", latestOrderByPrescription);
+        model.addAttribute("priceEstimates", priceEstimates);
         return "patient/prescriptions";
     }
 
@@ -300,9 +321,7 @@ public class PatientController {
         User patient = getLoggedInPatient(session);
         if (patient == null) return "redirect:/login/patient";
 
-        Prescription rx = prescriptionService.getPatientPrescriptions(patient).stream()
-                .filter(p -> p.getId().equals(prescriptionId))
-                .findFirst().orElse(null);
+        Prescription rx = prescriptionService.findByIdForPatient(prescriptionId, patient).orElse(null);
         User vendor = userService.findById(pharmacyVendorId).orElse(null);
 
         if (rx == null || vendor == null) {

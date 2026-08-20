@@ -9,14 +9,22 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+
+import com.hospital.model.Prescription;
 
 @Repository
 public interface PharmacyOrderRepository extends JpaRepository<PharmacyOrder, Long> {
 
     @Query("SELECT o FROM PharmacyOrder o " +
            "LEFT JOIN FETCH o.pharmacyVendor " +
+           "LEFT JOIN FETCH o.prescription " +
            "WHERE o.patient = :patient ORDER BY o.createdAt DESC")
     List<PharmacyOrder> findByPatientOrderByCreatedAtDesc(@Param("patient") User patient);
+
+    boolean existsByPrescriptionAndStatusNotIn(Prescription prescription, List<PharmacyOrderStatus> statuses);
+
+    Optional<PharmacyOrder> findFirstByPrescriptionOrderByCreatedAtDesc(Prescription prescription);
 
     @Query("SELECT o FROM PharmacyOrder o " +
            "LEFT JOIN FETCH o.patient " +

@@ -93,7 +93,7 @@
                         <label class="form-label">Select Patient Consultation</label>
                         <select name="appointmentId" class="form-control" required>
                             <option value="">-- Choose Patient --</option>
-                            <option th:each="app : ${confirmedAppointments}" th:value="${app.id}" th:text="${app.patient.fullName + ' (' + app.appointmentDate + ')'}">Patient</option>
+                            <option th:each="app : ${prescribableAppointments}" th:value="${app.id}" th:text="${app.patient.fullName + ' (' + app.appointmentDate + ')'}">Patient</option>
                         </select>
                     </div>
                     <div class="form-group">

@@ -5,32 +5,75 @@
     <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
 
 <div class="container">
-        <h2>Consultation — <span th:text="${patient.fullName}">Patient</span></h2>
-        <div class="grid" style="margin-bottom:2rem;">
-            <div class="card">
-                <div class="card-title">Patient Info</div>
-                <p>Blood Group: <span th:text="${patientProfile.bloodGroup}">-</span></p>
-                <p>Allergies: <span th:text="${patientProfile.allergies != null ? patientProfile.allergies : 'None'}">-</span></p>
-                <p>History: <span th:text="${patientProfile.medicalHistory}">-</span></p>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Consultation — <span th:text="${patient.fullName}">Patient</span></h1>
+                <p th:text="${appointment.appointmentDate + ' at ' + appointment.appointmentTime}">Appointment</p>
             </div>
-            <div class="card">
-                <div class="card-title">Appointment</div>
-                <p th:text="${appointment.appointmentDate + ' at ' + appointment.appointmentTime}">Date</p>
-                <p th:text="${appointment.reason}">Reason</p>
+            <div class="page-header-actions">
+                <a href="/doctor/dashboard" class="btn btn-outline">Back to Dashboard</a>
             </div>
         </div>
 
-        <div class="auth-card">
-            <h3>Record Consultation</h3>
-            <form th:action="@{/doctor/consultation/{id}/complete(id=${appointment.id})}" method="post">
-                <div class="form-group"><label class="form-label">Symptoms</label><textarea name="symptoms" class="form-control" required></textarea></div>
-                <div class="form-group"><label class="form-label">Diagnosis</label><textarea name="diagnosis" class="form-control" required></textarea></div>
-                <div class="form-group"><label class="form-label">Treatment</label><textarea name="treatment" class="form-control" required></textarea></div>
-                <div class="form-group"><label class="form-label">Notes</label><textarea name="notes" class="form-control"></textarea></div>
-                <div class="form-group"><label class="form-label">Follow-up Date</label><input type="date" name="followUpDate" class="form-control"></div>
-                <button type="submit" class="btn btn-primary">Complete Consultation</button>
-            </form>
+        <div class="grid" style="margin-bottom:2rem;">
+            <div class="card">
+                <div class="card-title">Patient Info</div>
+                <p>Blood Group: <span th:text="${patientProfile.bloodGroup != null ? patientProfile.bloodGroup : '—'}">-</span></p>
+                <p>Allergies: <span th:text="${patientProfile.allergies != null ? patientProfile.allergies : 'None'}">-</span></p>
+                <p>History: <span th:text="${patientProfile.medicalHistory != null ? patientProfile.medicalHistory : '—'}">-</span></p>
+            </div>
+            <div class="card">
+                <div class="card-title">Visit Reason</div>
+                <p th:text="${appointment.reason != null ? appointment.reason : 'General consultation'}">Reason</p>
+                <p>Status: <span class="badge badge-confirmed" th:text="${appointment.status}">CONFIRMED</span></p>
+            </div>
+        </div>
+
+        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="card">
+                <div class="card-title">1. Record Consultation</div>
+                <form th:action="@{/doctor/consultation/{id}/complete(id=${appointment.id})}" method="post" style="margin-top: 1rem;">
+                    <div class="form-group"><label class="form-label">Symptoms</label><textarea name="symptoms" class="form-control" required></textarea></div>
+                    <div class="form-group"><label class="form-label">Diagnosis</label><textarea name="diagnosis" class="form-control" required></textarea></div>
+                    <div class="form-group"><label class="form-label">Treatment</label><textarea name="treatment" class="form-control" required></textarea></div>
+                    <div class="form-group"><label class="form-label">Notes</label><textarea name="notes" class="form-control"></textarea></div>
+                    <div class="form-group"><label class="form-label">Follow-up Date</label><input type="date" name="followUpDate" class="form-control"></div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">Complete Consultation</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-title">2. Issue Digital Prescription</div>
+                <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:1rem;">
+                    The patient will see this on <strong>Prescriptions</strong> and can order medicines from the pharmacy.
+                </p>
+                <form th:action="@{/doctor/prescription/create}" method="post" style="margin-top: 0.5rem;">
+                    <input type="hidden" name="appointmentId" th:value="${appointment.id}" />
+                    <div class="form-group">
+                        <label class="form-label">Diagnosis (on prescription)</label>
+                        <input type="text" name="diagnosis" class="form-control" placeholder="e.g. Acute Viral Fever" required>
+                    </div>
+                    <div style="background: rgba(241, 245, 249, 0.8); padding: 0.8rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+                        <label class="form-label">Medicine</label>
+                        <input type="text" name="medicineName" class="form-control" placeholder="e.g. Paracetamol 650mg" style="margin-bottom: 0.4rem;" required>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.4rem;">
+                            <input type="text" name="dosage" class="form-control" placeholder="500mg" required>
+                            <input type="text" name="frequency" class="form-control" placeholder="1-0-1" required>
+                            <input type="text" name="duration" class="form-control" placeholder="5 Days" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Diet &amp; Instructions</label>
+                        <textarea name="instructions" class="form-control" placeholder="Drink fluids, rest..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="width: 100%;">💊 Send Prescription to Patient</button>
+                </form>
+            </div>
         </div>
     </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>
 </html>

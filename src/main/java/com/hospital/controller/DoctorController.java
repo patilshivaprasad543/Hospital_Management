@@ -60,6 +60,11 @@ public class DoctorController {
 
         List<Appointment> pendingAppointments = appointmentService.getDoctorAppointmentsByStatus(doctor, AppointmentStatus.PENDING);
         List<Appointment> confirmedAppointments = appointmentService.getDoctorAppointmentsByStatus(doctor, AppointmentStatus.CONFIRMED);
+        List<Appointment> prescribableAppointments = appointmentService.getDoctorAppointments(doctor).stream()
+                .filter(a -> a.getStatus() == AppointmentStatus.CONFIRMED
+                        || a.getState() == AppointmentState.CHECKED_IN
+                        || a.getState() == AppointmentState.IN_CONSULTATION)
+                .toList();
         DoctorProfile profile = userService.getDoctorProfile(doctor).orElse(new DoctorProfile(doctor));
 
         // Filter checked-in patients for live queue
@@ -71,6 +76,7 @@ public class DoctorController {
         model.addAttribute("profile", profile);
         model.addAttribute("pendingAppointments", pendingAppointments);
         model.addAttribute("confirmedAppointments", confirmedAppointments);
+        model.addAttribute("prescribableAppointments", prescribableAppointments);
         model.addAttribute("checkedInQueue", checkedInQueue);
         model.addAttribute("prescriptions", prescriptionService.getDoctorPrescriptions(doctor));
         model.addAttribute("announcements", announcementService.getActiveForRole("DOCTOR"));
@@ -136,8 +142,9 @@ public class DoctorController {
             consultationService.completeConsultation(c.getId(), symptoms, diagnosis, treatment, notes, followUpDate, doctor);
             appointmentService.updateAppointmentStatus(id, AppointmentStatus.COMPLETED, "Consultation completed");
         });
-        redirectAttributes.addFlashAttribute("successMessage", "Consultation completed and recorded.");
-        return "redirect:/doctor/dashboard";
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Consultation completed. Issue a digital prescription below so the patient can order medicines.");
+        return "redirect:/doctor/consultation/" + id;
     }
 
     @PostMapping("/prescription/create")
@@ -155,18 +162,26 @@ public class DoctorController {
         if (doctor == null) return "redirect:/login";
 
         Appointment app = appointmentService.findById(appointmentId).orElse(null);
-        if (app != null) {
-            List<PrescriptionItem> items = new ArrayList<>();
+        if (app == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Appointment not found.");
+            return "redirect:/doctor/dashboard";
+        }
+        List<PrescriptionItem> items = new ArrayList<>();
             for (int i = 0; i < medicineNames.length; i++) {
                 if (medicineNames[i] != null && !medicineNames[i].trim().isEmpty()) {
                     items.add(new PrescriptionItem(medicineNames[i], dosages[i], frequencies[i], durations[i], "Take after food"));
                 }
             }
+            if (items.isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Add at least one medicine to the prescription.");
+                return "redirect:/doctor/consultation/" + appointmentId;
+            }
             prescriptionService.createPrescription(app, doctor, app.getPatient(), diagnosis, instructions, followUpDate, items);
             appointmentService.updateAppointmentStatus(appointmentId, AppointmentStatus.COMPLETED, "Prescription issued");
-            redirectAttributes.addFlashAttribute("successMessage", "Digital Prescription created and sent to Patient!");
-        }
-        return "redirect:/doctor/dashboard";
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Digital prescription sent to " + app.getPatient().getFullName()
+                            + ". The patient can order medicines from the Prescriptions page.");
+        return "redirect:/doctor/consultation/" + appointmentId;
     }
 
     @PostMapping("/lab-request/create")

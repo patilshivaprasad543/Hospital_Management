@@ -302,6 +302,8 @@ public class UserService {
     public List<User> findPharmacyVendors() {
         return userRepository.findByRole(Role.VENDOR).stream()
                 .filter(v -> v.getVendorType() == VendorType.PHARMACY)
+                .filter(User::isAdminApproved)
+                .filter(v -> v.getApprovalStatus() == ApprovalStatus.APPROVED)
                 .toList();
     }
 

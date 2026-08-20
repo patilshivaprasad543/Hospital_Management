@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PrescriptionService {
@@ -21,6 +22,9 @@ public class PrescriptionService {
     private UserService userService;
 
     public Prescription createPrescription(Appointment appointment, User doctor, User patient, String diagnosis, String instructions, LocalDate followUpDate, List<PrescriptionItem> items) {
+        if (items == null || items.isEmpty()) {
+            throw new IllegalArgumentException("Add at least one medicine to the prescription.");
+        }
         Prescription prescription = new Prescription(appointment, doctor, patient, diagnosis, instructions, followUpDate);
         if (items != null) {
             for (PrescriptionItem item : items) {
@@ -56,5 +60,11 @@ public class PrescriptionService {
 
     public List<Prescription> getDoctorPrescriptions(User doctor) {
         return prescriptionRepository.findByDoctorOrderByCreatedAtDesc(doctor);
+    }
+
+    public Optional<Prescription> findByIdForPatient(Long prescriptionId, User patient) {
+        return prescriptionRepository.findByPatientOrderByCreatedAtDesc(patient).stream()
+                .filter(p -> p.getId().equals(prescriptionId))
+                .findFirst();
     }
 }

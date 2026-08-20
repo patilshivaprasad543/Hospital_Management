@@ -65,6 +65,20 @@
             </div>
         </div>
 
+        <div th:if="${!#lists.isEmpty(prescriptions)}" style="margin-bottom: 1.5rem;">
+            <h3 class="section-title">Recent Prescriptions — Order Medicines</h3>
+            <div class="grid">
+                <div class="card" th:each="rx : ${prescriptions}" th:if="${rxStat.index < 3}">
+                    <div class="card-title" th:text="${'Rx #' + rx.id + ' — Dr. ' + rx.doctor.fullName}">Prescription</div>
+                    <p th:text="${rx.diagnosis}">Diagnosis</p>
+                    <ul style="margin:0.5rem 0 0.75rem 1.2rem;font-size:0.88rem;">
+                        <li th:each="item : ${rx.items}" th:text="${item.medicineName}">Medicine</li>
+                    </ul>
+                    <a href="/patient/prescriptions" class="btn btn-success btn-sm">Order Medicines</a>
+                </div>
+            </div>
+        </div>
+
         <h3 class="section-title">Recent Appointments</h3>
         <div class="table-container">
             <table class="table">

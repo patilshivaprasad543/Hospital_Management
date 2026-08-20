@@ -8,54 +8,91 @@
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-        <h2>💊 Digital Prescriptions</h2>
-        <p style="color: var(--text-muted); margin-bottom: 2rem;">View digital prescriptions issued by your doctors and order medicines online from Pharmacy Vendors.</p>
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>💊 My Prescriptions</h1>
+                <p>View medicines prescribed by your doctor and order delivery from a pharmacy vendor.</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="/patient/pharmacy-orders" class="btn btn-outline">Track Pharmacy Orders</a>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(pharmacyVendors)}" class="alert alert-danger">
+            No pharmacy vendors are available right now. Please contact the hospital administrator.
+        </div>
 
         <div class="grid">
             <div class="card" th:each="rx : ${prescriptions}">
                 <div class="card-title" th:text="${'Prescription #' + rx.id}">Rx #1</div>
+                <p style="font-size:0.85rem;color:var(--text-muted);"
+                   th:text="${#temporals.format(rx.createdAt, 'dd MMM yyyy, hh:mm a')}">Date</p>
                 <p>👨‍⚕️ <strong>Doctor:</strong> <span th:text="${'Dr. ' + rx.doctor.fullName}">Dr. Smith</span></p>
                 <p>🩺 <strong>Diagnosis:</strong> <span th:text="${rx.diagnosis}">Diagnosis</span></p>
-                
+
                 <div style="margin: 1rem 0; background: rgba(241, 245, 249, 0.9); padding: 0.8rem; border-radius: var(--radius-sm);">
                     <strong>Prescribed Medicines:</strong>
                     <ul style="margin-left: 1.2rem; font-size: 0.88rem; margin-top: 0.4rem;">
                         <li th:each="item : ${rx.items}">
-                            <strong th:text="${item.medicineName}">Paracetamol</strong> 
-                            (<span th:text="${item.dosage}">500mg</span>) - 
-                            <span th:text="${item.frequency}">1-0-1</span> x 
+                            <strong th:text="${item.medicineName}">Paracetamol</strong>
+                            (<span th:text="${item.dosage}">500mg</span>) —
+                            <span th:text="${item.frequency}">1-0-1</span> ×
                             <span th:text="${item.duration}">5 Days</span>
                         </li>
                     </ul>
                 </div>
 
+                <p th:if="${rx.instructions != null and !rx.instructions.isBlank()}" style="font-size:0.9rem;">
+                    <strong>Instructions:</strong> <span th:text="${rx.instructions}">Take after food</span>
+                </p>
+
                 <a th:href="@{/patient/prescription/{id}/pdf(id=${rx.id})}" class="btn btn-secondary btn-sm" style="margin-bottom:0.75rem;">Download PDF</a>
 
-                <!-- Order from Pharmacy Vendor Form -->
-                <form th:action="@{/patient/order-pharmacy}" method="post">
-                    <input type="hidden" name="prescriptionId" th:value="${rx.id}" />
-                    <div class="form-group">
-                        <label class="form-label">Select Pharmacy Vendor for Delivery</label>
-                        <select name="pharmacyVendorId" class="form-control" required>
-                            <option value="">-- Choose Pharmacy --</option>
-                            <option th:each="vendor : ${pharmacyVendors}" th:value="${vendor.id}" th:text="${vendor.fullName + ' (Pharmacy)'}">MediPlus Pharmacy</option>
-                        </select>
+                <th:block th:with="existingOrder=${latestOrderByPrescription[rx.id]}">
+                    <div th:if="${existingOrder != null and !existingOrder.status.terminal}" class="alert alert-success" style="font-size:0.9rem;">
+                        <strong>Order placed:</strong>
+                        <span th:text="${'#ORD-' + existingOrder.id + ' — ' + existingOrder.status.displayName}">Status</span>.
+                        <a href="/patient/pharmacy-orders">Track delivery</a>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Delivery Address</label>
-                        <textarea name="deliveryAddress" class="form-control" rows="2"
-                                  th:placeholder="${patientProfile.address != null ? patientProfile.address : 'Enter your delivery address'}"
-                                  th:text="${patientProfile.address}"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-success" style="width: 100%;">📦 Place Medicine Order</button>
-                </form>
+
+                    <form th:if="${existingOrder == null or existingOrder.status.terminal}"
+                          th:action="@{/patient/order-pharmacy}" method="post"
+                          style="margin-top:0.75rem;border-top:1px solid var(--border-color);padding-top:1rem;">
+                        <input type="hidden" name="prescriptionId" th:value="${rx.id}" />
+                        <div class="form-group">
+                            <label class="form-label">Select Pharmacy for Home Delivery</label>
+                            <select name="pharmacyVendorId" class="form-control" required
+                                    th:disabled="${#lists.isEmpty(pharmacyVendors)}">
+                                <option value="">-- Choose Pharmacy --</option>
+                                <option th:each="vendor : ${pharmacyVendors}"
+                                        th:value="${vendor.id}"
+                                        th:text="${vendor.fullName + ' — est. ₹' + #numbers.formatDecimal(priceEstimates[rx.id][vendor.id], 1, 0)}">
+                                    MediPlus Pharmacy
+                                </option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Delivery Address</label>
+                            <textarea name="deliveryAddress" class="form-control" rows="2" required
+                                      th:placeholder="${patientProfile.address != null ? patientProfile.address : 'Enter your full delivery address'}"
+                                      th:text="${patientProfile.address}"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success" style="width: 100%;"
+                                th:disabled="${#lists.isEmpty(pharmacyVendors)}">
+                            📦 Order Medicines from This Prescription
+                        </button>
+                    </form>
+                </th:block>
             </div>
 
-            <div th:if="${#lists.isEmpty(prescriptions)}" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">
-                No digital prescriptions issued yet.
+            <div th:if="${#lists.isEmpty(prescriptions)}" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;">
+                <p>No prescriptions yet.</p>
+                <p style="font-size:0.9rem;margin-top:0.5rem;">After your doctor consultation, prescriptions will appear here so you can order medicines online.</p>
+                <a href="/patient/appointments" class="btn btn-primary btn-sm" style="margin-top:1rem;">View Appointments</a>
             </div>
         </div>
     </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
     <script th:src="@{/js/main.js}"></script>
 </body>
 </html>

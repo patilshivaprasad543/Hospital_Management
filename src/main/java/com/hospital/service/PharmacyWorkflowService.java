@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @Service
 public class PharmacyWorkflowService {
@@ -25,6 +26,14 @@ public class PharmacyWorkflowService {
 
     public PharmacyOrder placeOrder(User patient, Prescription prescription, User pharmacyVendor,
                                     String deliveryAddress) {
+        if (prescription.getItems() == null || prescription.getItems().isEmpty()) {
+            throw new RuntimeException("This prescription has no medicines to order.");
+        }
+        if (pharmacyOrderRepository.existsByPrescriptionAndStatusNotIn(
+                prescription, List.of(PharmacyOrderStatus.DELIVERED, PharmacyOrderStatus.CANCELLED))) {
+            throw new RuntimeException("You already have an active pharmacy order for this prescription.");
+        }
+
         double totalPrice = calculateOrderTotal(prescription, pharmacyVendor);
         String orderSummary = buildOrderSummary(prescription);
         PharmacyOrder order = new PharmacyOrder(patient, prescription, pharmacyVendor, totalPrice,
@@ -78,6 +87,14 @@ public class PharmacyWorkflowService {
 
     public List<PharmacyOrder> getPatientOrders(User patient) {
         return pharmacyOrderRepository.findByPatientOrderByCreatedAtDesc(patient);
+    }
+
+    public Optional<PharmacyOrder> getLatestOrderForPrescription(Prescription prescription) {
+        return pharmacyOrderRepository.findFirstByPrescriptionOrderByCreatedAtDesc(prescription);
+    }
+
+    public double estimateOrderTotal(Prescription prescription, User pharmacyVendor) {
+        return calculateOrderTotal(prescription, pharmacyVendor);
     }
 
     public List<PharmacyOrder> getVendorOrders(User vendor) {
