@@ -140,6 +140,12 @@ docker run -p 8080:8080 \
 - Share your public URL and the **demo accounts** from README (not admin).
 - Test registration OTP, appointment booking, and notification log at `/admin/notification-log` (admin login only).
 
+## 7. “Service waking up”
+
+Free hosting **stops the app after it sits idle**. The next visitor sees a waking-up / loading screen for about **30–90 seconds** while Java starts. After that the site runs normally.
+
+That screen comes from the host, not from a SmartCare error. Refresh once it finishes. To keep the link always instant, use a paid always-on instance or an uptime monitor that requests `/health` every few minutes.
+
 ## Send me your credentials
 
 When you are ready, provide email and WhatsApp details **only through your hosting provider’s secret environment variable UI** (Render dashboard), not in chat or in code. Use `.env.example` as the checklist.

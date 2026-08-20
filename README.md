@@ -34,6 +34,8 @@ Register new patients, doctors, and vendors from the portal login page.
 
 Open http://localhost:8080 — uses `dev` profile with local defaults.
 
+The public demo link may show a short **waking up** wait after idle time on free hosting. That is normal; wait or refresh, then the site works as usual.
+
 ## Production deployment
 
 See **[DEPLOYMENT.md](DEPLOYMENT.md)** for publishing to Render or Docker.
