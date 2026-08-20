@@ -48,7 +48,22 @@ public class BrevoMailTransport implements MailTransport {
 
     @Override
     public boolean isConfigured() {
-        return !apiKey.isBlank() && !senderEmail.isBlank();
+        return isValidApiKey(apiKey) && !senderEmail.isBlank();
+    }
+
+    private static boolean isValidApiKey(String key) {
+        if (key == null || key.isBlank()) {
+            return false;
+        }
+        String trimmed = key.trim();
+        String lower = trimmed.toLowerCase();
+        if (lower.contains("your-brevo")
+                || lower.contains("replace")
+                || lower.contains("changeme")
+                || lower.equals("your-brevo-api-key")) {
+            return false;
+        }
+        return trimmed.startsWith("xkeysib-") || trimmed.length() >= 32;
     }
 
     @Override

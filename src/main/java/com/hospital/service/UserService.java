@@ -85,8 +85,10 @@ public class UserService {
         otpService.store(savedUser.getEmail(), otp, OtpPurpose.REGISTRATION);
         if (!notificationChannelService.sendOtp(savedUser.getEmail(), savedUser.getMobileNumber(), otp)) {
             throw new RuntimeException(
-                    "We could not send a verification code to " + savedUser.getEmail()
-                            + ". Ask the administrator to configure email (Gmail locally, or Brevo on Render).");
+                    "We could not send a verification code to " + savedUser.getEmail() + ". "
+                            + "The server email is not set up yet. "
+                            + "Locally: add Gmail app password to .env and run ./scripts/start.sh. "
+                            + "On Render: add a real SMARTCARE_BREVO_API_KEY from brevo.com (free tier blocks Gmail SMTP).");
         }
         auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered, OTP sent via email");
         return savedUser;
