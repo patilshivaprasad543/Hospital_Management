@@ -45,6 +45,12 @@ public class User {
 
     private java.time.LocalDateTime lastLoginAt;
 
+    @Transient
+    private boolean otpDelivered = true;
+
+    @Transient
+    private String pendingOtpHint;
+
     public User() {
     }
 
@@ -180,5 +186,21 @@ public class User {
             return true;
         }
         return adminApproved && approvalStatus == ApprovalStatus.APPROVED;
+    }
+
+    public boolean isOtpDelivered() {
+        return otpDelivered;
+    }
+
+    public void setOtpDelivered(boolean otpDelivered) {
+        this.otpDelivered = otpDelivered;
+    }
+
+    public String getPendingOtpHint() {
+        return pendingOtpHint;
+    }
+
+    public void setPendingOtpHint(String pendingOtpHint) {
+        this.pendingOtpHint = pendingOtpHint;
     }
 }

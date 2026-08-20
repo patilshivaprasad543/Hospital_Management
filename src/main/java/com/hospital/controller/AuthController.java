@@ -98,11 +98,17 @@ public class AuthController {
                         ownerName != null ? ownerName : registeredUser.getFullName(),
                         address, licenseNumber, workingHours, deliveryArea);
             }
-            session.setAttribute("pendingVerificationUser", registeredUser);
-            boolean mailReady = emailService.isSmtpConfigured();
-            redirectAttributes.addFlashAttribute("successMessage", mailReady
+            session.setAttribute("pendingVerificationUserId", registeredUser.getId());
+            if (!registeredUser.isOtpDelivered() && registeredUser.getPendingOtpHint() != null) {
+                session.setAttribute("pendingOtpHint", registeredUser.getPendingOtpHint());
+            } else {
+                session.removeAttribute("pendingOtpHint");
+            }
+            redirectAttributes.addFlashAttribute("successMessage", registeredUser.isOtpDelivered()
                     ? "A 6-digit OTP was sent to " + registeredUser.getEmail() + ". Verify to activate your account, then sign in."
-                    : "Account saved. Email could not be sent — use Resend OTP after mail is configured, or try Resend now.");
+                    : "Account saved, but the verification email could not be delivered to "
+                            + registeredUser.getEmail()
+                            + ". Use the code shown on the next page (this session only), or click Resend OTP.");
             return "redirect:/verify-otp?userId=" + registeredUser.getId();
         } catch (Exception e) {
             Optional<User> existingUser = userService.findByEmail(user.getEmail());
@@ -121,7 +127,7 @@ public class AuthController {
     }
 
     @GetMapping("/verify-otp")
-    public String showVerifyOtpPage(@RequestParam("userId") Long userId, Model model) {
+    public String showVerifyOtpPage(@RequestParam("userId") Long userId, HttpSession session, Model model) {
         model.addAttribute("userId", userId);
         model.addAttribute("emailReady", emailService.isSmtpConfigured());
         userService.findById(userId).ifPresent(user -> {
@@ -137,6 +143,11 @@ public class AuthController {
                 model.addAttribute("portalRole", PortalRole.DOCTOR);
             }
         });
+        Object pendingId = session.getAttribute("pendingVerificationUserId");
+        Object otpHint = session.getAttribute("pendingOtpHint");
+        if (pendingId instanceof Long id && id.equals(userId) && otpHint instanceof String hint && !hint.isBlank()) {
+            model.addAttribute("otpHint", hint);
+        }
         return "auth/verify-otp";
     }
 
@@ -158,6 +169,8 @@ public class AuthController {
             Optional<User> userOptional = userService.findById(userId);
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
+                session.removeAttribute("pendingOtpHint");
+                session.removeAttribute("pendingVerificationUserId");
                 if (user.getRole() == Role.PATIENT) {
                     redirectAttributes.addFlashAttribute("successMessage",
                             "Email verified. Your account is activated. Please sign in.");
@@ -272,54 +285,69 @@ public class AuthController {
             return "redirect:/login";
         }
 
-        Optional<User> userOptional = userService.loginUser(email, password);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-
-            if (!portalRole.matchesUser(user)) {
-                model.addAttribute("portalRole", portalRole);
-                model.addAttribute("errorMessage",
-                        "This account is not registered as " + portalRole.getLabel() + ". Please select the correct role portal.");
-                return "auth/login";
-            }
-
-            if (!user.isVerified()) {
-                redirectAttributes.addFlashAttribute("errorMessage",
-                        "Your account is not verified yet. Enter the code sent to your email during registration, "
-                                + "or use Resend on the verification page to request a new code.");
-                return "redirect:/verify-otp?userId=" + user.getId();
-            }
-
-            if (user.getRole() == Role.DOCTOR || user.getRole() == Role.VENDOR) {
-                if (user.getApprovalStatus() == ApprovalStatus.PENDING_DOCUMENTS) {
-                    redirectAttributes.addFlashAttribute("errorMessage", "Please submit your documents before logging in.");
-                    return "redirect:/submit-documents?userId=" + user.getId();
-                }
-                if (user.getApprovalStatus() == ApprovalStatus.PENDING_ADMIN) {
-                    redirectAttributes.addFlashAttribute("errorMessage", "Your account is pending admin approval. You will be notified once approved.");
-                    return "redirect:/login/" + portalRoleParam.toLowerCase();
-                }
-                if (user.getApprovalStatus() == ApprovalStatus.REJECTED) {
-                    redirectAttributes.addFlashAttribute("errorMessage",
-                            "Your application was rejected"
-                                    + (user.getRejectionReason() != null ? ": " + user.getRejectionReason() : ".")
-                                    + " You can update documents and resubmit.");
-                    return "redirect:/submit-documents?userId=" + user.getId();
-                }
-            }
-
-            if (!user.canLogin()) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Your account is not active. Contact the administrator.");
-                return "redirect:/login/" + portalRoleParam.toLowerCase();
-            }
-
-            session.setAttribute("loggedInUser", user);
-            return getRedirectUrlForRole(user.getRole());
+        Optional<User> existing = userService.findByEmailOrMobile(email);
+        if (existing.isEmpty()) {
+            model.addAttribute("portalRole", portalRole);
+            model.addAttribute("errorMessage",
+                    "No " + portalRole.getLabel().toLowerCase()
+                            + " account exists for this email. Create one with Register, or check the spelling.");
+            return "auth/login";
         }
 
-        model.addAttribute("portalRole", portalRole);
-        model.addAttribute("errorMessage", "Invalid email or password!");
-        return "auth/login";
+        User user = userService.reconcileVendorType(existing.get(), portalRole);
+        if (!userService.passwordMatches(user, password)) {
+            model.addAttribute("portalRole", portalRole);
+            model.addAttribute("errorMessage", "Incorrect password for " + user.getEmail() + ".");
+            return "auth/login";
+        }
+
+        if (!portalRole.matchesUser(user)) {
+            model.addAttribute("portalRole", portalRole);
+            String correctPortal = PortalRole.loginPathForUser(user);
+            model.addAttribute("errorMessage",
+                    "This email is registered as "
+                            + (user.getRole() == Role.VENDOR && user.getVendorType() != null
+                            ? user.getVendorType().getLabel()
+                            : user.getRole().getLabel())
+                            + ". Sign in at " + correctPortal + " instead.");
+            return "auth/login";
+        }
+
+        if (!user.isVerified()) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Your account is not verified yet. Enter the code sent to your email during registration, "
+                            + "or use Resend on the verification page to request a new code.");
+            return "redirect:/verify-otp?userId=" + user.getId();
+        }
+
+        if (user.getRole() == Role.DOCTOR || user.getRole() == Role.VENDOR) {
+            if (user.getApprovalStatus() == ApprovalStatus.PENDING_DOCUMENTS) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Please submit your documents before logging in.");
+                return "redirect:/submit-documents?userId=" + user.getId();
+            }
+            if (user.getApprovalStatus() == ApprovalStatus.PENDING_ADMIN) {
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        "Your pharmacy/vendor account is pending admin approval. Ask an administrator to approve "
+                                + user.getEmail() + ", then sign in again.");
+                return "redirect:/login/" + portalRole.pathSegment();
+            }
+            if (user.getApprovalStatus() == ApprovalStatus.REJECTED) {
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        "Your application was rejected"
+                                + (user.getRejectionReason() != null ? ": " + user.getRejectionReason() : ".")
+                                + " You can update documents and resubmit.");
+                return "redirect:/submit-documents?userId=" + user.getId();
+            }
+        }
+
+        if (!user.canLogin()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Your account is not active. Contact the administrator.");
+            return "redirect:/login/" + portalRole.pathSegment();
+        }
+
+        userService.recordSuccessfulLogin(user);
+        session.setAttribute("loggedInUser", user);
+        return getRedirectUrlForRole(user.getRole());
     }
 
     @GetMapping("/forgot-password")

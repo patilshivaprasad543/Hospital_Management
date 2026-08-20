@@ -19,7 +19,6 @@
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
             <form th:action="@{/register/{r}(r=${portalRole.pathSegment})}" th:object="${user}" method="post">
-                <input type="hidden" th:field="*{role}" />
                 <input type="hidden" name="selectedVendorType" th:if="${portalRole.name() == 'VENDOR'}" value="LABORATORY" />
                 <input type="hidden" name="selectedVendorType" th:if="${portalRole.name() == 'PHARMACY'}" value="PHARMACY" />
 

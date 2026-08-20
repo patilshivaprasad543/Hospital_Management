@@ -13,6 +13,11 @@
             </p>
             <p style="text-align: center; font-weight: 600; margin-bottom: 1rem;" th:text="${userEmail}">you@email.com</p>
 
+            <div th:if="${otpHint}" class="alert alert-success" style="font-size:0.95rem;">
+                Email delivery failed for this registration. Enter this verification code:
+                <strong th:text="${otpHint}" style="letter-spacing:0.2rem;">000000</strong>
+            </div>
+
             <div th:unless="${emailReady}" class="alert alert-danger" style="font-size:0.9rem;">
                 Email delivery is not configured on this server. The administrator must set up email
                 (Brevo API for Render free hosting, or Gmail SMTP locally).

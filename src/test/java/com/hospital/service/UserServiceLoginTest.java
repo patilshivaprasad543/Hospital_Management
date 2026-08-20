@@ -2,8 +2,11 @@ package com.hospital.service;
 
 import com.hospital.model.ApprovalStatus;
 import com.hospital.model.OtpPurpose;
+import com.hospital.model.PortalRole;
 import com.hospital.model.Role;
 import com.hospital.model.User;
+import com.hospital.model.VendorProfile;
+import com.hospital.model.VendorType;
 import com.hospital.repository.*;
 import com.hospital.service.mail.MailDeliveryDiagnostics;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,5 +97,42 @@ class UserServiceLoginTest {
         verify(patientProfileRepository).save(any());
         verify(otpService).store(eq("new.user@example.com"), any(), eq(OtpPurpose.REGISTRATION));
         verify(notificationChannelService).sendOtp(eq("new.user@example.com"), eq("9000000000"), any());
+    }
+
+    @Test
+    void registerUser_storesPharmacyVendorType() {
+        User incoming = new User("City Chemist", "chemist@example.com", "9111111111", "ShopPass1", Role.VENDOR);
+        incoming.setVendorType(VendorType.PHARMACY);
+        when(userRepository.existsByEmail("chemist@example.com")).thenReturn(false);
+        when(userRepository.existsByMobileNumber("9111111111")).thenReturn(false);
+        when(passwordEncoder.encode("ShopPass1")).thenReturn("hashed-shop");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User saved = invocation.getArgument(0);
+            saved.setId(77L);
+            return saved;
+        });
+        when(vendorProfileRepository.save(any(VendorProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(notificationChannelService.sendOtp(eq("chemist@example.com"), eq("9111111111"), any())).thenReturn(true);
+
+        User stored = userService.registerUser(incoming);
+
+        assertEquals(VendorType.PHARMACY, stored.getVendorType());
+        assertEquals(Role.VENDOR, stored.getRole());
+        verify(vendorProfileRepository).save(any(VendorProfile.class));
+    }
+
+    @Test
+    void reconcileVendorType_repairsPharmacyAccountStoredAsNone() {
+        User vendor = new User("City Chemist", "chemist@example.com", "9111111111", "hashed", Role.VENDOR);
+        vendor.setId(77L);
+        vendor.setVendorType(VendorType.NONE);
+        when(vendorProfileRepository.findByUser(vendor)).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(vendorProfileRepository.save(any(VendorProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User repaired = userService.reconcileVendorType(vendor, PortalRole.PHARMACY);
+
+        assertEquals(VendorType.PHARMACY, repaired.getVendorType());
+        verify(userRepository).save(vendor);
     }
 }

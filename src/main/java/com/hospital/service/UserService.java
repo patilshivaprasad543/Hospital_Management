@@ -69,7 +69,7 @@ public class UserService {
         }
         user.setMobileNumber(mobile);
 
-        if (userRepository.existsByEmail(email)) {
+        if (userRepository.existsByEmail(email) || userRepository.existsByEmailIgnoreCase(email)) {
             throw new RuntimeException("This email is already registered. Please sign in with your password.");
         }
         if (userRepository.existsByMobileNumber(mobile)) {
@@ -82,6 +82,9 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setApprovalStatus(ApprovalStatus.PENDING_OTP);
         user.setAdminApproved(user.getRole() == Role.PATIENT);
+        if (user.getRole() == Role.VENDOR && (user.getVendorType() == null || user.getVendorType() == VendorType.NONE)) {
+            throw new RuntimeException("Select Pharmacy or Laboratory when creating this account.");
+        }
 
         User savedUser = userRepository.save(user);
 
@@ -104,6 +107,7 @@ public class UserService {
             doctorProfileRepository.save(doctorProfile);
         } else if (user.getRole() == Role.VENDOR) {
             VendorProfile vendorProfile = new VendorProfile(savedUser);
+            vendorProfile.setVendorType(savedUser.getVendorType());
             vendorProfile.setBusinessName(user.getFullName() + " Services");
             vendorProfile.setOwnerName(user.getFullName());
             vendorProfile.setContactPhone(user.getMobileNumber());
@@ -117,9 +121,12 @@ public class UserService {
         boolean sent = notificationChannelService.sendOtp(savedUser.getEmail(), savedUser.getMobileNumber(), otp);
         auditLogService.log(savedUser, "USER_REGISTERED", "AUTH",
                 sent ? "User registered, OTP sent" : "User registered, OTP send failed");
+        savedUser.setOtpDelivered(sent);
         if (!sent) {
             String detail = mailDeliveryDiagnostics.getLastFailure();
             savedUser.setDocumentInfo(detail != null ? detail : "OTP email was not delivered");
+            savedUser.setPendingOtpHint(otp);
+            userRepository.save(savedUser);
         }
         return savedUser;
     }
@@ -249,17 +256,63 @@ public class UserService {
     }
 
     public Optional<User> loginUser(String emailOrMobile, String password) {
+        Optional<User> userOptional = authenticate(emailOrMobile, password);
+        userOptional.ifPresent(this::recordSuccessfulLogin);
+        return userOptional;
+    }
+
+    public Optional<User> authenticate(String emailOrMobile, String password) {
         Optional<User> userOptional = findByEmailOrMobile(emailOrMobile);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            if (passwordEncoder.matches(password, user.getPassword())) {
-                user.setLastLoginAt(LocalDateTime.now());
-                userRepository.save(user);
-                auditLogService.log(user, "LOGIN", "AUTH", "User logged in");
-                return Optional.of(user);
+        if (userOptional.isEmpty()) {
+            return Optional.empty();
+        }
+        User user = userOptional.get();
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            return Optional.empty();
+        }
+        return Optional.of(user);
+    }
+
+    public boolean passwordMatches(User user, String rawPassword) {
+        return user != null && rawPassword != null && passwordEncoder.matches(rawPassword, user.getPassword());
+    }
+
+    public void recordSuccessfulLogin(User user) {
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
+        auditLogService.log(user, "LOGIN", "AUTH", "User logged in");
+    }
+
+    /**
+     * Pharmacy portal login requires User.vendorType = PHARMACY. New registrations
+     * sometimes kept NONE, so a valid new email was rejected as the wrong role.
+     */
+    public User reconcileVendorType(User user, PortalRole portalRole) {
+        if (user == null || user.getRole() != Role.VENDOR) {
+            return user;
+        }
+        VendorType profileType = getVendorProfile(user)
+                .map(VendorProfile::getVendorType)
+                .orElse(null);
+        VendorType current = user.getVendorType();
+        VendorType resolved = current;
+        if (resolved == null || resolved == VendorType.NONE) {
+            if (profileType == VendorType.PHARMACY || profileType == VendorType.LABORATORY) {
+                resolved = profileType;
+            } else if (portalRole == PortalRole.PHARMACY) {
+                resolved = VendorType.PHARMACY;
+            } else if (portalRole == PortalRole.VENDOR) {
+                resolved = VendorType.LABORATORY;
             }
         }
-        return Optional.empty();
+        if (resolved != null && resolved != VendorType.NONE && resolved != current) {
+            user.setVendorType(resolved);
+            userRepository.save(user);
+            VendorProfile profile = getVendorProfile(user).orElseGet(() -> new VendorProfile(user));
+            profile.setVendorType(resolved);
+            vendorProfileRepository.save(profile);
+        }
+        return user;
     }
 
     public Optional<User> findByEmailOrMobile(String identifier) {
@@ -268,7 +321,8 @@ public class UserService {
         }
         String trimmed = identifier.trim();
         if (trimmed.contains("@")) {
-            return userRepository.findByEmail(normalizeEmail(trimmed));
+            return userRepository.findByEmail(normalizeEmail(trimmed))
+                    .or(() -> userRepository.findByEmailIgnoreCase(trimmed.trim()));
         }
         Optional<User> byMobile = userRepository.findByMobileNumber(normalizeMobile(trimmed));
         if (byMobile.isPresent()) {
@@ -388,8 +442,7 @@ public class UserService {
     }
 
     public List<User> findPharmacyVendors() {
-        return userRepository.findByRole(Role.VENDOR).stream()
-                .filter(v -> v.getVendorType() == VendorType.PHARMACY)
+        return findVendorsByType(VendorType.PHARMACY).stream()
                 .filter(User::isAdminApproved)
                 .filter(v -> v.getApprovalStatus() == ApprovalStatus.APPROVED)
                 .toList();
@@ -409,14 +462,24 @@ public class UserService {
 
     public List<User> findVendorsByType(VendorType vendorType) {
         return userRepository.findByRole(Role.VENDOR).stream()
-                .filter(v -> v.getVendorType() == vendorType)
+                .filter(v -> vendorTypeMatches(v, vendorType))
                 .toList();
     }
 
     public List<User> findPendingVendorsByType(VendorType vendorType) {
         return findPendingVendors().stream()
-                .filter(v -> v.getVendorType() == vendorType)
+                .filter(v -> vendorTypeMatches(v, vendorType))
                 .toList();
+    }
+
+    private boolean vendorTypeMatches(User vendor, VendorType vendorType) {
+        if (vendor.getVendorType() == vendorType) {
+            return true;
+        }
+        return getVendorProfile(vendor)
+                .map(VendorProfile::getVendorType)
+                .filter(type -> type == vendorType)
+                .isPresent();
     }
 
     public PatientProfile updatePatientProfile(Long userId, PatientProfile updatedProfile) {
@@ -508,6 +571,12 @@ public class UserService {
         if (updatedProfile.getLicenseFileName() != null && !updatedProfile.getLicenseFileName().isBlank()) {
             existingProfile.setLicenseFileName(updatedProfile.getLicenseFileName());
         }
+        if (updatedProfile.getVendorType() == VendorType.PHARMACY
+                || updatedProfile.getVendorType() == VendorType.LABORATORY) {
+            existingProfile.setVendorType(updatedProfile.getVendorType());
+            user.setVendorType(updatedProfile.getVendorType());
+            userRepository.save(user);
+        }
 
         return vendorProfileRepository.save(existingProfile);
     }
@@ -516,6 +585,9 @@ public class UserService {
                                                String address, String licenseNumber,
                                                String workingHours, String deliveryArea) {
         VendorProfile profile = vendorProfileRepository.findByUser(vendor).orElseGet(() -> new VendorProfile(vendor));
+        if (vendor.getVendorType() == VendorType.PHARMACY || vendor.getVendorType() == VendorType.LABORATORY) {
+            profile.setVendorType(vendor.getVendorType());
+        }
         if (businessName != null && !businessName.isBlank()) {
             profile.setBusinessName(businessName.trim());
         }
