@@ -2,6 +2,7 @@ package com.hospital.service;
 
 import com.hospital.model.Notification;
 import com.hospital.model.NotificationCategory;
+import com.hospital.model.Role;
 import com.hospital.model.User;
 import com.hospital.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,5 +85,55 @@ public class NotificationService {
                     return true;
                 })
                 .orElse(false);
+    }
+
+    public List<Notification> getRecentNotifications() {
+        return notificationRepository.findTop100ByOrderByCreatedAtDesc();
+    }
+
+    public long getTotalNotificationCount() {
+        return notificationRepository.count();
+    }
+
+    public long getUnreadNotificationCount() {
+        return notificationRepository.countByIsReadFalse();
+    }
+
+    public int broadcastNotification(String title, String message, NotificationCategory category,
+                                     String audience, String linkUrl, List<User> recipients) {
+        if (title == null || title.isBlank() || message == null || message.isBlank()) {
+            return 0;
+        }
+
+        NotificationCategory resolvedCategory = category != null ? category : NotificationCategory.SYSTEM;
+        String resolvedLink = linkUrl != null && !linkUrl.isBlank() ? linkUrl : null;
+        int sent = 0;
+
+        for (User recipient : recipients) {
+            if (recipient == null || recipient.getRole() == Role.ADMIN) {
+                continue;
+            }
+            if (!matchesAudience(recipient, audience)) {
+                continue;
+            }
+            if (!"ACTIVE".equalsIgnoreCase(recipient.getAccountStatus())) {
+                continue;
+            }
+            sendNotification(recipient, title.trim(), message.trim(), resolvedCategory, resolvedLink);
+            sent++;
+        }
+        return sent;
+    }
+
+    private boolean matchesAudience(User user, String audience) {
+        if (audience == null || audience.isBlank() || "ALL".equalsIgnoreCase(audience)) {
+            return true;
+        }
+        return switch (audience.toUpperCase()) {
+            case "PATIENT" -> user.getRole() == Role.PATIENT;
+            case "DOCTOR" -> user.getRole() == Role.DOCTOR;
+            case "VENDOR" -> user.getRole() == Role.VENDOR;
+            default -> true;
+        };
     }
 }

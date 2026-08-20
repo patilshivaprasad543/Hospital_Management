@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Notifications')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-header-content">
+            <h1>Notification Center</h1>
+            <p>Send in-app alerts to patients, doctors, and vendors. Track delivery across email and WhatsApp.</p>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <div class="grid" style="margin-bottom: 1.5rem;">
+        <div class="card stat-card">
+            <div class="card-title">Total Sent</div>
+            <div class="stat-number" th:text="${totalNotifications}">0</div>
+        </div>
+        <div class="card stat-card">
+            <div class="card-title">Unread by Users</div>
+            <div class="stat-number warning" th:text="${unreadNotifications}">0</div>
+        </div>
+        <div class="card stat-card">
+            <div class="card-title">Email Channel</div>
+            <div class="stat-number" th:classappend="${emailEnabled} ? 'success' : 'warning'"
+                 th:text="${emailEnabled} ? 'Active' : 'Inactive'">Status</div>
+        </div>
+        <div class="card stat-card">
+            <div class="card-title">WhatsApp Channel</div>
+            <div class="stat-number" th:classappend="${whatsappEnabled} ? 'success' : 'warning'"
+                 th:text="${whatsappEnabled} ? 'Active' : 'Inactive'">Status</div>
+        </div>
+    </div>
+
+    <div class="split-layout">
+        <div class="card">
+            <h3 class="mb-2">Send Notification</h3>
+            <form th:action="@{/admin/notifications/send}" method="post">
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input type="text" name="title" class="form-control"
+                           placeholder="e.g. OPD Schedule Update" required maxlength="255">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Message</label>
+                    <textarea name="message" class="form-control" rows="4"
+                              placeholder="Notification message for recipients..." required maxlength="1000"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select name="category" class="form-control">
+                        <option th:each="cat : ${categories}" th:value="${cat.name()}" th:text="${cat.name()}">SYSTEM</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Audience</label>
+                    <select name="audience" class="form-control">
+                        <option value="ALL">All Users</option>
+                        <option value="PATIENT">Patients Only</option>
+                        <option value="DOCTOR">Doctors Only</option>
+                        <option value="VENDOR">Vendors Only</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Portal Link <span class="text-muted">(optional)</span></label>
+                    <input type="text" name="linkUrl" class="form-control"
+                           placeholder="/patient/appointments">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Send Notification</button>
+            </form>
+        </div>
+
+        <div class="table-container">
+            <h3 style="padding: 1rem 1.25rem 0;">Recent In-App Notifications</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Recipient</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="n : ${recentNotifications}">
+                        <td th:text="${#temporals.format(n.createdAt, 'dd MMM HH:mm')}">Time</td>
+                        <td>
+                            <strong th:text="${n.recipient.fullName}">User</strong>
+                            <div class="text-muted" style="font-size:0.85rem;" th:text="${n.recipient.role}">ROLE</div>
+                        </td>
+                        <td>
+                            <strong th:text="${n.title}">Title</strong>
+                            <div class="text-muted" style="font-size:0.85rem;" th:text="${n.message}">Message</div>
+                        </td>
+                        <td><span class="badge badge-role" th:text="${n.category}">SYSTEM</span></td>
+                        <td>
+                            <span class="badge" th:classappend="${n.read} ? 'badge-confirmed' : 'badge-pending'"
+                                  th:text="${n.read} ? 'Read' : 'Unread'">Unread</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(recentNotifications)}">
+                        <td colspan="5" style="text-align:center;color:var(--text-muted);">
+                            No notifications sent yet.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <h3 class="section-title">Email &amp; WhatsApp Delivery History</h3>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Channel</th>
+                    <th>Recipient</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="entry : ${deliveryEntries}">
+                    <td th:text="${#temporals.format(entry.timestamp, 'dd MMM HH:mm:ss')}">Time</td>
+                    <td><span class="badge badge-role" th:text="${entry.channel}">EMAIL</span></td>
+                    <td th:text="${entry.recipient}">user@email.com</td>
+                    <td th:text="${entry.subject}">Subject</td>
+                    <td>
+                        <span class="badge" th:classappend="${entry.delivered} ? 'badge-confirmed' : 'badge-pending'"
+                              th:text="${entry.delivered} ? 'Delivered' : 'Pending'">Status</span>
+                        <span th:if="${entry.otpMessage}" class="text-muted" style="font-size:0.85rem;display:block;">
+                            Verification message (content redacted)
+                        </span>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(deliveryEntries)}">
+                    <td colspan="5" style="text-align:center;color:var(--text-muted);">
+                        No delivery history yet.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

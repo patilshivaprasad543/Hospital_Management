@@ -57,6 +57,9 @@ public class AdminController {
     private NotificationLogService notificationLogService;
 
     @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
     private EmailService emailService;
 
     @Autowired
@@ -347,13 +350,68 @@ public class AdminController {
     }
 
     @GetMapping("/notification-log")
-    public String notificationLog(HttpSession session, Model model) {
-        User admin = getLoggedInAdmin(session);
-        if (admin == null) return "redirect:/login/admin";
+    public String notificationLog(HttpSession session) {
+        if (getLoggedInAdmin(session) == null) {
+            return "redirect:/login/admin";
+        }
+        return "redirect:/admin/notifications";
+    }
 
-        model.addAttribute("entries", notificationLogService.getRecentEntries());
-        model.addAttribute("smtpConfigured", emailService.isSmtpConfigured());
-        model.addAttribute("whatsappConfigured", whatsAppService.isTwilioConfigured());
-        return "admin/notification-log";
+    @GetMapping("/notifications")
+    public String notifications(HttpSession session, Model model) {
+        User admin = getLoggedInAdmin(session);
+        if (admin == null) {
+            return "redirect:/login/admin";
+        }
+
+        model.addAttribute("admin", admin);
+        model.addAttribute("categories", NotificationCategory.values());
+        model.addAttribute("totalNotifications", notificationService.getTotalNotificationCount());
+        model.addAttribute("unreadNotifications", notificationService.getUnreadNotificationCount());
+        model.addAttribute("recentNotifications", notificationService.getRecentNotifications());
+        model.addAttribute("deliveryEntries", notificationLogService.getRecentEntries());
+        model.addAttribute("emailEnabled", emailService.isSmtpConfigured());
+        model.addAttribute("whatsappEnabled", whatsAppService.isTwilioConfigured());
+        return "admin/notifications";
+    }
+
+    @PostMapping("/notifications/send")
+    public String sendNotification(@RequestParam String title,
+                                   @RequestParam String message,
+                                   @RequestParam(defaultValue = "SYSTEM") String category,
+                                   @RequestParam(defaultValue = "ALL") String audience,
+                                   @RequestParam(required = false) String linkUrl,
+                                   HttpSession session,
+                                   RedirectAttributes redirectAttributes) {
+        User admin = getLoggedInAdmin(session);
+        if (admin == null) {
+            return "redirect:/login/admin";
+        }
+
+        NotificationCategory notificationCategory;
+        try {
+            notificationCategory = NotificationCategory.valueOf(category.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            notificationCategory = NotificationCategory.SYSTEM;
+        }
+
+        int sent = notificationService.broadcastNotification(
+                title,
+                message,
+                notificationCategory,
+                audience,
+                linkUrl,
+                userService.findAllUsers());
+
+        if (sent == 0) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "No notifications were sent. Check the audience and ensure active users exist.");
+        } else {
+            auditLogService.log(admin, "NOTIFICATION_BROADCAST", "NOTIFICATIONS", null, null,
+                    "Sent \"" + title + "\" to " + sent + " user(s) [" + audience + "]");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Notification sent to " + sent + " user(s).");
+        }
+        return "redirect:/admin/notifications";
     }
 }

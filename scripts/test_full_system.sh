@@ -129,7 +129,7 @@ for path_label in \
   "/admin/departments|Admin departments|Department" \
   "/admin/announcements|Admin announcements|Announcement" \
   "/admin/audit-logs|Admin audit logs|Audit" \
-  "/admin/notification-log|Admin notification log|Notification"; do
+  "/admin/notifications|Admin notifications|Notification"; do
   IFS='|' read -r path label marker <<< "$path_label"
   expect_page "$A" "$path" "$label" "$marker"
 done
