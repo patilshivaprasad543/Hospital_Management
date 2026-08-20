@@ -5,6 +5,7 @@ import com.hospital.model.PortalRole;
 import com.hospital.model.Role;
 import com.hospital.model.User;
 import com.hospital.model.VendorType;
+import com.hospital.service.NotificationChannelService;
 import com.hospital.service.UserService;
 import com.hospital.service.EmailService;
 import com.hospital.service.NotificationLogService;
@@ -38,6 +39,9 @@ public class AuthController {
 
     @Autowired
     private WhatsAppService whatsAppService;
+
+    @Autowired
+    private NotificationChannelService notificationChannelService;
 
     @Value("${smartcare.dev.expose-otp:true}")
     private boolean exposeOtp;
@@ -97,6 +101,7 @@ public class AuthController {
     public String showVerifyOtpPage(@RequestParam("userId") Long userId, Model model) {
         model.addAttribute("userId", userId);
         model.addAttribute("emailConfigured", emailService.isSmtpConfigured());
+        model.addAttribute("whatsAppEnabled", notificationChannelService.isWhatsAppEnabled());
         model.addAttribute("whatsappConfigured", whatsAppService.isTwilioConfigured());
         userService.findById(userId).ifPresent(user -> {
             model.addAttribute("userEmail", user.getEmail());
@@ -201,7 +206,7 @@ public class AuthController {
         try {
             userService.resendOtp(userId);
             redirectAttributes.addFlashAttribute("successMessage",
-                    "A new OTP has been sent to your registered email and mobile number.");
+                    "A new OTP has been sent to your registered email address.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Could not resend OTP: " + e.getMessage());
         }

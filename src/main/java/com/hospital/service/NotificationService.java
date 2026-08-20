@@ -28,9 +28,6 @@ public class NotificationService {
     @Value("${smartcare.notifications.email-enabled:true}")
     private boolean emailEnabled;
 
-    @Value("${smartcare.notifications.whatsapp-enabled:true}")
-    private boolean whatsAppEnabled;
-
     public Notification sendNotification(User recipient, String title, String message,
                                            NotificationCategory category, String linkUrl) {
         Notification notification = notificationRepository.save(
@@ -63,7 +60,8 @@ public class NotificationService {
         if (emailEnabled && recipient.getEmail() != null && !recipient.getEmail().isBlank()) {
             emailService.sendNotificationEmail(recipient.getEmail(), recipient.getFullName(), title, fullMessage);
         }
-        if (whatsAppEnabled && recipient.getMobileNumber() != null && !recipient.getMobileNumber().isBlank()) {
+        if (notificationChannelService.isWhatsAppEnabled()
+                && recipient.getMobileNumber() != null && !recipient.getMobileNumber().isBlank()) {
             whatsAppService.sendMessage(recipient.getMobileNumber(), title, fullMessage);
         }
     }

@@ -41,9 +41,6 @@ public class UserService {
     @Autowired
     private OtpService otpService;
 
-    @Autowired
-    private WhatsAppService whatsAppService;
-
     public User registerUser(User user) {
         if (user.getRole() == Role.ADMIN) {
             throw new RuntimeException("Admin accounts cannot be self-registered. Contact system administrator.");
@@ -79,7 +76,7 @@ public class UserService {
 
         notificationChannelService.sendOtp(user.getEmail(), user.getMobileNumber(), otp);
         otpService.store(savedUser.getEmail(), otp, OtpPurpose.REGISTRATION);
-        auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered, OTP sent via email & WhatsApp");
+        auditLogService.log(savedUser, "USER_REGISTERED", "AUTH", "User registered, OTP sent via email");
         return savedUser;
     }
 
@@ -197,7 +194,7 @@ public class UserService {
         String resetOtp = generateOtp();
         otpService.store(user.getEmail(), resetOtp, OtpPurpose.PASSWORD_RESET);
         notificationChannelService.sendPasswordResetOtp(user.getEmail(), user.getMobileNumber(), resetOtp);
-        auditLogService.log(user, "PASSWORD_RESET_REQUESTED", "AUTH", "Password reset OTP sent via email & WhatsApp");
+        auditLogService.log(user, "PASSWORD_RESET_REQUESTED", "AUTH", "Password reset OTP sent via email");
     }
 
     public boolean resetPassword(String email, String resetOtp, String newPassword) {

@@ -16,17 +16,21 @@ public class NotificationChannelService {
     @Value("${smartcare.notifications.email-enabled:true}")
     private boolean emailEnabled;
 
-    @Value("${smartcare.notifications.whatsapp-enabled:true}")
+    @Value("${smartcare.notifications.whatsapp-enabled:false}")
     private boolean whatsAppEnabled;
 
     @Value("${smartcare.app.base-url:http://localhost:8080}")
     private String appBaseUrl;
 
+    public boolean isWhatsAppEnabled() {
+        return whatsAppEnabled && whatsAppService.isTwilioConfigured();
+    }
+
     public void sendOtp(String email, String mobile, String otpCode) {
         if (emailEnabled) {
             emailService.sendOtpEmail(email, otpCode);
         }
-        if (whatsAppEnabled) {
+        if (isWhatsAppEnabled()) {
             whatsAppService.sendOtp(mobile, otpCode);
         }
     }
@@ -35,7 +39,7 @@ public class NotificationChannelService {
         if (emailEnabled) {
             emailService.sendPasswordResetEmail(email, otpCode);
         }
-        if (whatsAppEnabled) {
+        if (isWhatsAppEnabled()) {
             whatsAppService.sendMessage(mobile, "SmartCare 360 Password Reset",
                     "Your password reset OTP is: " + otpCode + "\nDo not share this code with anyone.");
         }
@@ -45,7 +49,7 @@ public class NotificationChannelService {
         if (emailEnabled) {
             emailService.sendApprovalEmail(email, fullName, approved);
         }
-        if (whatsAppEnabled) {
+        if (isWhatsAppEnabled()) {
             String message = approved
                     ? "Your SmartCare 360 account has been approved. You can now log in."
                     : "Your SmartCare 360 account application was not approved. Contact the administrator.";
