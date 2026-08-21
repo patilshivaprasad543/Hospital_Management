@@ -8,7 +8,7 @@
 
 services:
   - type: web
-    name: hospital-management-glt1
+    name: hospital-management-glt1-ge8d
     runtime: docker
     plan: free
     region: singapore
@@ -21,7 +21,7 @@ services:
       - key: PORT
         value: "8080"
       - key: SMARTCARE_APP_URL
-        value: https://hospital-management-glt1.onrender.com
+        value: https://hospital-management-glt1-ge8d.onrender.com
       - key: SMARTCARE_ADMIN_EMAIL
         value: admin@smartcare360.local
       - key: SMARTCARE_ADMIN_PASSWORD
@@ -44,7 +44,18 @@ services:
         value: SmartCare 360
       - key: SMARTCARE_WHATSAPP_ENABLED
         value: "false"
-      # Set this on the web service in the dashboard (Internal Database URL).
-      # Creating Postgres alone does not inject the URL into the Java process.
+      # Set these on the web service in the dashboard (never commit secrets).
+      # Use the Postgres External Database URL if Internal host fails DNS
+      # (UnknownHostException on dpg-…-a). JDBC URL must use sslmode=require.
       - key: DATABASE_URL
+        sync: false
+      - key: SMARTCARE_DB_URL
+        sync: false
+      - key: SMARTCARE_DB_DRIVER
+        value: org.postgresql.Driver
+      - key: SMARTCARE_DB_DIALECT
+        value: org.hibernate.dialect.PostgreSQLDialect
+      - key: SMARTCARE_DB_USERNAME
+        sync: false
+      - key: SMARTCARE_DB_PASSWORD
         sync: false

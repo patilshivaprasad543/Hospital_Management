@@ -20,16 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Ping every known live URL
+      - name: Ping the Postgres live URL
         run: |
           set +e
           urls="
-          https://hospital-management-glt1.onrender.com
-          https://hospital-management.onrender.com
-          https://smartcare360-java.onrender.com
-          https://smartcare360.onrender.com
-          https://hospital-management-app.onrender.com
-          https://hospital-management-java.onrender.com
+          https://hospital-management-glt1-ge8d.onrender.com
           "
           paths="/health /healthz /ping /keepalive /login /"
           for url in $urls; do

@@ -19,7 +19,7 @@ jobs:
       - name: Backup ping
         run: |
           set +e
-          for url in https://hospital-management-glt1.onrender.com https://hospital-management.onrender.com https://smartcare360.onrender.com; do
+          for url in https://hospital-management-glt1-ge8d.onrender.com; do
             curl -fsS --max-time 90 -A "SmartCare360-KeepAlive-Backup" "$url/health" >/dev/null
             curl -fsS --max-time 90 -A "SmartCare360-KeepAlive-Backup" "$url/ping" >/dev/null
             curl -fsS --max-time 90 -A "SmartCare360-KeepAlive-Backup" "$url/" >/dev/null

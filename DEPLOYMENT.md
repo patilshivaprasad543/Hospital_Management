@@ -24,28 +24,31 @@ This environment cannot create an Oracle account or click your cloud console for
 
 Those pages mean the Java process never stayed up (or there is no successful deploy). A common cause was missing `SMARTCARE_ADMIN_*` env vars, which used to crash startup. Current `main` generates admin credentials on first boot and writes them to the service logs (and `/app/data/admin-credentials.txt` on the disk).
 
-**Current live site:** [https://hospital-management-glt1.onrender.com](https://hospital-management-glt1.onrender.com) — home, `/login`, and `/health` return 200. GitHub keep-alive pings this URL. In the Render dashboard set `SMARTCARE_APP_URL=https://hospital-management-glt1.onrender.com` so the app also pings itself.
+**Current live site:** [https://hospital-management-glt1-ge8d.onrender.com](https://hospital-management-glt1-ge8d.onrender.com) — Postgres storage, home / login / `/health` return 200. GitHub keep-alive pings **only this URL**. In Render set `SMARTCARE_APP_URL=https://hospital-management-glt1-ge8d.onrender.com`.
 
 ### Keep logins and records (do this once in Render)
 
-The Java app **already writes every user, appointment, and order through JPA** (`ddl-auto=update`). Nothing extra is missing in code. Data only survives if the **web service** is connected to Postgres.
+The Java app **already writes every user, appointment, and order through JPA** (`ddl-auto=update`). The live web service `hospital-management-glt1-ge8d` is connected to Render Postgres (`/health` shows `"storage":"PostgreSQL"`). Data on that URL survives sleep and restart.
 
-**Live check (this repo):** `GET https://hospital-management-glt1.onrender.com/health` currently returns `"storage":"H2"` and `"databaseUrlSet":"no"`. Creating a Postgres instance in Render is **not** enough — the web process never received `DATABASE_URL`. Until that env var is on `hospital-management-glt1` and the service is redeployed, writes go to an in-container H2 file and are wiped on sleep/redeploy.
+If a new service is not connected yet:
 
-Do this on the **web** service (not only on the database page):
+1. Render Dashboard → **PostgreSQL** → copy **External Database URL** (`postgresql://…@dpg-….….render.com/…`). Use External (not Internal) when logs show `UnknownHostException` for `dpg-…-a`.
+2. Open **Web Service** `hospital-management-glt1-ge8d` → **Environment**:
 
-1. Render Dashboard → **New → PostgreSQL** → instance **Free** → create (skip if you already created one).
-2. Open the database → copy **Internal Database URL** (`postgres://…@dpg-…-a/…`). Prefer Internal URL when the web service is on the same Render region.
-3. Open **Web Service** `hospital-management-glt1` (not the Postgres instance) → **Environment** → **Add Environment Variable**:
-   - Key must be exactly `DATABASE_URL`
-   - Value = that Internal Database URL (paste the whole `postgres://user:pass@host:5432/dbname` string)
-4. Optional but clearer: on the web service, **Connect** / **Link** the Postgres database so Render injects `DATABASE_URL` for you.
-5. **Save** env changes, then **Manual Deploy** → deploy `main`.
-6. Confirm `https://hospital-management-glt1.onrender.com/health` shows `"storage":"PostgreSQL"`, `"databaseUrlSet":"yes"`, `"persistent":"yes"`.
+   - `DATABASE_URL` = External Database URL
+   - `SMARTCARE_DB_URL` = `jdbc:postgresql://EXTERNAL-HOST:5432/DBNAME?sslmode=require`
+   - `SMARTCARE_DB_DRIVER` = `org.postgresql.Driver`
+   - `SMARTCARE_DB_DIALECT` = `org.hibernate.dialect.PostgreSQLDialect`
+   - `SMARTCARE_DB_USERNAME` / `SMARTCARE_DB_PASSWORD` from that URL
+   - `SPRING_PROFILES_ACTIVE` = `prod`
+   - `SMARTCARE_APP_URL` = `https://hospital-management-glt1-ge8d.onrender.com`
 
-Demo logins are still seeded if missing. Your own registrations persist only after step 6 succeeds.
+3. **Save** → **Manual Deploy** `main`.
+4. Confirm `https://hospital-management-glt1-ge8d.onrender.com/health` shows `"storage":"PostgreSQL"`, `"persistent":"yes"`.
 
-`render.yaml` deploys the **web service only** (no Blueprint Postgres/disk — those often fail on Render Free). This environment cannot set Render dashboard env vars for you.
+Demo logins are still seeded if missing. Your own registrations persist on this Postgres instance.
+
+`render.yaml` deploys the **web service only**. Do not commit database passwords.
 
 ---
 
@@ -86,7 +89,7 @@ Do **not** use Node, npm, or `package.json` — this project uses Gradle (`build
 
 | Variable | Description |
 |----------|-------------|
-| `SMARTCARE_APP_URL` | Your public URL, e.g. `https://smartcare360.onrender.com` |
+| `SMARTCARE_APP_URL` | `https://hospital-management-glt1-ge8d.onrender.com` |
 | `SMARTCARE_ADMIN_EMAIL` | **Your private admin email** (not published) |
 | `SMARTCARE_ADMIN_PASSWORD` | **Strong password** (not `Admin@360`) |
 | `SMARTCARE_ADMIN_MOBILE` | Admin mobile for notifications |
@@ -97,7 +100,7 @@ Do **not** use Node, npm, or `package.json` — this project uses Gradle (`build
 | `TWILIO_WHATSAPP_FROM` | (Optional) Twilio WhatsApp sender |
 | `SMARTCARE_WHATSAPP_ENABLED` | `true` when Twilio is configured |
 
-5. Deploy. Render builds the Docker image and assigns a URL like `https://smartcare360.onrender.com`.
+5. Deploy. The live URL is `https://hospital-management-glt1-ge8d.onrender.com`.
 
 ## 2. Email setup (OTP & notifications)
 

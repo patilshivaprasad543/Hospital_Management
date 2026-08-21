@@ -2,7 +2,7 @@
 
 Integrated digital hospital platform: patient appointments, doctor consultations, laboratory workflows, pharmacy orders, billing, email/WhatsApp notifications, and role-based portals.
 
-**Live:** [https://hospital-management-glt1.onrender.com](https://hospital-management-glt1.onrender.com)
+**Live:** [https://hospital-management-glt1-ge8d.onrender.com](https://hospital-management-glt1-ge8d.onrender.com)
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/patilshivaprasad543/Hospital_Management)
 
@@ -26,7 +26,7 @@ Register new patients, doctors, and vendors from the portal login page.
 - Pharmacy order workflow (placed → delivered)
 - Billing, invoices, PDF downloads
 - Admin dashboard (private access only)
-- Persistent database (H2 file, local MySQL, or Render Postgres via `DATABASE_URL`)
+- Persistent database (live site uses Render Postgres; local H2 or MySQL for development)
 
 ## Quick start (local development)
 
@@ -59,7 +59,7 @@ Required secrets (set in hosting dashboard, never in code):
 
 - `SMARTCARE_ADMIN_EMAIL` / `SMARTCARE_ADMIN_PASSWORD` — **private admin login**
 - **Email OTP:** On Render free tier use **Brevo API** (`SMARTCARE_MAIL_PROVIDER=brevo`, `SMARTCARE_BREVO_API_KEY`, `SMARTCARE_BREVO_SENDER_EMAIL`). Gmail SMTP works locally only — Render blocks SMTP ports on free plans.
-- `SMARTCARE_APP_URL` — your public URL
+- `SMARTCARE_APP_URL` — `https://hospital-management-glt1-ge8d.onrender.com`
 - Twilio vars (optional) — WhatsApp notifications
 
 Copy `.env.example` as a checklist.

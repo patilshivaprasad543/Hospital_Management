@@ -10,7 +10,7 @@ if [[ -z "${RENDER_API_KEY:-}" ]]; then
 fi
 
 REPO_URL="${RENDER_REPO_URL:-https://github.com/patilshivaprasad543/Hospital_Management}"
-SERVICE_NAME="${RENDER_SERVICE_NAME:-hospital-management-glt1}"
+SERVICE_NAME="${RENDER_SERVICE_NAME:-hospital-management-glt1-ge8d}"
 ADMIN_EMAIL="${SMARTCARE_ADMIN_EMAIL:-admin@smartcare360.local}"
 ADMIN_PASSWORD="${SMARTCARE_ADMIN_PASSWORD:-}"
 if [[ -z "$ADMIN_PASSWORD" ]]; then
@@ -76,7 +76,9 @@ env_vars = [
     {"key": "SMARTCARE_ADMIN_MOBILE", "value": "9999999999"},
     {"key": "SMARTCARE_MAIL_PROVIDER", "value": "auto"},
     {"key": "SMARTCARE_WHATSAPP_ENABLED", "value": "false"},
-    {"key": "SMARTCARE_DB_URL", "value": "jdbc:h2:file:/app/data/smartcare360;DB_CLOSE_DELAY=-1"},
+    {"key": "SMARTCARE_APP_URL", "value": "https://hospital-management-glt1-ge8d.onrender.com"},
+    {"key": "SMARTCARE_DB_DRIVER", "value": "org.postgresql.Driver"},
+    {"key": "SMARTCARE_DB_DIALECT", "value": "org.hibernate.dialect.PostgreSQLDialect"},
 ]
 
 if existing:

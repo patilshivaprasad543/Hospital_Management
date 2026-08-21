@@ -8,7 +8,7 @@ SMARTCARE_BREVO_SENDER_NAME=SmartCare 360
 
 # Also required:
 SPRING_PROFILES_ACTIVE=prod
-SMARTCARE_APP_URL=https://your-service.onrender.com
+SMARTCARE_APP_URL=https://hospital-management-glt1-ge8d.onrender.com
 SMARTCARE_ADMIN_EMAIL=your-admin@email.com
 SMARTCARE_ADMIN_PASSWORD=your-strong-admin-password
 SMARTCARE_WHATSAPP_ENABLED=false
