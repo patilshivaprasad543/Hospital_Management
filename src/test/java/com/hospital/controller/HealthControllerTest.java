@@ -21,7 +21,8 @@ class HealthControllerTest {
         for (String path : new String[]{"/health", "/healthz", "/ping", "/keepalive"}) {
             mockMvc.perform(get(path))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status").value("ok"));
+                    .andExpect(jsonPath("$.status").value("ok"))
+                    .andExpect(jsonPath("$.storage").exists());
             mockMvc.perform(head(path))
                     .andExpect(status().isOk());
         }
