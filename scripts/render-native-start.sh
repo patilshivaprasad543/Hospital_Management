@@ -17,5 +17,6 @@ fi
 
 export SPRING_PROFILES_ACTIVE="${SPRING_PROFILES_ACTIVE:-prod}"
 export PORT="${PORT:-8080}"
+mkdir -p /app/data 2>/dev/null || mkdir -p "$ROOT/data"
 exec java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:TieredStopAtLevel=1 \
   -jar "$JAR" --server.port="$PORT"

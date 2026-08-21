@@ -56,6 +56,17 @@ public class SchemaRepair implements CommandLineRunner {
 
     private Integer columnCount(String table, String column) {
         try {
+            Integer postgres = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM information_schema.columns "
+                            + "WHERE table_schema = current_schema() AND lower(table_name)=? AND lower(column_name)=?",
+                    Integer.class, table.toLowerCase(), column.toLowerCase());
+            if (postgres != null) {
+                return postgres;
+            }
+        } catch (Exception ignored) {
+            // MySQL / H2 below
+        }
+        try {
             return jdbcTemplate.queryForObject(
                     "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
                             + "WHERE TABLE_SCHEMA = DATABASE() AND UPPER(TABLE_NAME)=? AND UPPER(COLUMN_NAME)=?",
@@ -68,6 +79,14 @@ public class SchemaRepair implements CommandLineRunner {
     }
 
     private void widenVarchar(String table, String column, int length) {
+        try {
+            jdbcTemplate.execute("ALTER TABLE " + table + " ALTER COLUMN " + column
+                    + " TYPE VARCHAR(" + length + ")");
+            System.out.println(">>> SchemaRepair set " + table + "." + column + " TYPE VARCHAR(" + length + ")");
+            return;
+        } catch (Exception ignoredPostgres) {
+            // H2 / MySQL
+        }
         try {
             jdbcTemplate.execute("ALTER TABLE " + table + " ALTER COLUMN " + column
                     + " SET DATA TYPE VARCHAR(" + length + ")");

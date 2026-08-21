@@ -26,7 +26,7 @@ Register new patients, doctors, and vendors from the portal login page.
 - Pharmacy order workflow (placed → delivered)
 - Billing, invoices, PDF downloads
 - Admin dashboard (private access only)
-- Persistent database (H2 file or MySQL)
+- Persistent database (H2 file, local MySQL, or Render Postgres via `DATABASE_URL`)
 
 ## Quick start (local development)
 

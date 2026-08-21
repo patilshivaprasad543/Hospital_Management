@@ -26,6 +26,22 @@ Those pages mean the Java process never stayed up (or there is no successful dep
 
 **Current live site:** [https://hospital-management-glt1.onrender.com](https://hospital-management-glt1.onrender.com) — home, `/login`, and `/health` return 200. GitHub keep-alive pings this URL. In the Render dashboard set `SMARTCARE_APP_URL=https://hospital-management-glt1.onrender.com` so the app also pings itself.
 
+### Keep logins and records (do this once in Render)
+
+The web app sleeps; that must **not** wipe users. Add a **Postgres** database (data lives outside the web container):
+
+1. Render Dashboard → **New → PostgreSQL** → instance **Free** → create.
+2. Open the database → copy **Internal Database URL** (`postgres://...`).
+3. Open web service `hospital-management-glt1` → **Environment** → add:
+
+   `DATABASE_URL` = that Internal Database URL
+
+4. **Manual Deploy** the web service (branch `main`).
+
+After that, registrations, appointments, and admin data survive sleep and redeploys. Demo logins are still seeded if missing.
+
+`render.yaml` also declares `smartcare360-db` so a **Blueprint** apply creates the same wiring. Render Free Postgres expires after **30 days** unless you upgrade the database plan.
+
 ---
 
 ## Fix: `Couldn't find a package.json file` / 502 no-deploy

@@ -48,5 +48,16 @@ services:
         value: SmartCare 360
       - key: SMARTCARE_WHATSAPP_ENABLED
         value: "false"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smartcare360-db
+          property: connectionString
       - key: SMARTCARE_DB_URL
         value: jdbc:h2:file:/app/data/smartcare360;DB_CLOSE_DELAY=-1
+
+databases:
+  - name: smartcare360-db
+    plan: free
+    region: singapore
+    databaseName: smartcare360
+    user: smartcare
