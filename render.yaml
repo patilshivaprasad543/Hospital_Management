@@ -46,5 +46,3 @@ services:
         value: "false"
       - key: DATABASE_URL
         sync: false
-      - key: SMARTCARE_DB_URL
-        value: jdbc:h2:file:/app/data/smartcare360;DB_CLOSE_DELAY=-1

@@ -29,6 +29,8 @@ public class HealthController {
         Map<String, String> body = new LinkedHashMap<>();
         body.put("status", "ok");
         body.put("storage", storageName());
+        String databaseUrl = System.getenv("DATABASE_URL");
+        body.put("databaseUrlSet", databaseUrl != null && !databaseUrl.isBlank() ? "yes" : "no");
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noStore())
                 .body(body);

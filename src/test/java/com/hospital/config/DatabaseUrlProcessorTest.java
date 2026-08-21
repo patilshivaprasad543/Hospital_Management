@@ -31,6 +31,16 @@ class DatabaseUrlProcessorTest {
     }
 
     @Test
+    void parsesPasswordWithSpecialCharacters() {
+        Map<String, Object> props = new LinkedHashMap<>();
+        DatabaseUrlProcessor.applyExternalUrl(
+                "postgres://smartcare:p%40ss:word@dpg-abc-a:5432/smartcare360", props);
+        assertEquals("p@ss:word", props.get("spring.datasource.password"));
+        assertEquals("dpg-abc-a", String.valueOf(props.get("spring.datasource.url"))
+                .substring("jdbc:postgresql://".length()).split(":")[0]);
+    }
+
+    @Test
     void prodWithoutExternalUrlUsesFileDatabase() {
         Map<String, Object> props = DatabaseUrlProcessor.configure(null, true);
         assertTrue(String.valueOf(props.get("spring.datasource.url")).contains("jdbc:h2:file:"));
