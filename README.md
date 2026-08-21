@@ -4,10 +4,6 @@ Integrated digital hospital platform: patient appointments, doctor consultations
 
 **Live:** [https://hospital-management-glt1.onrender.com](https://hospital-management-glt1.onrender.com)
 
-**Download (Eclipse + local MySQL):**
-- Live site: [https://hospital-management-glt1.onrender.com/download/eclipse](https://hospital-management-glt1.onrender.com/download/eclipse)
-- GitHub: [downloads/Hospital_Management_Eclipse.zip](https://github.com/patilshivaprasad543/Hospital_Management/raw/main/downloads/Hospital_Management_Eclipse.zip)
-
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/patilshivaprasad543/Hospital_Management)
 
 ## Public demo accounts

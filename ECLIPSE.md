@@ -2,8 +2,6 @@
 
 This project is configured for **Eclipse IDE** with **Buildship (Gradle)** and **Java 21**.
 
-**Download ZIP:** [Hospital_Management_Eclipse.zip](https://hospital-management-glt1.onrender.com/download/eclipse)
-
 ## Requirements
 
 1. **Eclipse IDE for Enterprise Java and Web Developers** (2024-03 or newer recommended)

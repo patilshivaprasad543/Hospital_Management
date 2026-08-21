@@ -85,3 +85,5 @@ data/
 
 !.env.example
 
+*.zip
+
