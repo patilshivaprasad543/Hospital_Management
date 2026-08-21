@@ -28,19 +28,24 @@ Those pages mean the Java process never stayed up (or there is no successful dep
 
 ### Keep logins and records (do this once in Render)
 
-The web app sleeps; that must **not** wipe users. Add a **Postgres** database (data lives outside the web container):
+The Java app **already writes every user, appointment, and order through JPA** (`ddl-auto=update`). Nothing extra is missing in code. Data only survives if the **web service** is connected to Postgres.
 
-1. Render Dashboard → **New → PostgreSQL** → instance **Free** → create.
-2. Open the database → copy **Internal Database URL** (`postgres://...`).
-3. Open web service `hospital-management-glt1` → **Environment** → add:
+**Live check (this repo):** `GET https://hospital-management-glt1.onrender.com/health` currently returns `"storage":"H2"` and `"databaseUrlSet":"no"`. Creating a Postgres instance in Render is **not** enough — the web process never received `DATABASE_URL`. Until that env var is on `hospital-management-glt1` and the service is redeployed, writes go to an in-container H2 file and are wiped on sleep/redeploy.
 
-   `DATABASE_URL` = that Internal Database URL
+Do this on the **web** service (not only on the database page):
 
-4. **Manual Deploy** the web service (branch `main`).
+1. Render Dashboard → **New → PostgreSQL** → instance **Free** → create (skip if you already created one).
+2. Open the database → copy **Internal Database URL** (`postgres://…@dpg-…-a/…`). Prefer Internal URL when the web service is on the same Render region.
+3. Open **Web Service** `hospital-management-glt1` (not the Postgres instance) → **Environment** → **Add Environment Variable**:
+   - Key must be exactly `DATABASE_URL`
+   - Value = that Internal Database URL (paste the whole `postgres://user:pass@host:5432/dbname` string)
+4. Optional but clearer: on the web service, **Connect** / **Link** the Postgres database so Render injects `DATABASE_URL` for you.
+5. **Save** env changes, then **Manual Deploy** → deploy `main`.
+6. Confirm `https://hospital-management-glt1.onrender.com/health` shows `"storage":"PostgreSQL"`, `"databaseUrlSet":"yes"`, `"persistent":"yes"`.
 
-After that, registrations, appointments, and admin data survive sleep and redeploys. Demo logins are still seeded if missing.
+Demo logins are still seeded if missing. Your own registrations persist only after step 6 succeeds.
 
-`render.yaml` deploys the **web service only** (no Blueprint Postgres/disk — those often fail on Render Free). To keep data, add Postgres in the dashboard and set `DATABASE_URL` yourself, then redeploy.
+`render.yaml` deploys the **web service only** (no Blueprint Postgres/disk — those often fail on Render Free). This environment cannot set Render dashboard env vars for you.
 
 ---
 

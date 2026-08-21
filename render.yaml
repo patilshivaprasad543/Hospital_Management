@@ -44,5 +44,7 @@ services:
         value: SmartCare 360
       - key: SMARTCARE_WHATSAPP_ENABLED
         value: "false"
+      # Set this on the web service in the dashboard (Internal Database URL).
+      # Creating Postgres alone does not inject the URL into the Java process.
       - key: DATABASE_URL
         sync: false

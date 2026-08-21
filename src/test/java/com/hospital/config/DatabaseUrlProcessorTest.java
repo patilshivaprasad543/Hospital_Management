@@ -41,6 +41,15 @@ class DatabaseUrlProcessorTest {
     }
 
     @Test
+    void assemblesUrlFromHostParts() {
+        String url = DatabaseUrlProcessor.assembleFromParts("dpg-abc-a", "5432", "smartcare360", "smartcare", "s3cret");
+        Map<String, Object> props = new LinkedHashMap<>();
+        DatabaseUrlProcessor.applyExternalUrl(url, props);
+        assertEquals("smartcare", props.get("spring.datasource.username"));
+        assertTrue(String.valueOf(props.get("spring.datasource.url")).contains("dpg-abc-a:5432/smartcare360"));
+    }
+
+    @Test
     void prodWithoutExternalUrlUsesFileDatabase() {
         Map<String, Object> props = DatabaseUrlProcessor.configure(null, true);
         assertTrue(String.valueOf(props.get("spring.datasource.url")).contains("jdbc:h2:file:"));

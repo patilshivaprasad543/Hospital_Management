@@ -31,7 +31,10 @@ public class DatabaseUrlProcessor implements EnvironmentPostProcessor, Ordered {
                 System.getenv("DATABASE_URL"),
                 getenv(environment, "DATABASE_URL"),
                 System.getenv("POSTGRES_URL"),
-                getenv(environment, "SMARTCARE_DB_URL"));
+                System.getenv("POSTGRES_CONNECTION_STRING"),
+                System.getenv("JDBC_DATABASE_URL"),
+                getenv(environment, "SMARTCARE_DB_URL"),
+                assembleFromParts(environment));
         boolean prod = environment.acceptsProfiles(Profiles.of("prod"));
         try {
             Map<String, Object> props = configure(raw, prod);
@@ -171,6 +174,36 @@ public class DatabaseUrlProcessor implements EnvironmentPostProcessor, Ordered {
             host = host.substring(1, host.length() - 1);
         }
         return new ParsedPostgres(user, password, host, port, path.startsWith("/") ? path : "/" + path, query);
+    }
+
+    static String assembleFromParts(
+            String host, String port, String database, String user, String password) {
+        if (host == null || host.isBlank() || user == null || user.isBlank()) {
+            return null;
+        }
+        String p = (port == null || port.isBlank()) ? "5432" : port.trim();
+        String db = (database == null || database.isBlank()) ? "smartcare360" : database.trim().replaceFirst("^/", "");
+        String pwd = password == null ? "" : password;
+        return "postgres://" + encode(user.trim()) + ":" + encode(pwd) + "@" + host.trim() + ":" + p + "/" + db;
+    }
+
+    private static String assembleFromParts(ConfigurableEnvironment environment) {
+        return assembleFromParts(
+                firstNonBlank(System.getenv("PGHOST"), getenv(environment, "PGHOST"),
+                        System.getenv("POSTGRES_HOST"), getenv(environment, "POSTGRES_HOST"),
+                        System.getenv("DB_HOST"), getenv(environment, "DB_HOST")),
+                firstNonBlank(System.getenv("PGPORT"), getenv(environment, "PGPORT"),
+                        System.getenv("POSTGRES_PORT"), System.getenv("DB_PORT")),
+                firstNonBlank(System.getenv("PGDATABASE"), getenv(environment, "PGDATABASE"),
+                        System.getenv("POSTGRES_DB"), System.getenv("DB_NAME")),
+                firstNonBlank(System.getenv("PGUSER"), getenv(environment, "PGUSER"),
+                        System.getenv("POSTGRES_USER"), System.getenv("DB_USER")),
+                firstNonBlank(System.getenv("PGPASSWORD"), getenv(environment, "PGPASSWORD"),
+                        System.getenv("POSTGRES_PASSWORD"), System.getenv("DB_PASSWORD")));
+    }
+
+    private static String encode(String value) {
+        return java.net.URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
     private static String getenv(ConfigurableEnvironment environment, String key) {
