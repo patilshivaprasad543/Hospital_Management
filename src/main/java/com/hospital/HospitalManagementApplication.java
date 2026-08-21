@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class HospitalManagementApplication {
 
     public static void main(String[] args) {
+        com.hospital.config.LocalEnvLoader.load();
         SpringApplication.run(HospitalManagementApplication.class, args);
     }
 }

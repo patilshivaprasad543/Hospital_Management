@@ -6,6 +6,10 @@
     <booleanAttribute key="org.eclipse.jdt.launching.DEFAULT_CLASSPATH" value="false"/>
     <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.hospital.HospitalManagementApplication"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Hospital_Management"/>
-    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dfile.encoding=UTF-8"/>
+    <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:Hospital_Management}"/>
+    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dfile.encoding=UTF-8 -DSPRING_PROFILES_ACTIVE=dev"/>
+    <mapAttribute key="org.eclipse.debug.core.environmentVariables">
+        <mapEntry key="SPRING_PROFILES_ACTIVE" value="dev"/>
+    </mapAttribute>
     <stringAttribute key="process_factory_id" value="org.eclipse.buildship.core.launch.runners.impl.JavaApplicationProcessFactory"/>
 </launchConfiguration>

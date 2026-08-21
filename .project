@@ -3,6 +3,10 @@
 	<name>Hospital_Management</name>
 	<comment>SmartCare 360 Hospital Management System (Spring Boot + Gradle)</comment>
 	<projects/>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+		<nature>org.eclipse.buildship.core.gradleprojectnature</nature>
+	</natures>
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.jdt.core.javabuilder</name>
@@ -13,8 +17,6 @@
 			<arguments/>
 		</buildCommand>
 	</buildSpec>
-	<natures>
-		<nature>org.eclipse.jdt.core.javanature</nature>
-		<nature>org.eclipse.buildship.core.gradleprojectnature</nature>
-	</natures>
+	<linkedResources/>
+	<filteredResources/>
 </projectDescription>

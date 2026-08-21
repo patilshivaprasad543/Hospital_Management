@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<launchConfiguration type="org.springframework.ide.eclipse.boot.launch">
-    <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
     <listAttribute key="org.eclipse.jdt.launching.CLASSPATH_PROVIDER">
-        <listEntry value="org.springframework.ide.eclipse.boot.launch.BootClasspathProvider"/>
+        <listEntry value="org.eclipse.buildship.core.classpathprovider"/>
     </listAttribute>
     <booleanAttribute key="org.eclipse.jdt.launching.DEFAULT_CLASSPATH" value="false"/>
     <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.hospital.HospitalManagementApplication"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Hospital_Management"/>
     <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:Hospital_Management}"/>
-    <stringAttribute key="spring.boot.mainclass" value="com.hospital.HospitalManagementApplication"/>
-    <stringAttribute key="spring.boot.profile" value="dev"/>
+    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dfile.encoding=UTF-8 -DSPRING_PROFILES_ACTIVE=mysql"/>
     <mapAttribute key="org.eclipse.debug.core.environmentVariables">
-        <mapEntry key="SPRING_PROFILES_ACTIVE" value="dev"/>
+        <mapEntry key="SPRING_PROFILES_ACTIVE" value="mysql"/>
+        <mapEntry key="SMARTCARE_DB_USERNAME" value="root"/>
+        <mapEntry key="SMARTCARE_DB_PASSWORD" value=""/>
     </mapAttribute>
+    <stringAttribute key="process_factory_id" value="org.eclipse.buildship.core.launch.runners.impl.JavaApplicationProcessFactory"/>
 </launchConfiguration>

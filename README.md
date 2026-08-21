@@ -34,7 +34,9 @@ Register new patients, doctors, and vendors from the portal login page.
 ./gradlew bootRun
 ```
 
-Open http://localhost:8080 — uses `dev` profile with local defaults.
+Open http://localhost:8080 — uses `dev` profile with local H2.
+
+**Eclipse IDE:** import as a Gradle project (see [ECLIPSE.md](ECLIPSE.md)). Use launch config **Hospital_Management** (H2) or **Hospital_Management_MySQL** (local MySQL). Run `sql/smartcare360-mysql.sql` once, then copy `.env.example` to `.env` and set `SPRING_PROFILES_ACTIVE=mysql` plus your MySQL user/password.
 
 **Free 24/7 with Docker** (PC left on, or Oracle Always Free VM):
 

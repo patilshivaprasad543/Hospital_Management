@@ -41,6 +41,33 @@ Or right-click `HospitalManagementApplication.java` → **Run As → Java Applic
 
 The app starts at: **http://localhost:8080**
 
+## Local SQL database (MySQL / MariaDB)
+
+Default run uses an H2 file database (no extra install). To use **local MySQL**:
+
+1. Install MySQL 8, MariaDB, XAMPP, or WAMP and start the server.
+2. Create the schema (Workbench, phpMyAdmin, or terminal):
+
+```bash
+mysql -u root -p < sql/smartcare360-mysql.sql
+```
+
+3. Copy `.env.example` to `.env` in the project root and set:
+
+```
+SPRING_PROFILES_ACTIVE=mysql
+SMARTCARE_DB_USERNAME=root
+SMARTCARE_DB_PASSWORD=your_mysql_password
+```
+
+Eclipse loads `.env` automatically when you Run the app.
+
+4. In Eclipse: `Run → Run Configurations… → Java Application → Hospital_Management_MySQL → Run`
+
+If your MySQL root password is empty (typical XAMPP), leave `SMARTCARE_DB_PASSWORD` blank.
+
+Tables are created/updated by Hibernate (`ddl-auto=update`). You do not need to import the full `schema.sql` unless you want a manual dump.
+
 ## Default login accounts (development only)
 
 | Role     | Email                         | Password   |

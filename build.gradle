@@ -25,8 +25,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'org.springframework.security:spring-security-crypto'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'com.h2database:h2'
-	runtimeOnly 'com.mysql:mysql-connector-j'
+	implementation 'com.h2database:h2'
+	implementation 'com.mysql:mysql-connector-j'
 	implementation 'com.github.librepdf:openpdf:2.0.3'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -40,12 +40,23 @@ eclipse {
 	classpath {
 		downloadSources = true
 		downloadJavadoc = false
+		defaultOutputDir = file('bin/default')
 	}
 	project {
+		name = 'Hospital_Management'
 		natures = [
 			'org.eclipse.jdt.core.javanature',
 			'org.eclipse.buildship.core.gradleprojectnature'
 		]
+		buildCommand 'org.eclipse.jdt.core.javabuilder'
+		buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
+	}
+	jdt {
+		sourceCompatibility = 21
+		targetCompatibility = 21
+	}
+	classpath.file.whenMerged { classpath ->
+		classpath.entries.removeAll { it.kind == 'lib' }
 	}
 }
 

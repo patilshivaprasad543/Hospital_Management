@@ -44,9 +44,7 @@ public class SchemaRepair implements CommandLineRunner {
 
     private void addColumnIfMissing(String table, String column, String definition) {
         try {
-            Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE UPPER(TABLE_NAME)=? AND UPPER(COLUMN_NAME)=?",
-                    Integer.class, table.toUpperCase(), column.toUpperCase());
+            Integer count = columnCount(table, column);
             if (count != null && count == 0) {
                 jdbcTemplate.execute("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
                 System.out.println(">>> SchemaRepair added " + table + "." + column);
@@ -56,11 +54,31 @@ public class SchemaRepair implements CommandLineRunner {
         }
     }
 
+    private Integer columnCount(String table, String column) {
+        try {
+            return jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+                            + "WHERE TABLE_SCHEMA = DATABASE() AND UPPER(TABLE_NAME)=? AND UPPER(COLUMN_NAME)=?",
+                    Integer.class, table.toUpperCase(), column.toUpperCase());
+        } catch (Exception mysqlOrMissing) {
+            return jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE UPPER(TABLE_NAME)=? AND UPPER(COLUMN_NAME)=?",
+                    Integer.class, table.toUpperCase(), column.toUpperCase());
+        }
+    }
+
     private void widenVarchar(String table, String column, int length) {
         try {
             jdbcTemplate.execute("ALTER TABLE " + table + " ALTER COLUMN " + column
                     + " SET DATA TYPE VARCHAR(" + length + ")");
             System.out.println(">>> SchemaRepair widened " + table + "." + column + " to VARCHAR(" + length + ")");
+            return;
+        } catch (Exception ignoredH2) {
+            // try MySQL / MariaDB
+        }
+        try {
+            jdbcTemplate.execute("ALTER TABLE " + table + " MODIFY COLUMN " + column + " VARCHAR(" + length + ")");
+            System.out.println(">>> SchemaRepair modified " + table + "." + column + " to VARCHAR(" + length + ")");
         } catch (Exception e) {
             try {
                 jdbcTemplate.execute("ALTER TABLE " + table + " ALTER COLUMN " + column
