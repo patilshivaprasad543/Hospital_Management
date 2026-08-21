@@ -40,7 +40,7 @@ The web app sleeps; that must **not** wipe users. Add a **Postgres** database (d
 
 After that, registrations, appointments, and admin data survive sleep and redeploys. Demo logins are still seeded if missing.
 
-`render.yaml` also declares `smartcare360-db` so a **Blueprint** apply creates the same wiring. Render Free Postgres expires after **30 days** unless you upgrade the database plan.
+`render.yaml` deploys the **web service only** (no Blueprint Postgres/disk — those often fail on Render Free). To keep data, add Postgres in the dashboard and set `DATABASE_URL` yourself, then redeploy.
 
 ---
 

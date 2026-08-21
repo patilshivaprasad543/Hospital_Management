@@ -19,6 +19,14 @@ class DatabaseUrlProcessorTest {
         assertEquals("smartcare", props.get("spring.datasource.username"));
         assertEquals("s3cret", props.get("spring.datasource.password"));
         assertTrue(String.valueOf(props.get("spring.datasource.url")).startsWith("jdbc:postgresql://dpg-host:5432/smartcare360"));
+        assertTrue(String.valueOf(props.get("spring.datasource.url")).contains("sslmode=disable"));
+    }
+
+    @Test
+    void externalRenderHostRequiresSsl() {
+        Map<String, Object> props = new LinkedHashMap<>();
+        DatabaseUrlProcessor.applyExternalUrl(
+                "postgres://u:p@dpg-x.singapore-postgres.render.com:5432/db", props);
         assertTrue(String.valueOf(props.get("spring.datasource.url")).contains("sslmode=require"));
     }
 

@@ -8,6 +8,8 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.Profiles;
 
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -27,14 +29,22 @@ public class DatabaseUrlProcessor implements EnvironmentPostProcessor, Ordered {
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        String raw = firstNonBlank(
-                environment.getProperty("DATABASE_URL"),
-                environment.getProperty("SMARTCARE_DB_URL"));
-        Map<String, Object> props = configure(raw, environment.acceptsProfiles(Profiles.of("prod")));
-        if (!props.isEmpty()) {
-            environment.getPropertySources().addFirst(new MapPropertySource("smartcareDatabaseUrl", props));
-            Object url = props.get("spring.datasource.url");
-            System.out.println(">>> Database: " + redact(String.valueOf(url)));
+        try {
+            String raw = firstNonBlank(
+                    environment.getProperty("DATABASE_URL"),
+                    environment.getProperty("SMARTCARE_DB_URL"));
+            Map<String, Object> props = configure(raw, environment.acceptsProfiles(Profiles.of("prod")));
+            if (!props.isEmpty()) {
+                environment.getPropertySources().addFirst(new MapPropertySource("smartcareDatabaseUrl", props));
+                Object url = props.get("spring.datasource.url");
+                System.out.println(">>> Database: " + redact(String.valueOf(url)));
+            }
+        } catch (Exception ex) {
+            System.err.println(">>> Database URL ignored, using file database: " + ex.getMessage());
+            if (environment.acceptsProfiles(Profiles.of("prod"))) {
+                Map<String, Object> props = configure(null, true);
+                environment.getPropertySources().addFirst(new MapPropertySource("smartcareDatabaseUrl", props));
+            }
         }
     }
 
@@ -73,10 +83,10 @@ public class DatabaseUrlProcessor implements EnvironmentPostProcessor, Ordered {
             if (userInfo != null) {
                 int colon = userInfo.indexOf(':');
                 if (colon >= 0) {
-                    user = userInfo.substring(0, colon);
-                    password = userInfo.substring(colon + 1);
+                    user = decode(userInfo.substring(0, colon));
+                    password = decode(userInfo.substring(colon + 1));
                 } else {
-                    user = userInfo;
+                    user = decode(userInfo);
                 }
             }
             String host = uri.getHost();
@@ -84,12 +94,14 @@ public class DatabaseUrlProcessor implements EnvironmentPostProcessor, Ordered {
             String path = uri.getPath() == null || uri.getPath().isBlank() ? "/smartcare360" : uri.getPath();
             String query = uri.getQuery();
             String jdbc = "jdbc:postgresql://" + host + ":" + port + path;
+            boolean externalHost = host != null && host.contains("render.com");
+            String ssl = externalHost ? "sslmode=require" : "sslmode=disable";
             if (query == null || query.isBlank()) {
-                jdbc += "?sslmode=require";
+                jdbc += "?" + ssl;
             } else {
                 jdbc += "?" + query;
                 if (!query.contains("sslmode")) {
-                    jdbc += "&sslmode=require";
+                    jdbc += "&" + ssl;
                 }
             }
             props.put("spring.datasource.url", jdbc);
@@ -141,6 +153,13 @@ public class DatabaseUrlProcessor implements EnvironmentPostProcessor, Ordered {
                 props.put("spring.jpa.database-platform", "org.hibernate.dialect.MySQLDialect");
             }
         }
+    }
+
+    private static String decode(String value) {
+        if (value == null || value.isEmpty()) {
+            return "";
+        }
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
     }
 
     private static String firstNonBlank(String... values) {

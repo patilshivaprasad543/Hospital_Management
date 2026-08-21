@@ -15,10 +15,6 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /health
-    disk:
-      name: smartcare-data
-      mountPath: /app/data
-      sizeGB: 1
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
@@ -49,15 +45,6 @@ services:
       - key: SMARTCARE_WHATSAPP_ENABLED
         value: "false"
       - key: DATABASE_URL
-        fromDatabase:
-          name: smartcare360-db
-          property: connectionString
+        sync: false
       - key: SMARTCARE_DB_URL
         value: jdbc:h2:file:/app/data/smartcare360;DB_CLOSE_DELAY=-1
-
-databases:
-  - name: smartcare360-db
-    plan: free
-    region: singapore
-    databaseName: smartcare360
-    user: smartcare
