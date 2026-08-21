@@ -24,9 +24,10 @@ jobs:
         run: |
           set +e
           urls="
+          https://hospital-management-glt1.onrender.com
+          https://hospital-management.onrender.com
           https://smartcare360-java.onrender.com
           https://smartcare360.onrender.com
-          https://hospital-management.onrender.com
           https://hospital-management-app.onrender.com
           https://hospital-management-java.onrender.com
           "

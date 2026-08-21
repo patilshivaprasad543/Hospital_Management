@@ -2,7 +2,7 @@
 # Free keep-alive: ping every listed URL. Never fail the job.
 set -u
 timeout_secs="${KEEPALIVE_TIMEOUT:-90}"
-urls="https://smartcare360.onrender.com
+urls="https://hospital-management-glt1.onrender.com
 https://hospital-management.onrender.com
 https://hospital-management-app.onrender.com
 https://hospital-management-java.onrender.com"

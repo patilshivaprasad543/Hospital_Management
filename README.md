@@ -2,7 +2,7 @@
 
 Integrated digital hospital platform: patient appointments, doctor consultations, laboratory workflows, pharmacy orders, billing, email/WhatsApp notifications, and role-based portals.
 
-**Public URL:** [https://hospital-management.onrender.com](https://hospital-management.onrender.com)
+**Live:** [https://hospital-management-glt1.onrender.com](https://hospital-management-glt1.onrender.com)
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/patilshivaprasad543/Hospital_Management)
 

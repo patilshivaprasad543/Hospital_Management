@@ -24,7 +24,7 @@ This environment cannot create an Oracle account or click your cloud console for
 
 Those pages mean the Java process never stayed up (or there is no successful deploy). A common cause was missing `SMARTCARE_ADMIN_*` env vars, which used to crash startup. Current `main` generates admin credentials on first boot and writes them to the service logs (and `/app/data/admin-credentials.txt` on the disk).
 
-`https://hospital-management.onrender.com` 502/505 with `no-deploy` means Render never finished a build. The repo root now has `package.json` so a **Node** service still compiles Java 21 and runs the jar (`npm start`). Push `main` and wait for auto-deploy, or click Manual Deploy. Docker remains the preferred runtime.
+**Current live site:** [https://hospital-management-glt1.onrender.com](https://hospital-management-glt1.onrender.com) — home, `/login`, and `/health` return 200. GitHub keep-alive pings this URL. In the Render dashboard set `SMARTCARE_APP_URL=https://hospital-management-glt1.onrender.com` so the app also pings itself.
 
 ---
 

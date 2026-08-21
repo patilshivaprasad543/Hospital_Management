@@ -10,7 +10,7 @@ if [[ -z "${RENDER_API_KEY:-}" ]]; then
 fi
 
 REPO_URL="${RENDER_REPO_URL:-https://github.com/patilshivaprasad543/Hospital_Management}"
-SERVICE_NAME="${RENDER_SERVICE_NAME:-smartcare360-java}"
+SERVICE_NAME="${RENDER_SERVICE_NAME:-hospital-management-glt1}"
 ADMIN_EMAIL="${SMARTCARE_ADMIN_EMAIL:-admin@smartcare360.local}"
 ADMIN_PASSWORD="${SMARTCARE_ADMIN_PASSWORD:-}"
 if [[ -z "$ADMIN_PASSWORD" ]]; then

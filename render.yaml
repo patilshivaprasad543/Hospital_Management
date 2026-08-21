@@ -8,7 +8,7 @@
 
 services:
   - type: web
-    name: hospital-management
+    name: hospital-management-glt1
     runtime: docker
     plan: free
     region: singapore
@@ -25,7 +25,7 @@ services:
       - key: PORT
         value: "8080"
       - key: SMARTCARE_APP_URL
-        value: https://hospital-management.onrender.com
+        value: https://hospital-management-glt1.onrender.com
       - key: SMARTCARE_ADMIN_EMAIL
         value: admin@smartcare360.local
       - key: SMARTCARE_ADMIN_PASSWORD
