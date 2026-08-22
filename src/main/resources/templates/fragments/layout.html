@@ -46,90 +46,211 @@
 </nav>
 
 <!-- Admin navbar -->
-<nav th:fragment="admin-nav" class="navbar">
-    <a href="/" class="navbar-brand">
+<th:block th:fragment="admin-nav">
+<nav class="portal-topbar">
+    <a href="/admin/dashboard" class="navbar-brand">
         <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-        <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
+        <span class="brand-text brand-text-short">Smart<span class="brand-accent">Care</span></span>
         <span class="portal-tag">Admin</span>
     </a>
-    <ul class="nav-links">
+    <ul class="nav-links nav-desktop-only">
         <li><a href="/admin/dashboard">Dashboard</a></li>
-        <li><a href="/admin/users">Patients</a></li>
-        <li><a href="/admin/doctors">Doctors</a></li>
-        <li><a href="/admin/pharmacy">Pharmacy</a></li>
-        <li><a href="/admin/laboratories">Labs</a></li>
         <li><a href="/admin/appointments">Appointments</a></li>
         <li><a href="/admin/billing">Billing</a></li>
-        <li><a href="/admin/reports">Reports</a></li>
-        <li><a href="/admin/settings">Settings</a></li>
-        <li><a href="/admin/notifications">Notifications</a></li>
-        <li><a href="/logout" class="btn btn-outline btn-sm">Sign Out</a></li>
     </ul>
+    <div class="portal-topbar-actions">
+        <button type="button" class="portal-menu-btn" aria-label="Open menu" data-drawer-open="admin-drawer">☰</button>
+    </div>
 </nav>
+<div class="portal-drawer-overlay" data-drawer-close></div>
+<aside id="admin-drawer" class="portal-drawer">
+    <div class="portal-drawer-header">
+        <strong>Hospital Admin</strong>
+        <button type="button" class="portal-drawer-close" data-drawer-close aria-label="Close">✕</button>
+    </div>
+    <div class="portal-drawer-section">
+        <span class="portal-drawer-label">Operations</span>
+        <a href="/admin/dashboard">Dashboard</a>
+        <a href="/admin/appointments">Appointments</a>
+        <a href="/admin/billing">Billing</a>
+        <a href="/admin/reports">Reports</a>
+    </div>
+    <div class="portal-drawer-section">
+        <span class="portal-drawer-label">People</span>
+        <a href="/admin/users">Patients</a>
+        <a href="/admin/doctors">Doctors</a>
+        <a href="/admin/pharmacy">Pharmacy Vendors</a>
+        <a href="/admin/laboratories">Lab Vendors</a>
+    </div>
+    <div class="portal-drawer-section">
+        <span class="portal-drawer-label">System</span>
+        <a href="/admin/settings">Settings</a>
+        <a href="/admin/notifications">Notifications</a>
+        <a href="/admin/announcements">Announcements</a>
+        <a href="/logout" class="portal-drawer-signout">Sign Out</a>
+    </div>
+</aside>
+</th:block>
 
-<!-- Patient navbar -->
-<nav th:fragment="patient-nav" class="navbar">
-    <a href="/" class="navbar-brand">
+<!-- Patient navbar — focused hub, no duplicate links -->
+<th:block th:fragment="patient-nav">
+<nav class="portal-topbar">
+    <a href="/patient/dashboard" class="navbar-brand">
         <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-        <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
+        <span class="brand-text brand-text-short">Smart<span class="brand-accent">Care</span></span>
         <span class="portal-tag">Patient</span>
     </a>
-    <ul class="nav-links">
-        <li><a href="/patient/dashboard">Dashboard</a></li>
-        <li><a href="/patient/care-episodes">Care Episodes</a></li>
-        <li><a href="/patient/care-passport">Care Passport</a></li>
-        <li><a href="/patient/doctors">Doctors</a></li>
-        <li><a href="/patient/book-appointment">Book Appointment</a></li>
-        <li><a href="/patient/appointments">Appointments</a></li>
-        <li><a href="/patient/prescriptions">Prescriptions</a></li>
-        <li><a href="/patient/pharmacy-orders">Pharmacy Orders</a></li>
-        <li><a href="/patient/lab-reports">Lab Reports</a></li>
-        <li><a href="/patient/records">Records</a></li>
-        <li><a href="/patient/bills">Billing</a></li>
-        <li><a href="/patient/notifications">Notifications</a></li>
-        <li><a href="/patient/profile">Profile</a></li>
-        <li><a href="/logout" class="btn btn-outline btn-sm">Sign Out</a></li>
+    <ul class="nav-links nav-desktop-only">
+        <li><a href="/patient/dashboard">Home</a></li>
+        <li><a href="/patient/care-episodes">My Visits</a></li>
+        <li><a href="/patient/doctors">Book Doctor</a></li>
+        <li><a href="/patient/care-passport">Health File</a></li>
     </ul>
+    <div class="portal-topbar-actions">
+        <a href="/patient/notifications" class="portal-icon-btn" aria-label="Notifications">🔔</a>
+        <button type="button" class="portal-menu-btn" aria-label="Open menu" data-drawer-open="patient-drawer">☰</button>
+    </div>
 </nav>
+<div class="portal-drawer-overlay" data-drawer-close></div>
+<aside id="patient-drawer" class="portal-drawer">
+    <div class="portal-drawer-header">
+        <strong>Patient Menu</strong>
+        <button type="button" class="portal-drawer-close" data-drawer-close aria-label="Close">✕</button>
+    </div>
+    <div class="portal-drawer-section">
+        <span class="portal-drawer-label">Your Care</span>
+        <a href="/patient/care-episodes">My Visits — track full journey</a>
+        <a href="/patient/appointments">Appointment list</a>
+        <a href="/patient/symptom-wizard">Symptom checker</a>
+    </div>
+    <div class="portal-drawer-section">
+        <span class="portal-drawer-label">Documents</span>
+        <a href="/patient/prescriptions">Prescriptions</a>
+        <a href="/patient/lab-reports">Lab reports</a>
+        <a href="/patient/pharmacy-orders">Pharmacy orders</a>
+        <a href="/patient/bills">Bills &amp; payments</a>
+    </div>
+    <div class="portal-drawer-section">
+        <span class="portal-drawer-label">Health &amp; Account</span>
+        <a href="/patient/care-passport">Care passport (portable summary)</a>
+        <a href="/patient/records">Full medical records</a>
+        <a href="/patient/profile">Profile settings</a>
+        <a href="/logout" class="portal-drawer-signout">Sign Out</a>
+    </div>
+</aside>
+<nav class="portal-bottom-nav" aria-label="Patient navigation">
+    <a href="/patient/dashboard"><span class="bottom-nav-icon">🏠</span><span>Home</span></a>
+    <a href="/patient/care-episodes"><span class="bottom-nav-icon">🔄</span><span>Visits</span></a>
+    <a href="/patient/doctors"><span class="bottom-nav-icon">📅</span><span>Book</span></a>
+    <a href="/patient/care-passport"><span class="bottom-nav-icon">📋</span><span>Health</span></a>
+    <button type="button" class="bottom-nav-more" data-drawer-open="patient-drawer"><span class="bottom-nav-icon">☰</span><span>More</span></button>
+</nav>
+</th:block>
 
-<!-- Doctor navbar -->
-<nav th:fragment="doctor-nav" class="navbar">
-    <a href="/" class="navbar-brand">
+<!-- Doctor navbar — clinical workflow focus -->
+<th:block th:fragment="doctor-nav">
+<nav class="portal-topbar">
+    <a href="/doctor/dashboard" class="navbar-brand">
         <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-        <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
+        <span class="brand-text brand-text-short">Smart<span class="brand-accent">Care</span></span>
         <span class="portal-tag">Doctor</span>
     </a>
-    <ul class="nav-links">
-        <li><a href="/doctor/dashboard">Dashboard</a></li>
+    <ul class="nav-links nav-desktop-only">
+        <li><a href="/doctor/dashboard">Queue</a></li>
         <li><a href="/doctor/appointments">Appointments</a></li>
         <li><a href="/doctor/patients">Patients</a></li>
-        <li><a href="/doctor/prescriptions">Prescriptions</a></li>
-        <li><a href="/doctor/lab-tests">Lab Tests</a></li>
-        <li><a href="/doctor/earnings">Earnings</a></li>
-        <li><a href="/doctor/reports">Reports</a></li>
-        <li><a href="/doctor/notifications">Notifications</a></li>
-        <li><a href="/doctor/profile">Profile</a></li>
-        <li><a href="/logout" class="btn btn-outline btn-sm">Sign Out</a></li>
     </ul>
+    <div class="portal-topbar-actions">
+        <a href="/doctor/notifications" class="portal-icon-btn" aria-label="Notifications">🔔</a>
+        <button type="button" class="portal-menu-btn" aria-label="Open menu" data-drawer-open="doctor-drawer">☰</button>
+    </div>
 </nav>
+<div class="portal-drawer-overlay" data-drawer-close></div>
+<aside id="doctor-drawer" class="portal-drawer">
+    <div class="portal-drawer-header">
+        <strong>Doctor Menu</strong>
+        <button type="button" class="portal-drawer-close" data-drawer-close aria-label="Close">✕</button>
+    </div>
+    <div class="portal-drawer-section">
+        <span class="portal-drawer-label">Today's Work</span>
+        <a href="/doctor/dashboard">Live patient queue</a>
+        <a href="/doctor/appointments">Appointment schedule</a>
+        <a href="/doctor/patients">My patients</a>
+    </div>
+    <div class="portal-drawer-section">
+        <span class="portal-drawer-label">Clinical</span>
+        <a href="/doctor/prescriptions">Prescriptions issued</a>
+        <a href="/doctor/lab-tests">Lab test requests</a>
+    </div>
+    <div class="portal-drawer-section">
+        <span class="portal-drawer-label">Practice</span>
+        <a href="/doctor/earnings">Earnings</a>
+        <a href="/doctor/reports">Reports</a>
+        <a href="/doctor/profile">Profile &amp; availability</a>
+        <a href="/logout" class="portal-drawer-signout">Sign Out</a>
+    </div>
+</aside>
+<nav class="portal-bottom-nav" aria-label="Doctor navigation">
+    <a href="/doctor/dashboard"><span class="bottom-nav-icon">🎟️</span><span>Queue</span></a>
+    <a href="/doctor/appointments"><span class="bottom-nav-icon">📅</span><span>Appts</span></a>
+    <a href="/doctor/patients"><span class="bottom-nav-icon">👥</span><span>Patients</span></a>
+    <a href="/doctor/prescriptions"><span class="bottom-nav-icon">💊</span><span>Rx</span></a>
+    <button type="button" class="bottom-nav-more" data-drawer-open="doctor-drawer"><span class="bottom-nav-icon">☰</span><span>More</span></button>
+</nav>
+</th:block>
 
-<!-- Vendor navbar -->
-<nav th:fragment="vendor-nav" class="navbar">
-    <a href="/" class="navbar-brand">
+<!-- Vendor navbar — lab vs pharmacy specific -->
+<th:block th:fragment="vendor-nav">
+<nav class="portal-topbar">
+    <a href="/vendor/dashboard" class="navbar-brand">
         <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-        <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
+        <span class="brand-text brand-text-short">Smart<span class="brand-accent">Care</span></span>
         <span class="portal-tag" th:text="${vendorTag != null ? vendorTag : 'Vendor'}">Vendor</span>
     </a>
-    <ul class="nav-links">
+    <ul class="nav-links nav-desktop-only">
         <li><a href="/vendor/dashboard">Dashboard</a></li>
         <li th:if="${vendorTag == 'Pharmacy'}"><a href="/vendor/orders">Orders</a></li>
         <li th:if="${vendorTag == 'Pharmacy'}"><a href="/vendor/inventory">Inventory</a></li>
-        <li th:if="${vendorTag == 'Pharmacy'}"><a href="/vendor/reports">Reports</a></li>
-        <li><a href="/vendor/notifications">Notifications</a></li>
-        <li><a href="/vendor/profile">Profile</a></li>
-        <li><a href="/logout" class="btn btn-outline btn-sm">Sign Out</a></li>
     </ul>
+    <div class="portal-topbar-actions">
+        <a href="/vendor/notifications" class="portal-icon-btn" aria-label="Notifications">🔔</a>
+        <button type="button" class="portal-menu-btn" aria-label="Open menu" data-drawer-open="vendor-drawer">☰</button>
+    </div>
 </nav>
+<div class="portal-drawer-overlay" data-drawer-close></div>
+<aside id="vendor-drawer" class="portal-drawer">
+    <div class="portal-drawer-header">
+        <strong th:text="${vendorTag != null ? vendorTag + ' Portal' : 'Vendor Portal'}">Vendor</strong>
+        <button type="button" class="portal-drawer-close" data-drawer-close aria-label="Close">✕</button>
+    </div>
+    <div class="portal-drawer-section" th:if="${vendorTag == 'Pharmacy'}">
+        <span class="portal-drawer-label">Pharmacy</span>
+        <a href="/vendor/dashboard">Order dashboard</a>
+        <a href="/vendor/orders">All orders</a>
+        <a href="/vendor/inventory">Medicine inventory</a>
+        <a href="/vendor/reports">Sales reports</a>
+    </div>
+    <div class="portal-drawer-section" th:if="${vendorTag != 'Pharmacy'}">
+        <span class="portal-drawer-label">Laboratory</span>
+        <a href="/vendor/dashboard">Test requests</a>
+        <a href="/vendor/dashboard">Upload reports</a>
+    </div>
+    <div class="portal-drawer-section">
+        <span class="portal-drawer-label">Account</span>
+        <a href="/vendor/profile">Profile</a>
+        <a href="/vendor/notifications">Notifications</a>
+        <a href="/logout" class="portal-drawer-signout">Sign Out</a>
+    </div>
+</aside>
+<nav class="portal-bottom-nav" aria-label="Vendor navigation">
+    <a href="/vendor/dashboard"><span class="bottom-nav-icon">📊</span><span>Home</span></a>
+    <a th:if="${vendorTag == 'Pharmacy'}" href="/vendor/orders"><span class="bottom-nav-icon">💊</span><span>Orders</span></a>
+    <a th:if="${vendorTag == 'Pharmacy'}" href="/vendor/inventory"><span class="bottom-nav-icon">📦</span><span>Stock</span></a>
+    <a th:if="${vendorTag != 'Pharmacy'}" href="/vendor/dashboard"><span class="bottom-nav-icon">🧪</span><span>Tests</span></a>
+    <a href="/vendor/profile"><span class="bottom-nav-icon">👤</span><span>Profile</span></a>
+    <button type="button" class="bottom-nav-more" data-drawer-open="vendor-drawer"><span class="bottom-nav-icon">☰</span><span>More</span></button>
+</nav>
+</th:block>
 
 <!-- Role-aware navbar (use on shared pages like /notifications) -->
 <th:block th:fragment="role-nav">
@@ -197,8 +318,9 @@
 
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="SmartCare 360 — Integrated Hospital Management Platform">
+    <meta name="theme-color" content="#5b8fd9">
     <title th:text="${title} + ' | SmartCare 360'">SmartCare 360</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

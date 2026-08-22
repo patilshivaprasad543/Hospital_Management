@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Care Episode')}"></head>
-<body>
+<body class="portal-app">
     <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
-    <div class="container">
+    <div class="container portal-container">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 

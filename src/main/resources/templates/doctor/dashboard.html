@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Doctor Dashboard')}"></head>
-<body>
+<body class="portal-app">
     <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
 
 <div class="container">
@@ -14,18 +14,8 @@
                 <p th:text="${profile.specialization != null ? profile.specialization : 'General Physician'}">Specialization</p>
             </div>
             <div class="page-header-actions">
-                <a href="/doctor/profile" class="btn btn-outline">Availability</a>
-                <a href="/doctor/earnings" class="btn btn-outline">Earnings</a>
+                <a href="/doctor/profile" class="btn btn-outline btn-sm">Availability</a>
             </div>
-        </div>
-
-        <div class="grid" style="margin-bottom:1.5rem;">
-            <a href="/doctor/appointments" class="card">📅 Appointments</a>
-            <a href="/doctor/patients" class="card">👥 Patients</a>
-            <a href="/doctor/prescriptions" class="card">💊 Prescriptions</a>
-            <a href="/doctor/lab-tests" class="card">🧪 Lab Tests</a>
-            <a href="/doctor/reports" class="card">📊 Reports</a>
-            <a href="/doctor/notifications" class="card">🔔 Notifications</a>
         </div>
 
         <div th:if="${!#lists.isEmpty(announcements)}" class="announcement-banner">
@@ -58,39 +48,21 @@
         </div>
 
         <!-- Live Patient Queue Room -->
-        <h3 style="margin-bottom: 1rem;">🎟️ Live Patient Queue Room (Checked-In Patients)</h3>
-        <div class="table-container" style="margin-bottom: 2.5rem; border: 2px solid var(--primary-color);">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Queue Ticket</th>
-                        <th>Patient Name</th>
-                        <th>Department</th>
-                        <th>Checked-In At</th>
-                        <th>Queue Status</th>
-                        <th>Consultation Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="app : ${checkedInQueue}">
-                        <td><span class="badge badge-role" style="font-size: 0.95rem; font-weight: 800;" th:text="${app.queueTicket}">#A101</span></td>
-                        <td th:text="${app.patient.fullName}">John Doe</td>
-                        <td th:text="${app.departmentCategory}">General</td>
-                        <td th:text="${#temporals.format(app.checkedInAt, 'HH:mm')}">10:15</td>
-                        <td><span class="badge badge-confirmed" th:text="${app.state}">CHECKED_IN</span></td>
-                        <td>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <form th:action="@{/doctor/appointment/{id}/start-consultation(id=${app.id})}" method="post">
-                                    <button type="submit" class="btn btn-primary btn-sm">▶️ Call Patient / Start</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(checkedInQueue)}">
-                        <td colspan="6" style="text-align: center; color: var(--text-muted);">No checked-in patients in current queue.</td>
-                    </tr>
-                </tbody>
-            </table>
+        <h3 class="section-title">Live Patient Queue</h3>
+        <div class="mobile-card-list" th:if="${!#lists.isEmpty(checkedInQueue)}">
+            <div th:each="app : ${checkedInQueue}" class="mobile-list-card queue-card">
+                <div class="mobile-list-card-main">
+                    <span class="badge badge-role" th:text="${app.queueTicket}">#A101</span>
+                    <strong th:text="${app.patient.fullName}">Patient</strong>
+                    <span class="text-muted" th:text="${app.departmentCategory + ' · checked in ' + #temporals.format(app.checkedInAt, 'HH:mm')}">Info</span>
+                </div>
+                <form th:action="@{/doctor/appointment/{id}/start-consultation(id=${app.id})}" method="post">
+                    <button type="submit" class="btn btn-primary btn-sm btn-block">Start Consultation</button>
+                </form>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(checkedInQueue)}" class="card empty-state-card">
+            <p>No patients in queue right now.</p>
         </div>
 
         <!-- Digital Prescription Builder & Diagnostic Lab Request -->

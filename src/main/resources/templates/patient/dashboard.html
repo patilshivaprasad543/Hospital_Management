@@ -1,19 +1,16 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Patient Dashboard')}"></head>
-<body>
+<body class="portal-app">
     <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
-    <div class="container">
+    <div class="container portal-container">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
-        <div class="page-header">
+        <div class="page-header page-header-compact">
             <div class="page-header-content">
-                <h1 th:text="'Welcome, ' + ${patient.fullName}">Welcome, Patient</h1>
-                <p>Manage your appointments, prescriptions, and health records</p>
-            </div>
-            <div class="page-header-actions">
-                <a href="/patient/book-appointment" class="btn btn-primary">Book Appointment</a>
+                <h1 th:text="'Hi, ' + ${#strings.substringBefore(patient.fullName, ' ')}">Hi, Patient</h1>
+                <p>One place for your visits, health file, and doctor booking.</p>
             </div>
         </div>
 
@@ -24,114 +21,101 @@
             </div>
         </div>
 
-        <div class="grid" style="margin-bottom:1.5rem;">
-            <div class="card emergency-card">
-                <h3>Emergency Contacts</h3>
-                <p><strong>Hospital Emergency:</strong> 108 / +91 1800-360-2478</p>
-                <p th:if="${profile.emergencyContactName != null}">
-                    <strong>Your Emergency Contact:</strong>
-                    <span th:text="${profile.emergencyContactName}">Name</span> —
-                    <span th:text="${profile.emergencyContactPhone}">Phone</span>
-                </p>
-                <p th:if="${profile.emergencyContactName == null}" class="text-muted">
-                    <a href="/patient/profile">Add emergency contact</a> in your profile.
-                </p>
-            </div>
-            <div class="card">
-                <h3>Quick Actions</h3>
-                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;">
-                    <a href="/patient/care-episodes" class="btn btn-primary btn-sm">Care Episodes</a>
-                    <a href="/patient/care-passport" class="btn btn-secondary btn-sm">Care Passport</a>
-                    <a href="/patient/symptom-wizard" class="btn btn-secondary btn-sm">Symptom Checker</a>
-                    <a href="/patient/timeline" class="btn btn-secondary btn-sm">Health Timeline</a>
-                    <a href="/patient/records" class="btn btn-secondary btn-sm">Medical Records</a>
-                    <a href="/patient/prescriptions" class="btn btn-secondary btn-sm">Prescriptions</a>
-                    <a href="/patient/pharmacy-orders" class="btn btn-secondary btn-sm">Pharmacy Orders</a>
-                    <a href="/patient/lab-reports" class="btn btn-secondary btn-sm">Lab Reports</a>
-                    <a href="/notifications" class="btn btn-secondary btn-sm">Notifications</a>
-                </div>
-            </div>
-        </div>
-
-        <div th:if="${activeEpisode != null}" class="card care-episode-active-banner" style="margin-bottom:1.5rem;">
-            <div class="care-episode-header">
-                <div>
-                    <span class="badge badge-confirmed">Active Care Episode</span>
-                    <h3 th:text="${'Visit with Dr. ' + activeEpisode.doctorName}">Active Visit</h3>
-                    <p class="text-muted" th:text="${'Current step: ' + activeEpisode.currentStepLabel}">Step</p>
-                </div>
+        <!-- Active visit hero — primary focus, replaces duplicate lists -->
+        <div th:if="${activeEpisode != null}" class="card visit-hero-card">
+            <div class="visit-hero-top">
+                <span class="badge badge-confirmed">Active Visit</span>
                 <div class="care-progress-ring">
                     <span class="care-progress-value" th:text="${activeEpisode.progressPercent + '%'}">50%</span>
                 </div>
             </div>
+            <h2 th:text="${'Dr. ' + activeEpisode.doctorName}">Doctor</h2>
+            <p class="text-muted" th:text="${activeEpisode.department + ' · ' + activeEpisode.currentStepLabel}">Step</p>
             <div th:if="${activeEpisode.queueStatus != null and activeEpisode.queueStatus.inQueue}" class="queue-status-banner">
                 <strong th:text="${activeEpisode.queueStatus.queueTicket}">#A101</strong>
-                <span th:text="${'Position #' + activeEpisode.queueStatus.position}">#3</span>
-                <span th:text="${'~' + activeEpisode.queueStatus.estimatedWaitMinutes + ' min wait'}">Wait</span>
+                <span th:text="${'#' + activeEpisode.queueStatus.position + ' in queue'}">#3</span>
+                <span th:text="${'~' + activeEpisode.queueStatus.estimatedWaitMinutes + ' min'}">Wait</span>
             </div>
-            <a th:href="@{/patient/care-episodes/{id}(id=${activeEpisode.appointmentId})}" class="btn btn-primary btn-sm" style="margin-top:0.75rem;">Track My Visit</a>
+            <a th:href="@{/patient/care-episodes/{id}(id=${activeEpisode.appointmentId})}" class="btn btn-primary btn-block">Track My Visit</a>
         </div>
 
-        <div class="grid">
-            <div class="card stat-card">
-                <div class="card-title">Total Appointments</div>
-                <div class="stat-number" th:text="${#lists.size(appointments)}">0</div>
+        <!-- 4 clear actions — no duplicate models -->
+        <div class="action-tiles">
+            <a href="/patient/care-episodes" class="action-tile action-tile-primary">
+                <span class="action-tile-icon">🔄</span>
+                <strong>My Visits</strong>
+                <small>Full care journey</small>
+            </a>
+            <a href="/patient/doctors" class="action-tile">
+                <span class="action-tile-icon">📅</span>
+                <strong>Book Doctor</strong>
+                <small>Find &amp; schedule</small>
+            </a>
+            <a href="/patient/care-passport" class="action-tile">
+                <span class="action-tile-icon">📋</span>
+                <strong>Health File</strong>
+                <small>Portable summary</small>
+            </a>
+            <a href="/patient/symptom-wizard" class="action-tile">
+                <span class="action-tile-icon">🩺</span>
+                <strong>Symptom Check</strong>
+                <small>Find right doctor</small>
+            </a>
+        </div>
+
+        <!-- Compact stats -->
+        <div class="stat-row">
+            <div class="stat-pill">
+                <span class="stat-pill-value" th:text="${#lists.size(appointments)}">0</span>
+                <span class="stat-pill-label">Visits</span>
             </div>
-            <div class="card stat-card">
-                <div class="card-title">Blood Group</div>
-                <div class="stat-number danger" th:text="${profile.bloodGroup != null ? profile.bloodGroup : 'N/A'}">O+</div>
+            <div class="stat-pill">
+                <span class="stat-pill-value" th:text="${profile.bloodGroup != null ? profile.bloodGroup : '—'}">O+</span>
+                <span class="stat-pill-label">Blood</span>
             </div>
-            <div class="card stat-card">
-                <div class="card-title">Available Doctors</div>
-                <div class="stat-number success" th:text="${#lists.size(doctors)}">0</div>
+            <div class="stat-pill">
+                <span class="stat-pill-value" th:text="${#lists.size(prescriptions)}">0</span>
+                <span class="stat-pill-label">Rx</span>
             </div>
         </div>
 
-        <div th:if="${!#lists.isEmpty(prescriptions)}" style="margin-bottom: 1.5rem;">
-            <h3 class="section-title">Recent Prescriptions — Order Medicines</h3>
-            <div class="grid">
-                <div class="card" th:each="rx : ${prescriptions}" th:if="${rxStat.index < 3}">
-                    <div class="card-title" th:text="${'Rx #' + rx.id + ' — Dr. ' + rx.doctor.fullName}">Prescription</div>
-                    <p th:text="${rx.diagnosis}">Diagnosis</p>
-                    <ul style="margin:0.5rem 0 0.75rem 1.2rem;font-size:0.88rem;">
-                        <li th:each="item : ${rx.items}" th:text="${item.medicineName}">Medicine</li>
-                    </ul>
-                    <a href="/patient/prescriptions" class="btn btn-success btn-sm">Order Medicines</a>
-                </div>
+        <!-- Emergency — compact on mobile -->
+        <details class="card emergency-details">
+            <summary>Emergency contacts</summary>
+            <p><strong>Hospital:</strong> 108 / 1800-360-2478</p>
+            <p th:if="${profile.emergencyContactName != null}">
+                <strong>Yours:</strong>
+                <span th:text="${profile.emergencyContactName + ' — ' + profile.emergencyContactPhone}">Contact</span>
+            </p>
+            <p th:unless="${profile.emergencyContactName != null}" class="text-muted">
+                <a href="/patient/profile">Add your emergency contact</a>
+            </p>
+        </details>
+
+        <!-- Upcoming only — link to full list, no duplicate table -->
+        <div th:if="${!#lists.isEmpty(appointments)}" class="section-block">
+            <div class="section-block-header">
+                <h3>Upcoming</h3>
+                <a href="/patient/appointments" class="text-link">See all</a>
+            </div>
+            <div class="mobile-card-list">
+                <a th:each="app, stat : ${appointments}" th:if="${stat.index < 3}"
+                   th:href="@{/patient/care-episodes/{id}(id=${app.id})}"
+                   class="mobile-list-card">
+                    <div class="mobile-list-card-main">
+                        <strong th:text="${'Dr. ' + app.doctor.fullName}">Doctor</strong>
+                        <span class="text-muted" th:text="${app.appointmentDate + ' · ' + app.appointmentTime}">Date</span>
+                    </div>
+                    <span class="badge"
+                          th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : 'badge-pending'}"
+                          th:text="${app.status.label}">Status</span>
+                </a>
             </div>
         </div>
 
-        <h3 class="section-title">Recent Appointments</h3>
-        <div class="table-container">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Doctor</th>
-                        <th>Specialization</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Reason</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="app : ${appointments}">
-                        <td th:text="${app.doctor.fullName}">Dr. Smith</td>
-                        <td th:text="${app.doctor.email}">Specialist</td>
-                        <td th:text="${app.appointmentDate}">2026-08-20</td>
-                        <td th:text="${app.appointmentTime}">10:00 AM</td>
-                        <td th:text="${app.reason != null ? app.reason : 'Consultation'}">Reason</td>
-                        <td>
-                            <span class="badge"
-                                  th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : 'badge-rejected')}"
-                                  th:text="${app.status.label}">Status</span>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(appointments)}" class="table-empty">
-                        <td colspan="6">No appointments scheduled. Book an appointment to get started.</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div th:if="${#lists.isEmpty(appointments)}" class="card empty-state-card">
+            <p>No visits yet. Book a doctor to start your care journey.</p>
+            <a href="/patient/doctors" class="btn btn-primary">Find a Doctor</a>
         </div>
     </div>
 
