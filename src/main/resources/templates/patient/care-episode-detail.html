@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Care Episode')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="container">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="page-header">
+            <div class="page-header-content">
+                <a href="/patient/care-episodes" class="text-muted" style="font-size:0.9rem;">← All Episodes</a>
+                <h1 th:text="${'Care Episode — Dr. ' + episode.doctorName}">Care Episode</h1>
+                <p th:text="${episode.department + ' · ' + episode.appointmentDate + ' at ' + episode.appointmentTime}">Details</p>
+            </div>
+            <div class="care-progress-ring care-progress-ring-lg">
+                <span class="care-progress-value" th:text="${episode.progressPercent + '%'}">0%</span>
+                <span class="care-progress-label">Progress</span>
+            </div>
+        </div>
+
+        <!-- Live Queue Status -->
+        <div th:if="${episode.queueStatus != null and episode.queueStatus.inQueue}"
+             id="queue-panel" class="card queue-live-panel"
+             th:attr="data-episode-id=${episode.appointmentId}">
+            <div class="queue-live-header">
+                <h3>Live Queue Status</h3>
+                <span class="badge badge-confirmed">Updating live</span>
+            </div>
+            <div class="queue-live-stats">
+                <div class="queue-stat">
+                    <div class="queue-stat-value" id="queue-ticket" th:text="${episode.queueStatus.queueTicket}">#A101</div>
+                    <div class="queue-stat-label">Your Ticket</div>
+                </div>
+                <div class="queue-stat">
+                    <div class="queue-stat-value" id="queue-position" th:text="${'#' + episode.queueStatus.position}">#3</div>
+                    <div class="queue-stat-label">Position</div>
+                </div>
+                <div class="queue-stat">
+                    <div class="queue-stat-value" id="queue-wait" th:text="${'~' + episode.queueStatus.estimatedWaitMinutes + ' min'}">~15 min</div>
+                    <div class="queue-stat-label">Est. Wait</div>
+                </div>
+                <div class="queue-stat">
+                    <div class="queue-stat-value" id="queue-avg" th:text="${episode.queueStatus.averageConsultMinutes + ' min'}">12 min</div>
+                    <div class="queue-stat-label">Avg Consult</div>
+                </div>
+            </div>
+            <p class="text-muted" style="margin-top:0.75rem;font-size:0.85rem;">
+                Based on Dr. <span th:text="${episode.queueStatus.doctorName}">Doctor</span>'s live queue.
+                You can wait nearby and return when your turn is close.
+            </p>
+        </div>
+
+        <!-- Care Episode Steps -->
+        <div class="card" style="margin-top:1.5rem;">
+            <h3 style="margin-bottom:1.25rem;">Your Visit Journey</h3>
+            <div class="care-stepper">
+                <div th:each="step, iter : ${episode.steps}"
+                     th:class="'care-step care-step-' + ${step.status.name().toLowerCase()}">
+                    <div class="care-step-marker" th:text="${step.icon}">📅</div>
+                    <div class="care-step-body">
+                        <div class="care-step-title-row">
+                            <span class="care-step-title" th:text="${step.label}">Step</span>
+                            <span th:class="'badge care-badge-' + ${step.status.name().toLowerCase()}"
+                                  th:text="${step.status}">ACTIVE</span>
+                        </div>
+                        <p class="care-step-desc" th:text="${step.description}">Description</p>
+                        <p th:if="${step.detail != null}" class="care-step-detail" th:text="${step.detail}">Detail</p>
+                        <a th:if="${step.actionUrl != null and step.actionLabel != null}"
+                           th:href="${step.actionUrl}"
+                           class="btn btn-sm btn-secondary"
+                           th:text="${step.actionLabel}">Action</a>
+                    </div>
+                    <div th:unless="${iter.last}" class="care-step-line"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Post-Visit Action Checklist -->
+        <div th:if="${!#lists.isEmpty(episode.checklist)}" class="card" style="margin-top:1.5rem;">
+            <h3 style="margin-bottom:0.5rem;">Post-Visit Action Checklist</h3>
+            <p class="text-muted" style="margin-bottom:1.25rem;">Complete these steps after your consultation. Items auto-check when the system detects completion.</p>
+
+            <div th:each="item : ${episode.checklist}" class="checklist-item"
+                 th:classappend="${item.completed} ? ' checklist-done' : ''">
+                <div class="checklist-check">
+                    <span th:if="${item.completed}">✓</span>
+                    <span th:unless="${item.completed}">○</span>
+                </div>
+                <div class="checklist-content">
+                    <strong th:text="${item.label}">Action</strong>
+                    <span th:if="${item.autoCompleted}" class="badge badge-confirmed" style="margin-left:0.4rem;font-size:0.65rem;">Auto</span>
+                    <p th:text="${item.description}">Description</p>
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.4rem;">
+                        <a th:if="${item.actionUrl != null}" th:href="${item.actionUrl}"
+                           class="btn btn-sm btn-primary" th:text="${item.actionLabel}">Go</a>
+                        <form th:unless="${item.autoCompleted}"
+                              th:action="@{/patient/care-episodes/{id}/checklist/{key}(id=${episode.appointmentId}, key=${item.key})}"
+                              method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-secondary"
+                                    th:text="${item.completed} ? 'Mark Incomplete' : 'Mark Done'">Mark Done</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:if="${episode.queueStatus != null and episode.queueStatus.inQueue}">
+        (function() {
+            const panel = document.getElementById('queue-panel');
+            if (!panel) return;
+            const episodeId = panel.dataset.episodeId;
+            function refreshQueue() {
+                fetch('/patient/care-episodes/' + episodeId + '/queue')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (!data.inQueue) return;
+                        document.getElementById('queue-position').textContent = '#' + data.position;
+                        document.getElementById('queue-wait').textContent = '~' + data.estimatedWaitMinutes + ' min';
+                        document.getElementById('queue-avg').textContent = data.averageConsultMinutes + ' min';
+                    })
+                    .catch(() => {});
+            }
+            setInterval(refreshQueue, 30000);
+        })();
+    </script>
+</body>
+</html>

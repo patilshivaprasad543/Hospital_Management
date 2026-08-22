@@ -40,6 +40,8 @@
             <div class="card">
                 <h3>Quick Actions</h3>
                 <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;">
+                    <a href="/patient/care-episodes" class="btn btn-primary btn-sm">Care Episodes</a>
+                    <a href="/patient/care-passport" class="btn btn-secondary btn-sm">Care Passport</a>
                     <a href="/patient/symptom-wizard" class="btn btn-secondary btn-sm">Symptom Checker</a>
                     <a href="/patient/timeline" class="btn btn-secondary btn-sm">Health Timeline</a>
                     <a href="/patient/records" class="btn btn-secondary btn-sm">Medical Records</a>
@@ -49,6 +51,25 @@
                     <a href="/notifications" class="btn btn-secondary btn-sm">Notifications</a>
                 </div>
             </div>
+        </div>
+
+        <div th:if="${activeEpisode != null}" class="card care-episode-active-banner" style="margin-bottom:1.5rem;">
+            <div class="care-episode-header">
+                <div>
+                    <span class="badge badge-confirmed">Active Care Episode</span>
+                    <h3 th:text="${'Visit with Dr. ' + activeEpisode.doctorName}">Active Visit</h3>
+                    <p class="text-muted" th:text="${'Current step: ' + activeEpisode.currentStepLabel}">Step</p>
+                </div>
+                <div class="care-progress-ring">
+                    <span class="care-progress-value" th:text="${activeEpisode.progressPercent + '%'}">50%</span>
+                </div>
+            </div>
+            <div th:if="${activeEpisode.queueStatus != null and activeEpisode.queueStatus.inQueue}" class="queue-status-banner">
+                <strong th:text="${activeEpisode.queueStatus.queueTicket}">#A101</strong>
+                <span th:text="${'Position #' + activeEpisode.queueStatus.position}">#3</span>
+                <span th:text="${'~' + activeEpisode.queueStatus.estimatedWaitMinutes + ' min wait'}">Wait</span>
+            </div>
+            <a th:href="@{/patient/care-episodes/{id}(id=${activeEpisode.appointmentId})}" class="btn btn-primary btn-sm" style="margin-top:0.75rem;">Track My Visit</a>
         </div>
 
         <div class="grid">

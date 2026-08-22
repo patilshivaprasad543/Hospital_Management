@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Care Passport')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Care Passport</h1>
+                <p>Your portable health summary — share with any doctor or hospital for continuity of care.</p>
+            </div>
+            <div class="page-header-actions">
+                <a th:href="@{/patient/care-passport/pdf}" class="btn btn-primary">Download PDF</a>
+            </div>
+        </div>
+
+        <div class="card care-passport-card">
+            <div class="care-passport-header">
+                <div>
+                    <span class="badge badge-role" th:text="${passport.passportId}">SC360-000001</span>
+                    <h2 th:text="${passport.patientName}">Patient Name</h2>
+                    <p class="text-muted" th:text="${passport.email}">email</p>
+                    <p class="text-muted" style="font-size:0.85rem;" th:text="${'Generated ' + passport.generatedAt}">Date</p>
+                </div>
+                <div class="care-passport-qr">
+                    <img th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' + ${passport.passportId}}"
+                         alt="Care Passport QR Code" width="140" height="140"/>
+                    <p class="text-muted" style="font-size:0.75rem;margin-top:0.4rem;">Scan to verify ID</p>
+                </div>
+            </div>
+
+            <div class="grid" style="margin-top:1.5rem;">
+                <div class="card" style="box-shadow:none;border:1px solid var(--border);">
+                    <h4>Vital Info</h4>
+                    <p><strong>Blood Group:</strong> <span th:text="${passport.bloodGroup}">O+</span></p>
+                    <p><strong>Allergies:</strong> <span th:text="${passport.allergies}">None</span></p>
+                </div>
+                <div class="card" style="box-shadow:none;border:1px solid var(--border);">
+                    <h4>Emergency Contact</h4>
+                    <p th:if="${passport.emergencyContactName != null}">
+                        <span th:text="${passport.emergencyContactName}">Name</span><br/>
+                        <span th:text="${passport.emergencyContactPhone}">Phone</span>
+                    </p>
+                    <p th:unless="${passport.emergencyContactName != null}" class="text-muted">
+                        <a href="/patient/profile">Add emergency contact</a> in your profile.
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-top:1.5rem;">
+                <h4>Current Medicines</h4>
+                <ul th:if="${!#lists.isEmpty(passport.currentMedicines)}">
+                    <li th:each="med : ${passport.currentMedicines}" th:text="${med}">Medicine</li>
+                </ul>
+                <p th:if="${#lists.isEmpty(passport.currentMedicines)}" class="text-muted">No medicines on record.</p>
+            </div>
+
+            <div style="margin-top:1.25rem;">
+                <h4>Recent Diagnoses</h4>
+                <ul th:if="${!#lists.isEmpty(passport.recentDiagnoses)}">
+                    <li th:each="dx : ${passport.recentDiagnoses}" th:text="${dx}">Diagnosis</li>
+                </ul>
+                <p th:if="${#lists.isEmpty(passport.recentDiagnoses)}" class="text-muted">No diagnoses recorded yet.</p>
+            </div>
+
+            <div style="margin-top:1.25rem;">
+                <h4>Recent Lab Results</h4>
+                <ul th:if="${!#lists.isEmpty(passport.recentLabResults)}">
+                    <li th:each="lab : ${passport.recentLabResults}" th:text="${lab}">Lab</li>
+                </ul>
+                <p th:if="${#lists.isEmpty(passport.recentLabResults)}" class="text-muted">No lab results available.</p>
+            </div>
+
+            <div class="care-passport-footer">
+                <p class="text-muted" style="font-size:0.85rem;">
+                    This Care Passport summarizes your SmartCare 360 records. For full medical history, visit
+                    <a href="/patient/records">Medical Records</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

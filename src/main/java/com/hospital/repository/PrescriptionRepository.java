@@ -1,5 +1,6 @@
 package com.hospital.repository;
 
+import com.hospital.model.Appointment;
 import com.hospital.model.Prescription;
 import com.hospital.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PrescriptionRepository extends JpaRepository<Prescription, Long> {
@@ -30,4 +32,7 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
            "LEFT JOIN FETCH p.items " +
            "ORDER BY p.createdAt DESC")
     List<Prescription> findAllDetailed();
+
+    @Query("SELECT p FROM Prescription p LEFT JOIN FETCH p.items WHERE p.appointment.id = :appointmentId")
+    Optional<Prescription> findByAppointmentId(@Param("appointmentId") Long appointmentId);
 }

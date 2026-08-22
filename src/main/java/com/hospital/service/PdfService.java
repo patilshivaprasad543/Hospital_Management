@@ -67,6 +67,52 @@ public class PdfService {
         });
     }
 
+    public byte[] generateCarePassportPdf(com.hospital.dto.CarePassportDto passport) {
+        return buildPdf("SmartCare 360 — Care Passport", document -> {
+            document.add(new Paragraph("Care Passport", TITLE));
+            document.add(new Paragraph("ID: " + passport.getPassportId(), HEADING));
+            document.add(new Paragraph("Generated: " + passport.getGeneratedAt(), BODY));
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Patient: " + passport.getPatientName(), BODY));
+            document.add(new Paragraph("Email: " + passport.getEmail(), BODY));
+            document.add(new Paragraph("Blood Group: " + passport.getBloodGroup(), BODY));
+            document.add(new Paragraph("Allergies: " + passport.getAllergies(), BODY));
+            if (passport.getEmergencyContactName() != null) {
+                document.add(new Paragraph("Emergency Contact: " + passport.getEmergencyContactName()
+                        + " (" + passport.getEmergencyContactPhone() + ")", BODY));
+            }
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Current Medicines:", HEADING));
+            if (passport.getCurrentMedicines().isEmpty()) {
+                document.add(new Paragraph("None recorded", BODY));
+            } else {
+                for (String med : passport.getCurrentMedicines()) {
+                    document.add(new Paragraph("• " + med, BODY));
+                }
+            }
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Recent Diagnoses:", HEADING));
+            if (passport.getRecentDiagnoses().isEmpty()) {
+                document.add(new Paragraph("None recorded", BODY));
+            } else {
+                for (String dx : passport.getRecentDiagnoses()) {
+                    document.add(new Paragraph("• " + dx, BODY));
+                }
+            }
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Recent Lab Results:", HEADING));
+            if (passport.getRecentLabResults().isEmpty()) {
+                document.add(new Paragraph("None available", BODY));
+            } else {
+                for (String lab : passport.getRecentLabResults()) {
+                    document.add(new Paragraph("• " + lab, BODY));
+                }
+            }
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Share this passport with any healthcare provider for continuity of care.", BODY));
+        });
+    }
+
     private byte[] buildPdf(String title, PdfConsumer consumer) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Document document = new Document();

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Care Episodes')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="container">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>My Care Episodes</h1>
+                <p>Track every hospital visit from booking through lab, pharmacy, and billing — all in one place.</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="/patient/care-passport" class="btn btn-secondary">Care Passport</a>
+                <a href="/patient/book-appointment" class="btn btn-primary">Book Visit</a>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(episodes)}" class="card" style="text-align:center;padding:3rem;">
+            <h3>No care episodes yet</h3>
+            <p class="text-muted">Book your first appointment to start tracking your care journey.</p>
+            <a href="/patient/book-appointment" class="btn btn-primary">Book Appointment</a>
+        </div>
+
+        <div th:each="ep : ${episodes}" class="card care-episode-card">
+            <div class="care-episode-header">
+                <div>
+                    <span class="badge badge-role" th:text="${ep.department}">General</span>
+                    <span th:if="${ep.active}" class="badge badge-confirmed" style="margin-left:0.4rem;">Active</span>
+                    <h3 th:text="${'Visit with Dr. ' + ep.doctorName}">Doctor</h3>
+                    <p class="text-muted" th:text="${ep.appointmentDate + ' at ' + ep.appointmentTime}">Date</p>
+                </div>
+                <div class="care-progress-ring">
+                    <span class="care-progress-value" th:text="${ep.progressPercent + '%'}">0%</span>
+                    <span class="care-progress-label">Complete</span>
+                </div>
+            </div>
+
+            <p><strong>Current step:</strong> <span th:text="${ep.currentStepLabel}">Check-In</span></p>
+
+            <div th:if="${ep.queueStatus != null and ep.queueStatus.inQueue}" class="queue-status-banner">
+                <strong th:text="${'Queue ' + ep.queueStatus.queueTicket}">#A101</strong>
+                <span th:text="${'Position #' + ep.queueStatus.position + ' of ' + ep.queueStatus.totalWaiting}">#3 of 5</span>
+                <span th:text="${'~' + ep.queueStatus.estimatedWaitMinutes + ' min wait'}">~15 min</span>
+            </div>
+
+            <div class="care-mini-stepper">
+                <div th:each="step : ${ep.steps}"
+                     th:class="'care-mini-dot care-dot-' + ${step.status.name().toLowerCase()}"
+                     th:title="${step.label}"></div>
+            </div>
+
+            <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+                <a th:href="@{/patient/care-episodes/{id}(id=${ep.appointmentId})}" class="btn btn-primary btn-sm">Open Episode</a>
+                <a th:if="${!#lists.isEmpty(ep.checklist)}" th:href="@{/patient/care-episodes/{id}(id=${ep.appointmentId})}" class="btn btn-secondary btn-sm">
+                    Action Checklist (<span th:text="${#lists.size(ep.checklist)}">0</span>)
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

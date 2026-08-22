@@ -78,6 +78,9 @@ public class PatientController {
     @Autowired
     private ConsultationService consultationService;
 
+    @Autowired
+    private CareEpisodeService careEpisodeService;
+
     private User getLoggedInPatient(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user != null && user.getRole() == Role.PATIENT) {
@@ -104,6 +107,7 @@ public class PatientController {
         model.addAttribute("labRequests", labWorkflowService.getPatientLabRequests(patient));
         model.addAttribute("pharmacyOrders", pharmacyWorkflowService.getPatientOrders(patient));
         model.addAttribute("announcements", announcementService.getActiveForRole("PATIENT"));
+        careEpisodeService.getActiveEpisode(patient).ifPresent(ep -> model.addAttribute("activeEpisode", ep));
 
         return "patient/dashboard";
     }
@@ -310,6 +314,8 @@ public class PatientController {
         model.addAttribute("timelineEvents", patientTimelineService.buildTimeline(patient));
         return "patient/records";
     }
+
+    @GetMapping("/timeline")
     public String viewHealthTimeline(HttpSession session, Model model) {
         User patient = getLoggedInPatient(session);
         if (patient == null) return "redirect:/login/patient";
