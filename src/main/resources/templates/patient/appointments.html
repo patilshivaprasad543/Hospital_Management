@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('My Appointments')}"></head>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head th:replace="~{fragments/layout :: head('patient.appointments.title')}"></head>
 <body>
     <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
@@ -10,11 +10,11 @@
 
         <div class="page-header">
             <div class="page-header-content">
-                <h1>My Appointments</h1>
-                <p>View, check in, cancel, or rate your consultations</p>
+                <h1 th:text="#{patient.appointments.title}">My Appointments</h1>
+                <p th:text="#{patient.appointments.subtitle}">View, check in, cancel, or rate your consultations</p>
             </div>
             <div class="page-header-actions">
-                <a href="/patient/book-appointment" class="btn btn-primary">Book Appointment</a>
+                <a href="/patient/book-appointment" class="btn btn-primary" th:text="#{nav.book.appointment}">Book Appointment</a>
             </div>
         </div>
 
@@ -22,12 +22,12 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Doctor</th>
-                        <th>Date &amp; Time</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                        <th>Notes</th>
+                        <th th:text="#{common.id}">ID</th>
+                        <th th:text="#{common.doctor}">Doctor</th>
+                        <th th:text="#{patient.appointments.date.time}">Date &amp; Time</th>
+                        <th th:text="#{common.status}">Status</th>
+                        <th th:text="#{common.actions}">Actions</th>
+                        <th th:text="#{common.notes}">Notes</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -38,19 +38,24 @@
                         <td>
                             <span class="badge"
                                   th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : (app.status.name() == 'COMPLETED' ? 'badge-completed' : 'badge-rejected'))}"
-                                  th:text="${app.status.label}">Pending</span>
+                                  th:text="#{'status.appointment.' + app.status.name()}">Pending</span>
                         </td>
                         <td>
                             <form th:if="${app.status.name() == 'CONFIRMED' && app.queueTicket == null}"
                                   th:action="@{/patient/check-in/{id}(id=${app.id})}" method="post" style="display:inline;">
-                                <button type="submit" class="btn btn-success btn-sm">Check-In</button>
+                                <button type="submit" class="btn btn-success btn-sm" th:text="#{patient.appointments.check.in}">Check-In</button>
                             </form>
-                            <span th:if="${app.queueTicket != null}" class="badge badge-role" th:text="${'Ticket ' + app.queueTicket}">#A101</span>
+                            <span th:if="${app.queueTicket != null}" class="badge badge-role"
+                                  th:text="#{patient.appointments.ticket(${app.queueTicket})}">Ticket</span>
                             <a th:if="${(app.status.name() == 'PENDING' or app.status.name() == 'CONFIRMED') and app.queueTicket == null}"
-                               th:href="@{/patient/appointments/{id}/reschedule(id=${app.id})}" class="btn btn-secondary btn-sm">Reschedule</a>
+                               th:href="@{/patient/appointments/{id}/reschedule(id=${app.id})}" class="btn btn-secondary btn-sm"
+                               th:text="#{patient.appointments.reschedule}">Reschedule</a>
                             <form th:if="${app.status.name() != 'COMPLETED' && app.status.name() != 'CANCELLED' && app.status.name() != 'REJECTED' && app.queueTicket == null}"
                                   th:action="@{/patient/appointments/{id}/cancel(id=${app.id})}" method="post" style="display:inline;">
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Cancel this appointment?')">Cancel</button>
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                        th:data-confirm-msg="#{patient.appointments.cancel.confirm}"
+                                        onclick="return confirm(this.dataset.confirmMsg)"
+                                        th:text="#{common.cancel}">Cancel</button>
                             </form>
                         </td>
                         <td>
@@ -58,22 +63,23 @@
                             <div th:if="${app.status.name() == 'COMPLETED' && !feedbackSubmitted.contains(app.id)}" class="mt-1">
                                 <form th:action="@{/patient/appointments/{id}/feedback(id=${app.id})}" method="post" class="feedback-form">
                                     <select name="rating" class="form-control" style="width:auto;display:inline-block;" required>
-                                        <option value="">Rate</option>
+                                        <option value="" th:text="#{common.rate}">Rate</option>
                                         <option value="5">★★★★★</option>
                                         <option value="4">★★★★</option>
                                         <option value="3">★★★</option>
                                         <option value="2">★★</option>
                                         <option value="1">★</option>
                                     </select>
-                                    <input type="text" name="comment" class="form-control" placeholder="Optional comment" style="width:160px;display:inline-block;">
-                                    <button type="submit" class="btn btn-secondary btn-sm">Submit</button>
+                                    <input type="text" name="comment" class="form-control" th:placeholder="#{common.optional.comment}"
+                                           style="width:160px;display:inline-block;">
+                                    <button type="submit" class="btn btn-secondary btn-sm" th:text="#{common.submit}">Submit</button>
                                 </form>
                             </div>
-                            <span th:if="${feedbackSubmitted.contains(app.id)}" class="text-muted" style="font-size:0.85rem;">Rated ✓</span>
+                            <span th:if="${feedbackSubmitted.contains(app.id)}" class="text-muted" style="font-size:0.85rem;" th:text="#{common.rated}">Rated ✓</span>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(appointments)}" class="table-empty">
-                        <td colspan="6">No appointments booked yet.</td>
+                        <td colspan="6" th:text="#{patient.appointments.empty}">No appointments booked yet.</td>
                     </tr>
                 </tbody>
             </table>

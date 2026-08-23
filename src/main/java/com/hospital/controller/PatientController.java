@@ -78,6 +78,9 @@ public class PatientController {
     @Autowired
     private ConsultationService consultationService;
 
+    @Autowired
+    private MessageHelper messageHelper;
+
     private User getLoggedInPatient(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
         if (user != null && user.getRole() == Role.PATIENT) {
@@ -243,7 +246,7 @@ public class PatientController {
 
         try {
             appointmentService.bookAppointmentWithDepartment(patient.getId(), doctorId, appointmentDate, appointmentTime, reason, department);
-            redirectAttributes.addFlashAttribute("successMessage", "Appointment booked successfully! Waiting for Doctor confirmation.");
+            redirectAttributes.addFlashAttribute("successMessage", messageHelper.get("flash.appointment.booked"));
             return "redirect:/patient/appointments";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -260,7 +263,8 @@ public class PatientController {
 
         try {
             Appointment updated = appointmentService.checkInPatient(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Digital Check-In Successful! Your Queue Ticket is " + updated.getQueueTicket() + ". Please wait to be called.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    messageHelper.get("flash.checkin.success", updated.getQueueTicket()));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -290,7 +294,7 @@ public class PatientController {
         if (patient == null) return "redirect:/login/patient";
         try {
             appointmentService.rescheduleAppointment(id, patient, appointmentDate, appointmentTime);
-            redirectAttributes.addFlashAttribute("successMessage", "Appointment rescheduled. Waiting for doctor confirmation.");
+            redirectAttributes.addFlashAttribute("successMessage", messageHelper.get("flash.appointment.rescheduled"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -310,6 +314,7 @@ public class PatientController {
         model.addAttribute("timelineEvents", patientTimelineService.buildTimeline(patient));
         return "patient/records";
     }
+    @GetMapping("/timeline")
     public String viewHealthTimeline(HttpSession session, Model model) {
         User patient = getLoggedInPatient(session);
         if (patient == null) return "redirect:/login/patient";
@@ -381,7 +386,7 @@ public class PatientController {
 
         User labVendor = userService.findById(labVendorId).orElse(null);
         labWorkflowService.assignVendorAndBook(id, labVendor);
-        redirectAttributes.addFlashAttribute("successMessage", "Laboratory vendor assigned! Sample processing requested.");
+        redirectAttributes.addFlashAttribute("successMessage", messageHelper.get("flash.lab.vendor.assigned"));
         return "redirect:/patient/lab-reports";
     }
 
@@ -398,12 +403,12 @@ public class PatientController {
         User vendor = userService.findById(pharmacyVendorId).orElse(null);
 
         if (rx == null || vendor == null) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Invalid prescription or pharmacy vendor.");
+            redirectAttributes.addFlashAttribute("errorMessage", messageHelper.get("flash.invalid.prescription.vendor"));
             return "redirect:/patient/prescriptions";
         }
 
         if (vendor.getVendorType() != VendorType.PHARMACY) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Please select a pharmacy vendor.");
+            redirectAttributes.addFlashAttribute("errorMessage", messageHelper.get("flash.select.pharmacy.vendor"));
             return "redirect:/patient/prescriptions";
         }
 
@@ -412,14 +417,13 @@ public class PatientController {
             deliveryAddress = profile.getAddress();
         }
         if (deliveryAddress == null || deliveryAddress.isBlank()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Please provide a delivery address.");
+            redirectAttributes.addFlashAttribute("errorMessage", messageHelper.get("flash.delivery.address.required"));
             return "redirect:/patient/prescriptions";
         }
 
         try {
             pharmacyWorkflowService.placeOrder(patient, rx, vendor, deliveryAddress);
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "Medicine order placed successfully! Track delivery status below.");
+            redirectAttributes.addFlashAttribute("successMessage", messageHelper.get("flash.pharmacy.order.placed"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -445,7 +449,7 @@ public class PatientController {
         if (patient == null) return "redirect:/login/patient";
         try {
             appointmentService.cancelAppointment(id, patient);
-            redirectAttributes.addFlashAttribute("successMessage", "Appointment cancelled successfully.");
+            redirectAttributes.addFlashAttribute("successMessage", messageHelper.get("flash.appointment.cancelled"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -464,7 +468,7 @@ public class PatientController {
             Appointment app = appointmentService.findById(id)
                     .orElseThrow(() -> new RuntimeException("Appointment not found"));
             feedbackService.submitFeedback(app, patient, rating, comment);
-            redirectAttributes.addFlashAttribute("successMessage", "Thank you for your feedback!");
+            redirectAttributes.addFlashAttribute("successMessage", messageHelper.get("flash.feedback.thanks"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -495,7 +499,7 @@ public class PatientController {
                 profile.setPhotoFileName(fileStorageService.storePatientPhoto(patient.getId(), photo));
             }
             userService.updatePatientProfile(patient.getId(), profile);
-            redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");
+            redirectAttributes.addFlashAttribute("successMessage", messageHelper.get("flash.profile.updated"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -516,7 +520,7 @@ public class PatientController {
         if (patient == null) return "redirect:/login/patient";
         try {
             billingService.payInvoice(id, patient);
-            redirectAttributes.addFlashAttribute("successMessage", "Payment successful!");
+            redirectAttributes.addFlashAttribute("successMessage", messageHelper.get("flash.payment.success"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }

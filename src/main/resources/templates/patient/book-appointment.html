@@ -1,32 +1,32 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Book Appointment')}"></head>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head th:replace="~{fragments/layout :: head('patient.book.title')}"></head>
 <body>
     <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
 <div class="container">
         <div class="auth-card" style="max-width: 880px;">
-            <h2 style="text-align: center; margin-bottom: 0.5rem;">Book Doctor Appointment</h2>
-            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">
+            <h2 style="text-align: center; margin-bottom: 0.5rem;" th:text="#{patient.book.heading}">Book Doctor Appointment</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;" th:text="#{patient.book.subtitle}">
                 Choose a doctor, then pick an available date and time slot.
             </p>
 
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
-            <div th:if="${#lists.isEmpty(doctors)}" class="alert alert-danger">
-                No approved doctors are available yet. Please contact the hospital.
+            <div th:if="${#lists.isEmpty(doctors)}" class="alert alert-danger" th:text="#{patient.book.no.doctors}">
+                No approved doctors are available yet.
             </div>
 
             <form th:action="@{/patient/book-appointment}" method="post" id="bookingForm">
                 <div class="form-group">
-                    <label class="form-label">Filter by Department</label>
+                    <label class="form-label" th:text="#{patient.book.filter.department}">Filter by Department</label>
                     <select id="departmentFilter" class="form-control">
-                        <option value="">All Departments</option>
+                        <option value="" th:text="#{common.all.departments}">All Departments</option>
                         <option th:each="dept : ${departments}" th:value="${dept.name}" th:text="${dept.name}"
                                 th:selected="${department != null and department == dept.name}"></option>
                     </select>
                 </div>
 
-                <label class="form-label">Select Doctor</label>
+                <label class="form-label" th:text="#{patient.book.select.doctor}">Select Doctor</label>
                 <p id="doctorFilterNote" class="form-hint" style="display:none;"></p>
                 <div class="doctor-choice-grid" id="doctorGrid">
                     <label class="doctor-choice-card" th:each="doc : ${doctors}"
@@ -34,35 +34,43 @@
                         <input type="radio" name="doctorId" th:value="${doc.id}" required
                                th:checked="${selectedDoctorId != null and selectedDoctorId == doc.id}">
                         <strong th:text="${doc.fullName}">Dr. Name</strong>
-                        <span th:text="${doctorDepartments[doc.id] != null ? doctorDepartments[doc.id] : 'General'}">Dept</span>
+                        <span th:text="${doctorDepartments[doc.id] != null ? doctorDepartments[doc.id] : #messages.msg('common.general')}">Dept</span>
                         <span class="text-muted" th:if="${doctorProfiles[doc.id] != null}"
                               th:text="${'₹' + doctorProfiles[doc.id].consultationFee + ' · ' + doctorProfiles[doc.id].experienceYears + ' yrs'}">Fee</span>
-                        <a class="soft-link" th:href="@{/patient/doctors/{id}(id=${doc.id})}" onclick="event.stopPropagation();">View profile</a>
+                        <a class="soft-link" th:href="@{/patient/doctors/{id}(id=${doc.id})}" onclick="event.stopPropagation();"
+                           th:text="#{common.view.profile}">View profile</a>
                     </label>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Appointment Date</label>
+                    <label class="form-label" th:text="#{patient.book.appointment.date}">Appointment Date</label>
                     <input type="date" name="appointmentDate" id="appointmentDate" class="form-control"
                            th:attr="min=${minDate}, value=${minDate}" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Available Time Slots</label>
+                    <label class="form-label" th:text="#{patient.book.time.slots}">Available Time Slots</label>
                     <select name="appointmentTime" id="timeSlotSelect" class="form-control" required>
-                        <option value="">Select doctor and date first</option>
+                        <option value="" th:text="#{patient.book.select.doctor.date}">Select doctor and date first</option>
                     </select>
                 </div>
                 <input type="hidden" name="department" id="departmentHidden" th:value="${department}" />
                 <div class="form-group">
-                    <label class="form-label">Reason / Symptoms</label>
-                    <textarea name="reason" class="form-control" placeholder="Describe symptoms or reason for visit..." required></textarea>
+                    <label class="form-label" th:text="#{patient.book.reason}">Reason / Symptoms</label>
+                    <textarea name="reason" class="form-control" th:placeholder="#{patient.book.reason.placeholder}" required></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Confirm Appointment</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" th:text="#{patient.book.confirm}">Confirm Appointment</button>
             </form>
         </div>
     </div>
 
     <script th:inline="javascript">
+        const i18n = {
+            selectDoctorDate: /*[[#{patient.book.select.doctor.date}]]*/ 'Select doctor and date first',
+            loadingSlots: /*[[#{patient.book.loading.slots}]]*/ 'Loading slots...',
+            noSlots: /*[[#{patient.book.no.slots}]]*/ 'No slots in the next 14 days',
+            noSpecialists: /*[[#{patient.book.no.specialists}]]*/ 'No specialists in {0}. Showing all doctors.'
+        };
+
         const minDate = /*[[${minDate}]]*/ '';
         const dateInput = document.getElementById('appointmentDate');
         const slotSelect = document.getElementById('timeSlotSelect');
@@ -88,7 +96,7 @@
             if (dept && visible === 0) {
                 cards.forEach(card => card.style.display = '');
                 note.style.display = 'block';
-                note.textContent = 'No specialists in ' + dept + '. Showing all doctors.';
+                note.textContent = i18n.noSpecialists.replace('{0}', dept);
             } else {
                 note.style.display = 'none';
             }
@@ -103,9 +111,9 @@
         async function loadSlots() {
             const doctorId = selectedDoctorId();
             let date = dateInput.value;
-            slotSelect.innerHTML = '<option value="">Loading slots...</option>';
+            slotSelect.innerHTML = '<option value="">' + i18n.loadingSlots + '</option>';
             if (!doctorId || !date) {
-                slotSelect.innerHTML = '<option value="">Select doctor and date first</option>';
+                slotSelect.innerHTML = '<option value="">' + i18n.selectDoctorDate + '</option>';
                 return;
             }
             let slots = await loadSlotsForDate(doctorId, date);
@@ -125,7 +133,7 @@
             }
             slotSelect.innerHTML = '';
             if (!available.length) {
-                slotSelect.innerHTML = '<option value="">No slots in the next 14 days</option>';
+                slotSelect.innerHTML = '<option value="">' + i18n.noSlots + '</option>';
                 return;
             }
             available.forEach(s => {

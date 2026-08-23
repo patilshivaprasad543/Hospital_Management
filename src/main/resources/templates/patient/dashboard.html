@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Patient Dashboard')}"></head>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head th:replace="~{fragments/layout :: head('patient.dashboard.title')}"></head>
 <body>
     <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
@@ -9,11 +9,11 @@
 
         <div class="page-header">
             <div class="page-header-content">
-                <h1 th:text="'Welcome, ' + ${patient.fullName}">Welcome, Patient</h1>
-                <p>Manage your appointments, prescriptions, and health records</p>
+                <h1 th:text="#{patient.dashboard.welcome(${patient.fullName})}">Welcome, Patient</h1>
+                <p th:text="#{patient.dashboard.subtitle}">Manage your appointments, prescriptions, and health records</p>
             </div>
             <div class="page-header-actions">
-                <a href="/patient/book-appointment" class="btn btn-primary">Book Appointment</a>
+                <a href="/patient/book-appointment" class="btn btn-primary" th:text="#{nav.book.appointment}">Book Appointment</a>
             </div>
         </div>
 
@@ -26,48 +26,49 @@
 
         <div class="grid" style="margin-bottom:1.5rem;">
             <div class="card emergency-card">
-                <h3>Emergency Contacts</h3>
-                <p><strong>Hospital Emergency:</strong> 108 / +91 1800-360-2478</p>
+                <h3 th:text="#{patient.dashboard.emergency}">Emergency Contacts</h3>
+                <p><strong th:text="#{patient.dashboard.hospital.emergency}">Hospital Emergency:</strong> 108 / +91 1800-360-2478</p>
                 <p th:if="${profile.emergencyContactName != null}">
-                    <strong>Your Emergency Contact:</strong>
+                    <strong th:text="#{patient.dashboard.your.emergency}">Your Emergency Contact:</strong>
                     <span th:text="${profile.emergencyContactName}">Name</span> —
                     <span th:text="${profile.emergencyContactPhone}">Phone</span>
                 </p>
                 <p th:if="${profile.emergencyContactName == null}" class="text-muted">
-                    <a href="/patient/profile">Add emergency contact</a> in your profile.
+                    <a href="/patient/profile" th:text="#{patient.dashboard.add.emergency}">Add emergency contact</a>
+                    <span th:text="#{patient.dashboard.in.profile}">in your profile.</span>
                 </p>
             </div>
             <div class="card">
-                <h3>Quick Actions</h3>
+                <h3 th:text="#{patient.dashboard.quick.actions}">Quick Actions</h3>
                 <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;">
-                    <a href="/patient/symptom-wizard" class="btn btn-secondary btn-sm">Symptom Checker</a>
-                    <a href="/patient/timeline" class="btn btn-secondary btn-sm">Health Timeline</a>
-                    <a href="/patient/records" class="btn btn-secondary btn-sm">Medical Records</a>
-                    <a href="/patient/prescriptions" class="btn btn-secondary btn-sm">Prescriptions</a>
-                    <a href="/patient/pharmacy-orders" class="btn btn-secondary btn-sm">Pharmacy Orders</a>
-                    <a href="/patient/lab-reports" class="btn btn-secondary btn-sm">Lab Reports</a>
-                    <a href="/notifications" class="btn btn-secondary btn-sm">Notifications</a>
+                    <a href="/patient/symptom-wizard" class="btn btn-secondary btn-sm" th:text="#{patient.dashboard.symptom.checker}">Symptom Checker</a>
+                    <a href="/patient/timeline" class="btn btn-secondary btn-sm" th:text="#{patient.dashboard.health.timeline}">Health Timeline</a>
+                    <a href="/patient/records" class="btn btn-secondary btn-sm" th:text="#{patient.dashboard.medical.records}">Medical Records</a>
+                    <a href="/patient/prescriptions" class="btn btn-secondary btn-sm" th:text="#{nav.prescriptions}">Prescriptions</a>
+                    <a href="/patient/pharmacy-orders" class="btn btn-secondary btn-sm" th:text="#{nav.pharmacy.orders}">Pharmacy Orders</a>
+                    <a href="/patient/lab-reports" class="btn btn-secondary btn-sm" th:text="#{nav.lab.reports}">Lab Reports</a>
+                    <a href="/notifications" class="btn btn-secondary btn-sm" th:text="#{nav.notifications}">Notifications</a>
                 </div>
             </div>
         </div>
 
         <div class="grid">
             <div class="card stat-card">
-                <div class="card-title">Total Appointments</div>
+                <div class="card-title" th:text="#{patient.dashboard.total.appointments}">Total Appointments</div>
                 <div class="stat-number" th:text="${#lists.size(appointments)}">0</div>
             </div>
             <div class="card stat-card">
-                <div class="card-title">Blood Group</div>
-                <div class="stat-number danger" th:text="${profile.bloodGroup != null ? profile.bloodGroup : 'N/A'}">O+</div>
+                <div class="card-title" th:text="#{patient.dashboard.blood.group}">Blood Group</div>
+                <div class="stat-number danger" th:text="${profile.bloodGroup != null ? profile.bloodGroup : #messages.msg('common.not.available')}">O+</div>
             </div>
             <div class="card stat-card">
-                <div class="card-title">Available Doctors</div>
+                <div class="card-title" th:text="#{patient.dashboard.available.doctors}">Available Doctors</div>
                 <div class="stat-number success" th:text="${#lists.size(doctors)}">0</div>
             </div>
         </div>
 
         <div th:if="${!#lists.isEmpty(prescriptions)}" style="margin-bottom: 1.5rem;">
-            <h3 class="section-title">Recent Prescriptions — Order Medicines</h3>
+            <h3 class="section-title" th:text="#{patient.dashboard.recent.prescriptions}">Recent Prescriptions — Order Medicines</h3>
             <div class="grid">
                 <div class="card" th:each="rx : ${prescriptions}" th:if="${rxStat.index < 3}">
                     <div class="card-title" th:text="${'Rx #' + rx.id + ' — Dr. ' + rx.doctor.fullName}">Prescription</div>
@@ -75,22 +76,22 @@
                     <ul style="margin:0.5rem 0 0.75rem 1.2rem;font-size:0.88rem;">
                         <li th:each="item : ${rx.items}" th:text="${item.medicineName}">Medicine</li>
                     </ul>
-                    <a href="/patient/prescriptions" class="btn btn-success btn-sm">Order Medicines</a>
+                    <a href="/patient/prescriptions" class="btn btn-success btn-sm" th:text="#{patient.dashboard.order.medicines}">Order Medicines</a>
                 </div>
             </div>
         </div>
 
-        <h3 class="section-title">Recent Appointments</h3>
+        <h3 class="section-title" th:text="#{patient.dashboard.recent.appointments}">Recent Appointments</h3>
         <div class="table-container">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Doctor</th>
-                        <th>Specialization</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Reason</th>
-                        <th>Status</th>
+                        <th th:text="#{common.doctor}">Doctor</th>
+                        <th th:text="#{patient.dashboard.specialization}">Specialization</th>
+                        <th th:text="#{common.date}">Date</th>
+                        <th th:text="#{common.time}">Time</th>
+                        <th th:text="#{patient.dashboard.reason}">Reason</th>
+                        <th th:text="#{common.status}">Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -99,15 +100,15 @@
                         <td th:text="${app.doctor.email}">Specialist</td>
                         <td th:text="${app.appointmentDate}">2026-08-20</td>
                         <td th:text="${app.appointmentTime}">10:00 AM</td>
-                        <td th:text="${app.reason != null ? app.reason : 'Consultation'}">Reason</td>
+                        <td th:text="${app.reason != null ? app.reason : #messages.msg('common.consultation')}">Reason</td>
                         <td>
                             <span class="badge"
                                   th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : 'badge-rejected')}"
-                                  th:text="${app.status.label}">Status</span>
+                                  th:text="#{'status.appointment.' + app.status.name()}">Status</span>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(appointments)}" class="table-empty">
-                        <td colspan="6">No appointments scheduled. Book an appointment to get started.</td>
+                        <td colspan="6" th:text="#{patient.dashboard.no.appointments}">No appointments scheduled.</td>
                     </tr>
                 </tbody>
             </table>

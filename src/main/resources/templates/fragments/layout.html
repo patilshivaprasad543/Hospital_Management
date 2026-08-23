@@ -2,6 +2,19 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
+<!-- Language switcher module (patient portal — applies site-wide via session) -->
+<div th:fragment="language-switcher" class="language-switcher">
+    <form th:action="@{/patient/language}" method="post" class="language-form">
+        <label class="language-label" th:for="${'lang-select-' + switcherId}" th:text="#{language.label}">Language</label>
+        <select th:id="${'lang-select-' + switcherId}" name="lang" class="language-select form-control"
+                onchange="this.form.submit()">
+            <option th:each="opt : ${localeOptions}" th:value="${opt.code}"
+                    th:selected="${#locale.language == opt.code}"
+                    th:text="#{${opt.labelKey}}">English</option>
+        </select>
+    </form>
+</div>
+
 <!-- Public website navbar (Home, About, Contact) -->
 <nav th:fragment="public-nav" class="navbar navbar-public">
     <a href="/" class="navbar-brand">
@@ -14,13 +27,13 @@
         <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
     </a>
     <ul class="nav-links nav-links-center">
-        <li><a href="/" th:classappend="${activePage == 'home'} ? 'active' : ''">Home</a></li>
-        <li><a href="/about" th:classappend="${activePage == 'about'} ? 'active' : ''">About</a></li>
-        <li><a href="/contact" th:classappend="${activePage == 'contact'} ? 'active' : ''">Contact</a></li>
+        <li><a href="/" th:classappend="${activePage == 'home'} ? 'active' : ''" th:text="#{nav.home}">Home</a></li>
+        <li><a href="/about" th:classappend="${activePage == 'about'} ? 'active' : ''" th:text="#{nav.about}">About</a></li>
+        <li><a href="/contact" th:classappend="${activePage == 'contact'} ? 'active' : ''" th:text="#{nav.contact}">Contact</a></li>
     </ul>
     <div class="navbar-actions">
-        <a th:if="${loggedInUser == null}" href="/login" class="btn btn-outline btn-sm">Portal Sign In</a>
-        <a th:if="${loggedInUser != null}" th:href="${dashboardUrl}" class="btn btn-primary btn-sm">My Dashboard</a>
+        <a th:if="${loggedInUser == null}" href="/login" class="btn btn-outline btn-sm" th:text="#{nav.portal.signin}">Portal Sign In</a>
+        <a th:if="${loggedInUser != null}" th:href="${dashboardUrl}" class="btn btn-primary btn-sm" th:text="#{nav.my.dashboard}">My Dashboard</a>
     </div>
 </nav>
 
@@ -36,12 +49,12 @@
         <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
     </a>
     <ul class="nav-links nav-links-center">
-        <li><a href="/">Home</a></li>
-        <li><a href="/about">About</a></li>
-        <li><a href="/contact">Contact</a></li>
+        <li><a href="/" th:text="#{nav.home}">Home</a></li>
+        <li><a href="/about" th:text="#{nav.about}">About</a></li>
+        <li><a href="/contact" th:text="#{nav.contact}">Contact</a></li>
     </ul>
     <div class="navbar-actions">
-        <a href="/login" class="btn btn-primary btn-sm">Portal Sign In</a>
+        <a href="/login" class="btn btn-primary btn-sm" th:text="#{nav.portal.signin}">Portal Sign In</a>
     </div>
 </nav>
 
@@ -63,7 +76,7 @@
         <li><a href="/admin/reports">Reports</a></li>
         <li><a href="/admin/settings">Settings</a></li>
         <li><a href="/admin/notifications">Notifications</a></li>
-        <li><a href="/logout" class="btn btn-outline btn-sm">Sign Out</a></li>
+        <li><a href="/logout" class="btn btn-outline btn-sm" th:text="#{nav.sign.out}">Sign Out</a></li>
     </ul>
 </nav>
 
@@ -72,21 +85,24 @@
     <a href="/" class="navbar-brand">
         <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
-        <span class="portal-tag">Patient</span>
+        <span class="portal-tag" th:text="#{nav.portal.patient}">Patient</span>
     </a>
     <ul class="nav-links">
-        <li><a href="/patient/dashboard">Dashboard</a></li>
-        <li><a href="/patient/doctors">Doctors</a></li>
-        <li><a href="/patient/book-appointment">Book Appointment</a></li>
-        <li><a href="/patient/appointments">Appointments</a></li>
-        <li><a href="/patient/prescriptions">Prescriptions</a></li>
-        <li><a href="/patient/pharmacy-orders">Pharmacy Orders</a></li>
-        <li><a href="/patient/lab-reports">Lab Reports</a></li>
-        <li><a href="/patient/records">Records</a></li>
-        <li><a href="/patient/bills">Billing</a></li>
-        <li><a href="/patient/notifications">Notifications</a></li>
-        <li><a href="/patient/profile">Profile</a></li>
-        <li><a href="/logout" class="btn btn-outline btn-sm">Sign Out</a></li>
+        <li><a href="/patient/dashboard" th:text="#{nav.dashboard}">Dashboard</a></li>
+        <li><a href="/patient/doctors" th:text="#{nav.doctors}">Doctors</a></li>
+        <li><a href="/patient/book-appointment" th:text="#{nav.book.appointment}">Book Appointment</a></li>
+        <li><a href="/patient/appointments" th:text="#{nav.appointments}">Appointments</a></li>
+        <li><a href="/patient/prescriptions" th:text="#{nav.prescriptions}">Prescriptions</a></li>
+        <li><a href="/patient/pharmacy-orders" th:text="#{nav.pharmacy.orders}">Pharmacy Orders</a></li>
+        <li><a href="/patient/lab-reports" th:text="#{nav.lab.reports}">Lab Reports</a></li>
+        <li><a href="/patient/records" th:text="#{nav.records}">Records</a></li>
+        <li><a href="/patient/bills" th:text="#{nav.billing}">Billing</a></li>
+        <li><a href="/patient/notifications" th:text="#{nav.notifications}">Notifications</a></li>
+        <li><a href="/patient/profile" th:text="#{nav.profile}">Profile</a></li>
+        <li class="language-switcher-nav">
+            <div th:replace="~{fragments/layout :: language-switcher(switcherId='nav')}"></div>
+        </li>
+        <li><a href="/logout" class="btn btn-outline btn-sm" th:text="#{nav.sign.out}">Sign Out</a></li>
     </ul>
 </nav>
 
@@ -107,7 +123,7 @@
         <li><a href="/doctor/reports">Reports</a></li>
         <li><a href="/doctor/notifications">Notifications</a></li>
         <li><a href="/doctor/profile">Profile</a></li>
-        <li><a href="/logout" class="btn btn-outline btn-sm">Sign Out</a></li>
+        <li><a href="/logout" class="btn btn-outline btn-sm" th:text="#{nav.sign.out}">Sign Out</a></li>
     </ul>
 </nav>
 
@@ -125,7 +141,7 @@
         <li th:if="${vendorTag == 'Pharmacy'}"><a href="/vendor/reports">Reports</a></li>
         <li><a href="/vendor/notifications">Notifications</a></li>
         <li><a href="/vendor/profile">Profile</a></li>
-        <li><a href="/logout" class="btn btn-outline btn-sm">Sign Out</a></li>
+        <li><a href="/logout" class="btn btn-outline btn-sm" th:text="#{nav.sign.out}">Sign Out</a></li>
     </ul>
 </nav>
 
@@ -151,28 +167,28 @@
     <div class="footer-inner footer-grid">
         <div class="footer-col footer-brand-col">
             <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
-            <p>Integrated hospital management platform connecting patients, doctors, laboratories, and pharmacies in one secure ecosystem.</p>
+            <p th:text="#{footer.description}">Integrated hospital management platform connecting patients, doctors, laboratories, and pharmacies in one secure ecosystem.</p>
         </div>
         <div class="footer-col">
-            <h4>Quick Links</h4>
+            <h4 th:text="#{footer.quick.links}">Quick Links</h4>
             <ul class="footer-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/about">About Us</a></li>
-                <li><a href="/contact">Contact</a></li>
-                <li><a href="/login">Portal Sign In</a></li>
+                <li><a href="/" th:text="#{nav.home}">Home</a></li>
+                <li><a href="/about" th:text="#{footer.about.us}">About Us</a></li>
+                <li><a href="/contact" th:text="#{nav.contact}">Contact</a></li>
+                <li><a href="/login" th:text="#{nav.portal.signin}">Portal Sign In</a></li>
             </ul>
         </div>
         <div class="footer-col">
-            <h4>Services</h4>
+            <h4 th:text="#{footer.services}">Services</h4>
             <ul class="footer-links">
-                <li><a href="/login/patient">Patient Portal</a></li>
-                <li><a href="/login/doctor">Doctor Portal</a></li>
-                <li><a href="/login/vendor">Lab &amp; Diagnostics</a></li>
-                <li><a href="/login/pharmacy">Pharmacy Portal</a></li>
+                <li><a href="/login/patient" th:text="#{footer.patient.portal}">Patient Portal</a></li>
+                <li><a href="/login/doctor" th:text="#{footer.doctor.portal}">Doctor Portal</a></li>
+                <li><a href="/login/vendor" th:text="#{footer.lab.diagnostics}">Lab &amp; Diagnostics</a></li>
+                <li><a href="/login/pharmacy" th:text="#{footer.pharmacy.portal}">Pharmacy Portal</a></li>
             </ul>
         </div>
         <div class="footer-col">
-            <h4>Contact Us</h4>
+            <h4 th:text="#{footer.contact.us}">Contact Us</h4>
             <ul class="footer-contact">
                 <li>support@smartcare360.com</li>
                 <li>+91 1800-360-2478</li>
@@ -181,8 +197,8 @@
         </div>
     </div>
     <div class="footer-bottom">
-        <span>Secure healthcare platform for patients, doctors, and hospitals</span>
-        <span>&copy; 2026 SmartCare 360. All rights reserved.</span>
+        <span th:text="#{footer.secure.platform}">Secure healthcare platform for patients, doctors, and hospitals</span>
+        <span th:text="#{footer.copyright}">&copy; 2026 SmartCare 360. All rights reserved.</span>
     </div>
 </footer>
 
@@ -193,11 +209,12 @@
     </div>
 </div>
 
-<head th:fragment="head(title)">
+<head th:fragment="head(titleKey)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="SmartCare 360 — Integrated Hospital Management Platform">
-    <title th:text="${title} + ' | SmartCare 360'">SmartCare 360</title>
+    <meta name="description" th:content="#{app.description}">
+    <title th:with="pageTitle=${#messages.msgOrNull(titleKey) != null ? #messages.msg(titleKey) : titleKey}"
+           th:text="${pageTitle} + ' | ' + #{app.name}">SmartCare 360</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" th:href="@{/css/style.css}">

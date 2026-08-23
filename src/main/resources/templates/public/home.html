@@ -1,55 +1,55 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Home')}"></head>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head th:replace="~{fragments/layout :: head('public.home.title')}"></head>
 <body class="public-page">
     <nav th:replace="~{fragments/layout :: public-nav}"></nav>
 
     <section class="public-hero">
         <div class="public-hero-content">
-            <span class="hero-badge">Integrated Hospital Management</span>
-            <h1>Healthcare Made <span class="brand-accent">Simple &amp; Connected</span></h1>
-            <p>SmartCare 360 brings patients, doctors, laboratories, and pharmacies together on one secure platform — from appointment booking to prescriptions, lab reports, and billing.</p>
-            <p class="text-muted" style="font-size:0.9rem;margin-top:0.75rem;">If the site was idle, the first page can take about a minute to open. After that, the portal stays responsive.</p>
+            <span class="hero-badge" th:text="#{public.home.badge}">Integrated Hospital Management</span>
+            <h1><span th:remove="tag" th:text="#{public.home.heading}">Healthcare Made</span></h1>
+            <p th:text="#{public.home.subtitle}">SmartCare 360 brings patients, doctors, laboratories, and pharmacies together on one secure platform.</p>
+            <p class="text-muted" style="font-size:0.9rem;margin-top:0.75rem;" th:text="#{public.home.idle.hint}">If the site was idle, the first page can take about a minute to open.</p>
             <div class="hero-actions">
-                <a href="/login" class="btn btn-primary">Access Portal</a>
-                <a href="/about" class="btn btn-secondary">Learn More</a>
+                <a href="/login" class="btn btn-primary" th:text="#{public.home.access.portal}">Access Portal</a>
+                <a href="/about" class="btn btn-secondary" th:text="#{public.home.learn.more}">Learn More</a>
             </div>
         </div>
     </section>
 
     <div class="container">
-        <h2 class="public-section-title">Why SmartCare 360?</h2>
+        <h2 class="public-section-title" th:text="#{public.home.why.title}">Why SmartCare 360?</h2>
         <div class="grid">
             <div class="card feature-card">
                 <div class="feature-icon">📅</div>
-                <h3>Smart Appointments</h3>
-                <p>Book doctor consultations with real-time slot availability, secure registration, and appointment updates.</p>
+                <h3 th:text="#{public.home.feature.appointments}">Smart Appointments</h3>
+                <p th:text="#{public.home.feature.appointments.desc}">Book doctor consultations with real-time slot availability.</p>
             </div>
             <div class="card feature-card">
                 <div class="feature-icon">🩺</div>
-                <h3>Digital Consultations</h3>
-                <p>Doctors manage patient queues, record diagnoses, issue digital prescriptions, and order lab tests seamlessly.</p>
+                <h3 th:text="#{public.home.feature.consultations}">Digital Consultations</h3>
+                <p th:text="#{public.home.feature.consultations.desc}">Doctors manage patient queues and issue digital prescriptions.</p>
             </div>
             <div class="card feature-card">
                 <div class="feature-icon">🧪</div>
-                <h3>Lab &amp; Pharmacy</h3>
-                <p>Integrated vendor portals for diagnostic reports and pharmacy fulfillment with end-to-end patient tracking.</p>
+                <h3 th:text="#{public.home.feature.lab}">Lab &amp; Pharmacy</h3>
+                <p th:text="#{public.home.feature.lab.desc}">Integrated vendor portals for diagnostic reports and pharmacy fulfillment.</p>
             </div>
             <div class="card feature-card">
                 <div class="feature-icon">🔒</div>
-                <h3>Secure &amp; Compliant</h3>
-                <p>Secure sign-in, private health records, and protected access for every role in your care journey.</p>
+                <h3 th:text="#{public.home.feature.secure}">Secure &amp; Compliant</h3>
+                <p th:text="#{public.home.feature.secure.desc}">Secure sign-in, private health records, and protected access.</p>
             </div>
         </div>
 
         <section class="cta-banner">
             <div>
-                <h2>Ready to get started?</h2>
-                <p>Sign in to your role-based portal or contact our team for enterprise deployment.</p>
+                <h2 th:text="#{public.home.cta.title}">Ready to get started?</h2>
+                <p th:text="#{public.home.cta.subtitle}">Sign in to your role-based portal or contact our team.</p>
             </div>
             <div class="cta-actions">
-                <a href="/login" class="btn btn-primary">Portal Sign In</a>
-                <a href="/contact" class="btn btn-outline" style="background:#fff;color:var(--primary);">Contact Us</a>
+                <a href="/login" class="btn btn-primary" th:text="#{nav.portal.signin}">Portal Sign In</a>
+                <a href="/contact" class="btn btn-outline" style="background:#fff;color:var(--primary);" th:text="#{public.home.contact.us}">Contact Us</a>
             </div>
         </section>
     </div>
