@@ -16,7 +16,7 @@ import java.util.Set;
 @RequestMapping("/patient")
 public class LanguageController {
 
-    private static final Set<String> SUPPORTED = Set.of("en", "hi");
+    private static final Set<String> SUPPORTED = Set.of("en", "hi", "te", "kn");
 
     @PostMapping("/language")
     public String changeLanguage(@RequestParam("lang") String lang,

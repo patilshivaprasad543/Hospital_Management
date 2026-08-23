@@ -38,6 +38,18 @@ class LocaleConfigTest {
     }
 
     @Test
+    void teluguMessagesResolve() {
+        String telugu = messageSource.getMessage("nav.dashboard", null, Locale.forLanguageTag("te"));
+        assertEquals("డాష్‌బోర్డ్", telugu);
+    }
+
+    @Test
+    void kannadaMessagesResolve() {
+        String kannada = messageSource.getMessage("nav.dashboard", null, Locale.forLanguageTag("kn"));
+        assertEquals("ಡ್ಯಾಶ್‌ಬೋರ್ಡ್", kannada);
+    }
+
+    @Test
     void englishMessagesResolve() {
         String english = messageSource.getMessage("language.preferences", null, Locale.ENGLISH);
         assertEquals("Language Preferences", english);

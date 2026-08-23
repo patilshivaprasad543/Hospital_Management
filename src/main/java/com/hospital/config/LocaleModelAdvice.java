@@ -14,7 +14,9 @@ public class LocaleModelAdvice {
     public List<LocaleOption> localeOptions() {
         return List.of(
                 new LocaleOption("en", "language.english"),
-                new LocaleOption("hi", "language.hindi")
+                new LocaleOption("hi", "language.hindi"),
+                new LocaleOption("te", "language.telugu"),
+                new LocaleOption("kn", "language.kannada")
         );
     }
 }
