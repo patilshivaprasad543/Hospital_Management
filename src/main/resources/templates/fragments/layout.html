@@ -2,13 +2,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title} ? ${title} + ' | SmartCare 360' : 'SmartCare 360'">SmartCare 360</title>
+    
+    <!-- PWA & Mobile App Settings -->
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#2563EB">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SmartCare 360">
+    <link rel="apple-touch-icon" href="/images/icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/icons/icon-192.png">
+    <link rel="icon" type="image/svg+xml" href="/images/icons/icon.svg">
+
     <link rel="stylesheet" th:href="@{/css/style.css(v=5.0)}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script th:src="@{/js/language-changer.js(v=2.1)}"></script>
+    <script th:src="@{/js/pwa-install.js(v=1.0)}"></script>
 </head>
 <body>
 
-<!-- Public website navbar (Home, About, Contact) -->
+<!-- Public website navbar (Home, About, Contact, Mobile App) -->
 <nav th:fragment="public-nav" class="navbar navbar-public">
     <a href="/" class="navbar-brand">
         <div class="brand-mark">
@@ -23,6 +36,7 @@
         <li><a href="/" th:classappend="${activePage == 'home'} ? 'active' : ''">Home</a></li>
         <li><a href="/about" th:classappend="${activePage == 'about'} ? 'active' : ''">About</a></li>
         <li><a href="/contact" th:classappend="${activePage == 'contact'} ? 'active' : ''">Contact</a></li>
+        <li><a href="/download-app" th:classappend="${activePage == 'download-app'} ? 'active' : ''"><i class="fa-solid fa-mobile-screen-button"></i> Mobile App</a></li>
     </ul>
     <div class="navbar-actions">
         <a th:if="${loggedInUser == null}" href="/login" class="btn btn-outline btn-sm">Portal Sign In</a>
@@ -45,6 +59,7 @@
         <li><a href="/">Home</a></li>
         <li><a href="/about">About</a></li>
         <li><a href="/contact">Contact</a></li>
+        <li><a href="/download-app"><i class="fa-solid fa-mobile-screen-button"></i> Mobile App</a></li>
     </ul>
     <div class="navbar-actions">
         <a href="/login" class="btn btn-primary btn-sm">Portal Sign In</a>
@@ -409,7 +424,7 @@
         </div>
     </div>
     <div class="footer-bottom">
-        <p>&copy; 2026 SmartCare 360. All rights reserved. | EMR &amp; Telehealth System</p>
+        <p>&copy; 2026 SmartCare 360. All rights reserved. | EMR &amp; Telehealth System &bull; <a href="/download-app" style="color:#60A5FA; text-decoration:none;"><i class="fa-brands fa-android"></i> Download Mobile App</a></p>
     </div>
 </footer>
 

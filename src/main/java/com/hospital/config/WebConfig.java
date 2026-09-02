@@ -19,5 +19,10 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/css/**", "/js/**", "/images/**")
                 .addResourceLocations("classpath:/static/css/", "classpath:/static/js/", "classpath:/static/images/")
                 .setCacheControl(org.springframework.http.CacheControl.maxAge(7, java.util.concurrent.TimeUnit.DAYS).cachePublic());
+
+        // PWA Manifest and Service Worker
+        registry.addResourceHandler("/manifest.webmanifest", "/manifest.json", "/service-worker.js")
+                .addResourceLocations("classpath:/static/")
+                .setCacheControl(org.springframework.http.CacheControl.noCache());
     }
 }

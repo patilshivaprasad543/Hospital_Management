@@ -34,6 +34,36 @@ public class MainController {
         return "public/contact";
     }
 
+    @GetMapping("/download-app")
+    public String downloadApp(jakarta.servlet.http.HttpServletRequest request, HttpSession session, Model model) {
+        model.addAttribute("activePage", "download-app");
+        addPublicModel(session, model);
+
+        String currentFullUrl = request.getRequestURL().toString();
+        model.addAttribute("currentFullUrl", currentFullUrl);
+
+        // Serves direct local APK or redirects to latest GitHub release APK
+        model.addAttribute("apkDownloadUrl", "/download/apk");
+
+        return "public/download-app";
+    }
+
+    @GetMapping("/download/apk")
+    public org.springframework.http.ResponseEntity<?> downloadApk() {
+        java.io.File localApk = new java.io.File("data/downloads/SmartCare360.apk");
+        if (localApk.exists()) {
+            org.springframework.core.io.FileSystemResource resource = new org.springframework.core.io.FileSystemResource(localApk);
+            return org.springframework.http.ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"SmartCare360.apk\"")
+                    .contentType(org.springframework.http.MediaType.parseMediaType("application/vnd.android.package-archive"))
+                    .body(resource);
+        }
+
+        return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.FOUND)
+                .location(java.net.URI.create("https://github.com/patilshivaprasad543/Hospital_Management/releases/latest"))
+                .build();
+    }
+
     @PostMapping("/contact")
     public String submitContact(@RequestParam("name") String name,
                                 @RequestParam("email") String email,

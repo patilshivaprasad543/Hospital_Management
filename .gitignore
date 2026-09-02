@@ -72,3 +72,12 @@ data/
 .env.*
 !.env.example
 *.zip
+
+# Android Build Outputs
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/*.iml
+!android/gradle/wrapper/gradle-wrapper.jar

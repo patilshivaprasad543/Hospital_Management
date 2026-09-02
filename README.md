@@ -25,6 +25,7 @@ Register new patients, doctors, and vendors from the portal login page.
 - Appointment booking, consultation, prescriptions, lab reports
 - Pharmacy order workflow (placed → delivered)
 - Billing, invoices, PDF downloads
+- Android Mobile App & APK download (`com.smartcare360.app`, see [`android/`](android/))
 - Admin dashboard (private access only)
 - Persistent database (live site uses Render Postgres; local H2 or MySQL for development)
 

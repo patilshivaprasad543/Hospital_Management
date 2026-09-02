@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Download Mobile App')}"></head>
+<body class="page-download-app">
+
+<nav th:replace="~{fragments/layout :: public-nav}"></nav>
+
+<main class="download-container">
+    <div class="download-hero">
+        <div class="download-hero-content">
+            <div class="app-badge"><i class="fa-brands fa-android"></i> Official Android App</div>
+            <h1 class="download-title">SmartCare 360 on Your Mobile</h1>
+            <p class="download-subtitle">
+                Access patient appointments, live doctor consultations, prescriptions, lab reports, and billing right from your smartphone.
+            </p>
+
+            <div class="download-action-group">
+                <!-- Direct APK Download Link -->
+                <a th:href="${apkDownloadUrl}" class="btn btn-primary btn-lg download-btn" download>
+                    <i class="fa-solid fa-download"></i>
+                    <div>
+                        <span class="btn-main-text">Download Android APK</span>
+                        <span class="btn-sub-text">Direct install (.apk) &bull; v1.0.0</span>
+                    </div>
+                </a>
+
+                <!-- One-Tap PWA Install Trigger -->
+                <button type="button" class="btn btn-outline btn-lg pwa-install-trigger" style="display:none;">
+                    <i class="fa-solid fa-mobile-screen"></i>
+                    <div>
+                        <span class="btn-main-text">Install via Browser</span>
+                        <span class="btn-sub-text">Zero download &bull; Instant Home Icon</span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="app-specs">
+                <span><i class="fa-solid fa-shield-halved"></i> 100% Safe & Verified</span>
+                <span><i class="fa-solid fa-mobile"></i> Android 7.0 & Higher</span>
+                <span><i class="fa-solid fa-bolt"></i> Fast & Lightweight</span>
+            </div>
+        </div>
+
+        <div class="download-hero-mockup">
+            <div class="phone-frame">
+                <div class="phone-screen">
+                    <div class="mockup-header">
+                        <div class="brand-mark-small">
+                            <i class="fa-solid fa-shield-virus"></i>
+                        </div>
+                        <span>SmartCare 360</span>
+                    </div>
+                    <div class="mockup-body">
+                        <div class="mockup-card">
+                            <i class="fa-solid fa-calendar-check mockup-icon"></i>
+                            <div>
+                                <strong>My Appointments</strong>
+                                <small>Next: Dr. Sarah Jenkins (10:30 AM)</small>
+                            </div>
+                        </div>
+                        <div class="mockup-card">
+                            <i class="fa-solid fa-file-medical mockup-icon"></i>
+                            <div>
+                                <strong>Lab Reports</strong>
+                                <small>Blood Test (Ready for download)</small>
+                            </div>
+                        </div>
+                        <div class="mockup-card">
+                            <i class="fa-solid fa-pills mockup-icon"></i>
+                            <div>
+                                <strong>E-Prescriptions</strong>
+                                <small>Order pharmacy delivery</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qr-box">
+                <div class="qr-header">Scan on Phone</div>
+                <img th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' + ${currentFullUrl}}" 
+                     alt="Scan to download APK on mobile" 
+                     width="130" 
+                     height="130" 
+                     class="qr-image" />
+                <div class="qr-caption">Scan with camera to open & download</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installation Instructions Section -->
+    <section class="install-steps-section">
+        <h2 class="section-title">How to Install on Android in 4 Easy Steps</h2>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Download APK</h3>
+                <p>Tap the <strong>Download Android APK</strong> button above to save <code>SmartCare360.apk</code> to your device.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Open Downloaded File</h3>
+                <p>Pull down your notification bar or go to your phone's <strong>Files &gt; Downloads</strong> folder and tap the APK.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Allow Installation</h3>
+                <p>If prompted with <em>"For security, your phone is not allowed to install unknown apps"</em>, tap <strong>Settings</strong> and turn ON <strong>Allow from this source</strong>.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h3>Tap Install</h3>
+                <p>Tap <strong>Install</strong>. Once done, tap <strong>Open</strong> to launch SmartCare 360 and log in to your portal.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- App Highlights -->
+    <section class="features-section">
+        <h2 class="section-title">Why Use the Mobile App?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fa-solid fa-camera feature-icon"></i>
+                <h3>Camera & File Upload</h3>
+                <p>Snap photos of doctor prescriptions or lab orders straight from your phone camera and attach them instantly.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fa-solid fa-download feature-icon"></i>
+                <h3>Direct PDF Downloads</h3>
+                <p>Save consultation summaries, medical invoices, and lab test reports directly into your phone's Downloads folder.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fa-solid fa-video feature-icon"></i>
+                <h3>Telehealth Video Calls</h3>
+                <p>Connect with doctors in secure HD video consultations right from the palm of your hand.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fa-solid fa-user-lock feature-icon"></i>
+                <h3>Persistent Login</h3>
+                <p>Stay securely signed in with encrypted session storage so your healthcare records are always one tap away.</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<style>
+.download-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+}
+.download-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, #1E40AF 0%, #2563EB 50%, #3B82F6 100%);
+    border-radius: 1.5rem;
+    color: white;
+    box-shadow: 0 20px 40px rgba(37, 99, 235, 0.25);
+    margin-bottom: 3.5rem;
+}
+.download-hero-content {
+    flex: 1.2;
+}
+.app-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    padding: 0.4rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+}
+.download-title {
+    font-size: 2.6rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+}
+.download-subtitle {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: #E0E7FF;
+    margin-bottom: 2rem;
+    max-width: 580px;
+}
+.download-action-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    background: #FFFFFF;
+    color: #1E40AF !important;
+    padding: 0.9rem 1.8rem;
+    border-radius: 1rem;
+    text-decoration: none;
+    font-weight: 700;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+}
+.download-btn i {
+    font-size: 1.8rem;
+    color: #2563EB;
+}
+.btn-main-text {
+    display: block;
+    font-size: 1.15rem;
+    line-height: 1.2;
+}
+.btn-sub-text {
+    display: block;
+    font-size: 0.8rem;
+    color: #64748B;
+    font-weight: 500;
+}
+.pwa-install-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    color: white;
+    padding: 0.9rem 1.8rem;
+    border-radius: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.pwa-install-trigger:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+.pwa-install-trigger i {
+    font-size: 1.8rem;
+}
+.pwa-install-trigger .btn-sub-text {
+    color: #E0E7FF;
+}
+.app-specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    font-size: 0.9rem;
+    color: #DBEAFE;
+}
+.app-specs span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.download-hero-mockup {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+}
+.phone-frame {
+    width: 220px;
+    height: 420px;
+    background: #0F172A;
+    border: 5px solid #334155;
+    border-radius: 2.5rem;
+    padding: 10px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+.phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #F8FAFC;
+    border-radius: 2rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.mockup-header {
+    background: #2563EB;
+    color: white;
+    padding: 12px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+.brand-mark-small {
+    font-size: 1.1rem;
+    color: #10B981;
+}
+.mockup-body {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.mockup-card {
+    background: white;
+    padding: 8px 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #0F172A;
+}
+.mockup-card small {
+    display: block;
+    color: #64748B;
+    font-size: 0.7rem;
+}
+.mockup-card strong {
+    font-size: 0.78rem;
+}
+.mockup-icon {
+    font-size: 1.1rem;
+    color: #2563EB;
+}
+.qr-box {
+    background: white;
+    padding: 1rem;
+    border-radius: 1rem;
+    text-align: center;
+    color: #0F172A;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+.qr-header {
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    color: #1E40AF;
+}
+.qr-image {
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.qr-caption {
+    font-size: 0.75rem;
+    color: #64748B;
+}
+
+/* Steps Section */
+.section-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0F172A;
+    margin-bottom: 2.5rem;
+}
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+}
+.step-card {
+    background: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 1rem;
+    padding: 2rem 1.5rem;
+    position: relative;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.step-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.08);
+}
+.step-number {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #EFF6FF;
+    color: #2563EB;
+    font-weight: 800;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+}
+.step-card h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 0.6rem;
+}
+.step-card p {
+    font-size: 0.92rem;
+    color: #64748B;
+    line-height: 1.5;
+}
+
+/* Features Grid */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+.feature-card {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+}
+.feature-icon {
+    font-size: 2.4rem;
+    color: #2563EB;
+    margin-bottom: 1.2rem;
+}
+.feature-card h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 0.6rem;
+}
+.feature-card p {
+    font-size: 0.9rem;
+    color: #64748B;
+    line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+    .download-hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem 1.5rem;
+    }
+    .download-subtitle {
+        margin: 0 auto 2rem;
+    }
+    .download-action-group {
+        justify-content: center;
+    }
+    .app-specs {
+        justify-content: center;
+    }
+    .download-hero-mockup {
+        width: 100%;
+        flex-direction: column;
+    }
+}
+</style>
+
+</body>
+</html>

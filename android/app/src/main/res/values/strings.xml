@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">SmartCare 360</string>
+    <string name="web_url">https://hospital-management-glt1-ge8d.onrender.com</string>
+    <string name="no_internet_title">Connection Unavailable</string>
+    <string name="no_internet_message">Please check your internet connection or try again in a few moments.</string>
+    <string name="btn_retry">Retry Connection</string>
+    <string name="download_started">Downloading file...</string>
+    <string name="download_failed">Download failed</string>
+</resources>
