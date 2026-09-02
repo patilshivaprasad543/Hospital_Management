@@ -25,6 +25,64 @@ public class DatabaseUrlProcessor implements EnvironmentPostProcessor, Ordered {
         return Ordered.LOWEST_PRECEDENCE - 50;
     }
 
+    public static void processSystemProperties() {
+        String raw = firstNonBlank(
+                System.getenv("DATABASE_URL"),
+                System.getenv("SMARTCARE_DB_URL"),
+                System.getenv("DB_URL"),
+                System.getenv("POSTGRES_URL"),
+                System.getenv("POSTGRES_CONNECTION_STRING"),
+                System.getenv("JDBC_DATABASE_URL"),
+                assembleFromEnv());
+        boolean prod = "true".equalsIgnoreCase(System.getenv("RENDER"))
+                || System.getenv("RENDER_SERVICE_ID") != null
+                || "prod".equalsIgnoreCase(System.getenv("SPRING_PROFILES_ACTIVE"));
+        try {
+            Map<String, Object> props = configure(raw, prod);
+            applyEnvOverridesFromSystem(props);
+            for (Map.Entry<String, Object> entry : props.entrySet()) {
+                if (entry.getValue() != null) {
+                    System.setProperty(entry.getKey(), String.valueOf(entry.getValue()));
+                }
+            }
+            if (!props.isEmpty()) {
+                System.out.println(">>> Database initialized: " + redact(String.valueOf(props.get("spring.datasource.url"))));
+            }
+        } catch (Exception ex) {
+            System.err.println(">>> Failed to apply database properties: " + ex.getMessage());
+        }
+    }
+
+    private static String assembleFromEnv() {
+        return assembleFromParts(
+                firstNonBlank(System.getenv("PGHOST"), System.getenv("POSTGRES_HOST"), System.getenv("DB_HOST")),
+                firstNonBlank(System.getenv("PGPORT"), System.getenv("POSTGRES_PORT"), System.getenv("DB_PORT")),
+                firstNonBlank(System.getenv("PGDATABASE"), System.getenv("POSTGRES_DB"), System.getenv("DB_NAME")),
+                firstNonBlank(System.getenv("PGUSER"), System.getenv("POSTGRES_USER"), System.getenv("DB_USER")),
+                firstNonBlank(System.getenv("PGPASSWORD"), System.getenv("POSTGRES_PASSWORD"), System.getenv("DB_PASSWORD")));
+    }
+
+    private static void applyEnvOverridesFromSystem(Map<String, Object> props) {
+        String user = firstNonBlank(System.getenv("SMARTCARE_DB_USERNAME"), System.getenv("DB_USERNAME"));
+        if (user != null && !user.isBlank()) {
+            props.put("spring.datasource.username", user);
+        }
+        String pass = firstNonBlank(System.getenv("SMARTCARE_DB_PASSWORD"), System.getenv("DB_PASSWORD"));
+        if (pass != null) {
+            props.put("spring.datasource.password", pass);
+        }
+        String dialect = firstNonBlank(System.getenv("SMARTCARE_DB_DIALECT"), System.getenv("DB_DIALECT"));
+        if (dialect != null && !dialect.isBlank()) {
+            props.put("spring.jpa.database-platform", dialect);
+            props.put("spring.jpa.properties.hibernate.dialect", dialect);
+            props.put("hibernate.dialect", dialect);
+        }
+        String driver = firstNonBlank(System.getenv("SMARTCARE_DB_DRIVER"), System.getenv("DB_DRIVER"));
+        if (driver != null && !driver.isBlank()) {
+            props.put("spring.datasource.driver-class-name", driver);
+        }
+    }
+
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         String raw = firstNonBlank(

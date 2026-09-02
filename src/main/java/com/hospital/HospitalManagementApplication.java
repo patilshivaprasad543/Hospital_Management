@@ -14,6 +14,8 @@ public class HospitalManagementApplication extends SpringBootServletInitializer 
     }
 
     public static void main(String[] args) {
+        com.hospital.config.LocalEnvLoader.load();
+        com.hospital.config.DatabaseUrlProcessor.processSystemProperties();
         SpringApplication.run(HospitalManagementApplication.class, args);
     }
 
