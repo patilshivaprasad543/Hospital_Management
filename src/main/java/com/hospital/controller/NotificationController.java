@@ -16,7 +16,7 @@ public class NotificationController {
 
     @GetMapping("/notifications")
     public String viewNotifications(HttpSession session) {
-        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        User loggedInUser = com.hospital.service.UserSessionHelper.getAnyLoggedInUser(session);
         if (loggedInUser == null) {
             return "redirect:/login";
         }
@@ -25,14 +25,16 @@ public class NotificationController {
             case PATIENT -> "redirect:/patient/notifications";
             case DOCTOR -> "redirect:/doctor/notifications";
             case VENDOR -> "redirect:/vendor/notifications";
+            case PHARMACY -> "redirect:/pharmacy/notifications";
             case ADMIN -> "redirect:/admin/notifications";
+            default -> "redirect:/";
         };
     }
 
     @PostMapping("/notifications/{id}/read")
     @ResponseBody
     public String markNotificationRead(@PathVariable("id") Long id, HttpSession session) {
-        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        User loggedInUser = com.hospital.service.UserSessionHelper.getAnyLoggedInUser(session);
         if (loggedInUser == null) {
             return "UNAUTHORIZED";
         }

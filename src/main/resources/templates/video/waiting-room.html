@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiting Room | Telemedicine</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .waiting-container { max-width: 900px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); text-align: center; }
+        .preview-box { width: 100%; max-width: 500px; height: 320px; background: #1a1a1a; border-radius: 12px; margin: 20px auto; overflow: hidden; position: relative; }
+        .preview-box video { width: 100%; height: 100%; object-fit: cover; }
+        .btn-join { font-size: 1.1rem; padding: 12px 36px; border-radius: 30px; font-weight: 600; }
+        .test-controls { display: flex; justify-content: center; gap: 15px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="container waiting-container">
+        <h2>⏳ Telemedicine Waiting Room</h2>
+        <p class="text-muted">Test your camera and microphone before joining Dr. <span th:text="${appointment.doctor.fullName}">Doctor</span></p>
+
+        <div class="card p-3 my-3 text-start" style="background:#f8f9fa;">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Appointment ID:</strong> #<span th:text="${appointment.id}">101</span></p>
+                    <p><strong>Doctor:</strong> Dr. <span th:text="${appointment.doctor.fullName}">John Smith</span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Scheduled Time:</strong> <span th:text="${appointment.appointmentDate}">2026-08-28</span> at <span th:text="${appointment.appointmentTime}">10:30 AM</span></p>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="preview-box">
+            <video id="localPreview" autoplay playsinline muted></video>
+        </div>
+
+        <div class="test-controls">
+            <button id="toggleMicBtn" class="btn btn-outline-secondary">🎤 Mute Mic</button>
+            <button id="toggleCamBtn" class="btn btn-outline-secondary">📷 Turn Off Camera</button>
+        </div>
+
+        <div class="my-4">
+            <div id="statusBadge" class="badge bg-info p-2 mb-3">Checking camera permissions...</div>
+            <br>
+            <a th:if="${role == 'PATIENT'}" th:href="@{/patient/video-consultation/{id}(id=${appointment.id})}" class="btn btn-primary btn-join">Enter Consultation Room</a>
+            <a th:if="${role == 'DOCTOR'}" th:href="@{/doctor/video-consultation/{id}(id=${appointment.id})}" class="btn btn-success btn-join">Start Doctor Consultation</a>
+        </div>
+    </div>
+
+    <script th:src="@{/js/webrtc-consultation.js}"></script>
+    <script>
+        let stream = null;
+        async function startPreview() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localPreview').srcObject = stream;
+                document.getElementById('statusBadge').className = 'badge bg-success p-2 mb-3';
+                document.getElementById('statusBadge').innerText = 'Camera & Microphone Ready';
+            } catch(e) {
+                document.getElementById('statusBadge').className = 'badge bg-danger p-2 mb-3';
+                document.getElementById('statusBadge').innerText = 'Camera/Mic Permission Denied';
+            }
+        }
+        startPreview();
+    </script>
+</body>
+</html>

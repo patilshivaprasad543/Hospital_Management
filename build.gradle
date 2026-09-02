@@ -1,63 +1,98 @@
 plugins {
-	id 'java'
-	id 'eclipse'
-	id 'org.springframework.boot' version '3.4.2'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'war'
+    id 'eclipse'
+    id 'org.springframework.boot' version '3.5.0'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.hospital'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
-repositories {
-	mavenCentral()
-}
-
-dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'org.springframework.boot:spring-boot-starter-mail'
-	implementation 'org.springframework.security:spring-security-crypto'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    implementation 'com.h2database:h2'
-    implementation 'com.mysql:mysql-connector-j'
-    implementation 'org.postgresql:postgresql'
-	implementation 'com.github.librepdf:openpdf:2.0.3'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ['-parameters']
 }
 
 eclipse {
-	classpath {
-		downloadSources = true
-		downloadJavadoc = false
-		defaultOutputDir = file('bin/default')
-	}
-	project {
-		name = 'Hospital_Management'
-		natures = [
-			'org.eclipse.jdt.core.javanature',
-			'org.eclipse.buildship.core.gradleprojectnature'
-		]
-		buildCommand 'org.eclipse.jdt.core.javabuilder'
-		buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
-	}
-	jdt {
-		sourceCompatibility = 21
-		targetCompatibility = 21
-	}
-	classpath.file.whenMerged { classpath ->
-		classpath.entries.removeAll { it.kind == 'lib' }
-	}
+    jdt {
+        file {
+            withProperties { properties ->
+                properties['org.eclipse.jdt.core.compiler.codegen.methodParameters'] = 'generate'
+            }
+        }
+    }
 }
 
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    // =========================
+    // SPRING BOOT & EMBEDDED/EXTERNAL TOMCAT
+    // =========================
+
+    // Spring Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Tomcat provided for External Servlet Container deployment
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+
+    // Spring Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // Spring Data JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // Spring WebSocket (STOMP WebRTC Signaling & Chat)
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // Email
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // =========================
+    // THYMELEAF
+    // =========================
+
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    // =========================
+    // DATABASE
+    // =========================
+
+    // MySQL
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // =========================
+    // PDF GENERATION
+    // =========================
+
+    // OpenPDF - provides com.lowagie.text.*
+    implementation 'com.github.librepdf:openpdf:1.3.39'
+
+    // =========================
+    // DEVELOPMENT
+    // =========================
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // =========================
+    // TESTING
+    // =========================
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // Optional: Spring Security testing
+    testImplementation 'org.springframework.security:spring-security-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

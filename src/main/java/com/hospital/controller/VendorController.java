@@ -57,11 +57,12 @@ public class VendorController {
     }
 
     private User getLoggedInVendor(HttpSession session) {
-        User user = (User) session.getAttribute("loggedInUser");
-        if (user != null && user.getRole() == Role.VENDOR) {
-            return user;
-        }
-        return null;
+        return com.hospital.service.UserSessionHelper.getLoggedInVendor(session);
+    }
+
+    @GetMapping({"", "/"})
+    public String vendorRootRedirect() {
+        return "redirect:/vendor/dashboard";
     }
 
     @GetMapping("/dashboard")

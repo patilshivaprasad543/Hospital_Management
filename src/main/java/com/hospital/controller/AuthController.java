@@ -8,7 +8,6 @@ import com.hospital.model.VendorType;
 import com.hospital.service.NotificationChannelService;
 import com.hospital.service.UserService;
 import com.hospital.service.EmailService;
-import com.hospital.service.WhatsAppService;
 import com.hospital.service.FileStorageService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +28,6 @@ public class AuthController {
     private EmailService emailService;
 
     @Autowired
-    private WhatsAppService whatsAppService;
-
-    @Autowired
     private NotificationChannelService notificationChannelService;
 
     @Autowired
@@ -43,7 +39,7 @@ public class AuthController {
     }
 
     @GetMapping("/register/{portalRole}")
-    public String showRoleRegisterPage(@PathVariable String portalRole, Model model) {
+    public String showRoleRegisterPage(@PathVariable("portalRole") String portalRole, Model model) {
         PortalRole role = PortalRole.fromPath(portalRole);
         if (role == null || !role.canSelfRegister()) {
             return "redirect:/login";
@@ -57,7 +53,7 @@ public class AuthController {
     }
 
     @PostMapping("/register/{portalRole}")
-    public String registerUser(@PathVariable String portalRole,
+    public String registerUser(@PathVariable("portalRole") String portalRole,
                                @ModelAttribute("user") User user,
                                @RequestParam(value = "selectedVendorType", required = false) VendorType selectedVendorType,
                                @RequestParam(value = "dateOfBirth", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate dateOfBirth,
@@ -110,12 +106,20 @@ public class AuthController {
                 existingUser = userService.findByEmailOrMobile(user.getMobileNumber());
             }
             if (existingUser.isPresent() && !existingUser.get().isVerified()) {
-                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                redirectAttributes.addFlashAttribute("errorMessage", 
+                        "An account with this information is already pending verification. Please enter the OTP sent to your email.");
                 return "redirect:/verify-otp?userId=" + existingUser.get().getId();
             }
             role.applyToUser(user);
             model.addAttribute("portalRole", role);
-            model.addAttribute("errorMessage", e.getMessage());
+            
+            String displayError = e.getMessage();
+            if (displayError != null && displayError.contains("ConstraintViolationException")) {
+                displayError = "This email or mobile number is already registered.";
+            } else if (displayError != null && displayError.contains("could not execute statement")) {
+                displayError = "This email or mobile number is already registered.";
+            }
+            model.addAttribute("errorMessage", displayError);
             return "auth/register-role";
         }
     }
@@ -250,7 +254,7 @@ public class AuthController {
     }
 
     @GetMapping("/login/{portalRole}")
-    public String showRoleLoginPage(@PathVariable String portalRole, Model model) {
+    public String showRoleLoginPage(@PathVariable("portalRole") String portalRole, Model model) {
         PortalRole role = PortalRole.fromPath(portalRole);
         if (role == null) {
             return "redirect:/login";
@@ -313,7 +317,7 @@ public class AuthController {
                 return "redirect:/login/" + portalRoleParam.toLowerCase();
             }
 
-            session.setAttribute("loggedInUser", user);
+            com.hospital.service.UserSessionHelper.setLoggedInUserForRole(session, user);
             return getRedirectUrlForRole(user.getRole());
         }
 
@@ -360,8 +364,18 @@ public class AuthController {
         return "redirect:/reset-password";
     }
 
+    @GetMapping("/logout/{role}")
+    public String logoutRole(@PathVariable("role") String role, HttpSession session, RedirectAttributes redirectAttributes) {
+        com.hospital.service.UserSessionHelper.removeLoggedInUserForRole(session, role);
+        redirectAttributes.addFlashAttribute("successMessage", "You have been logged out from the " + role + " portal.");
+        return "redirect:/login/" + role.toLowerCase();
+    }
+
     @GetMapping("/logout")
-    public String logout(HttpSession session, RedirectAttributes redirectAttributes) {
+    public String logout(@RequestParam(value = "role", required = false) String role, HttpSession session, RedirectAttributes redirectAttributes) {
+        if (role != null && !role.isBlank()) {
+            return logoutRole(role, session, redirectAttributes);
+        }
         session.invalidate();
         redirectAttributes.addFlashAttribute("successMessage", "You have been logged out successfully.");
         return "redirect:/login";

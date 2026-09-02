@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Smart Symptom Checker & Care Triage')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="app-layout">
+        <aside th:replace="~{fragments/layout :: patient-sidebar}"></aside>
+
+        <main class="main-stage">
+            <div class="page-header" style="margin-bottom:1.5rem;">
+                <h1 style="margin:0;font-size:1.75rem;color:var(--text-main);">🩺 SmartCare Express Symptom Checker</h1>
+                <p style="margin:0.25rem 0 0;color:var(--text-muted);">Answer a few quick questions to receive Mayo Clinic-style care level guidance and doctor recommendations.</p>
+            </div>
+
+            <div class="grid" style="display:grid;grid-template-columns:3fr 2fr;gap:1.5rem;">
+                <!-- Symptom Assessment Form -->
+                <div class="card" style="padding:1.75rem;">
+                    <h3 style="margin-top:0;font-size:1.25rem;">Select Your Symptoms</h3>
+                    
+                    <form th:action="@{/patient/symptom-checker/evaluate}" method="post">
+                        <div style="margin-bottom:1.25rem;">
+                            <label style="font-weight:600;display:block;margin-bottom:0.5rem;">Critical Symptoms (Emergency Alert)</label>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:0.5rem;">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" name="symptoms" value="chest_pain" th:checked="${selectedSymptoms != null and selectedSymptoms.contains('chest_pain')}">
+                                    <span>💔 Chest Pain or Pressure</span>
+                                </label>
+                                <label class="checkbox-container">
+                                    <input type="checkbox" name="symptoms" value="shortness_of_breath" th:checked="${selectedSymptoms != null and selectedSymptoms.contains('shortness_of_breath')}">
+                                    <span>🫁 Shortness of Breath</span>
+                                </label>
+                                <label class="checkbox-container">
+                                    <input type="checkbox" name="symptoms" value="sudden_numbness" th:checked="${selectedSymptoms != null and selectedSymptoms.contains('sudden_numbness')}">
+                                    <span>🧠 Sudden Numbness / Weakness</span>
+                                </label>
+                                <label class="checkbox-container">
+                                    <input type="checkbox" name="symptoms" value="unconsciousness" th:checked="${selectedSymptoms != null and selectedSymptoms.contains('unconsciousness')}">
+                                    <span>😵 Fainting / Unconsciousness</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:1.25rem;">
+                            <label style="font-weight:600;display:block;margin-bottom:0.5rem;">Common Symptoms</label>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:0.5rem;">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" name="symptoms" value="high_fever" th:checked="${selectedSymptoms != null and selectedSymptoms.contains('high_fever')}">
+                                    <span>🌡️ Fever / Chills</span>
+                                </label>
+                                <label class="checkbox-container">
+                                    <input type="checkbox" name="symptoms" value="severe_headache" th:checked="${selectedSymptoms != null and selectedSymptoms.contains('severe_headache')}">
+                                    <span>🤕 Severe Headache</span>
+                                </label>
+                                <label class="checkbox-container">
+                                    <input type="checkbox" name="symptoms" value="persistent_vomiting" th:checked="${selectedSymptoms != null and selectedSymptoms.contains('persistent_vomiting')}">
+                                    <span>🤢 Nausea / Vomiting</span>
+                                </label>
+                                <label class="checkbox-container">
+                                    <input type="checkbox" name="symptoms" value="skin_rash" th:checked="${selectedSymptoms != null and selectedSymptoms.contains('skin_rash')}">
+                                    <span>🧴 Skin Rash / Itching</span>
+                                </label>
+                                <label class="checkbox-container">
+                                    <input type="checkbox" name="symptoms" value="joint_pain" th:checked="${selectedSymptoms != null and selectedSymptoms.contains('joint_pain')}">
+                                    <span>🦴 Joint or Back Pain</span>
+                                </label>
+                                <label class="checkbox-container">
+                                    <input type="checkbox" name="symptoms" value="sore_throat" th:checked="${selectedSymptoms != null and selectedSymptoms.contains('sore_throat')}">
+                                    <span>🗣️ Sore Throat / Cough</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:1.5rem;">
+                            <label style="font-weight:600;display:block;margin-bottom:0.5rem;">Symptom Discomfort Level (1 - Mild, 10 - Unbearable): <span id="sevVal" th:text="${severity != null ? severity : 3}">3</span>/10</label>
+                            <input type="range" name="severity" min="1" max="10" th:value="${severity != null ? severity : 3}" class="form-control" oninput="document.getElementById('sevVal').innerText=this.value">
+                        </div>
+
+                        <div style="display:flex;gap:1rem;align-items:center;">
+                            <button type="submit" class="btn btn-primary" style="padding:0.75rem 1.5rem;font-weight:600;">
+                                🔍 Analyze Symptoms &amp; Get Care Recommendation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Care Triage Assessment Result -->
+                <div>
+                    <div th:if="${result != null}" class="card" style="padding:1.5rem;border-radius:var(--radius-lg);"
+                         th:styleappend="${result.level.name() == 'EMERGENCY_ER' ? 'border:2px solid #ef4444;background:#fef2f2;' : (result.level.name() == 'URGENT_CARE' ? 'border:2px solid #f59e0b;background:#fffbeb;' : 'border:2px solid #3b82f6;background:#eff6ff;')}">
+                        
+                        <div style="font-size:0.8rem;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;color:var(--text-muted);">Care Assessment Result</div>
+                        <h2 style="margin:0.25rem 0 0.5rem;font-size:1.4rem;" th:text="${result.level.title}">Red Flag Alert</h2>
+                        <p style="margin:0 0 1rem;font-size:0.95rem;color:var(--text-main);" th:text="${result.level.recommendation}">Recommendation details</p>
+
+                        <div th:if="${!#lists.isEmpty(result.redFlagAlerts)}" style="margin-bottom:1rem;padding:0.75rem;background:#fee2e2;border-radius:var(--radius-sm);border-left:4px solid #ef4444;">
+                            <strong style="color:#991b1b;">⚠️ Red Flag Alerts Detected:</strong>
+                            <ul style="margin:0.25rem 0 0;padding-left:1.2rem;color:#7f1d1d;font-size:0.88rem;">
+                                <li th:each="alert : ${result.redFlagAlerts}" th:text="${alert}">Chest pain</li>
+                            </ul>
+                        </div>
+
+                        <div style="margin-bottom:1rem;">
+                            <strong>Recommended Medical Specialty:</strong>
+                            <div style="font-size:1.1rem;font-weight:700;color:var(--primary);margin-top:0.2rem;" th:text="${result.recommendedSpecialty}">Cardiology</div>
+                        </div>
+
+                        <div style="margin-bottom:1.5rem;">
+                            <strong>Care Instructions &amp; Next Steps:</strong>
+                            <ul style="margin:0.25rem 0 0;padding-left:1.2rem;font-size:0.88rem;color:var(--text-main);">
+                                <li th:each="inst : ${result.careInstructions}" th:text="${inst}">Instruction</li>
+                            </ul>
+                        </div>
+
+                        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                            <a th:if="${result.level.name() == 'EMERGENCY_ER'}" href="/patient/ambulance" class="btn btn-danger btn-block">
+                                🚑 Book Emergency Ambulance Now
+                            </a>
+                            <a th:if="${result.level.name() != 'EMERGENCY_ER'}" href="/patient/doctors" class="btn btn-primary btn-block">
+                                📅 Book Appointment with <span th:text="${result.recommendedSpecialty}">Specialist</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div th:if="${result == null}" class="card" style="padding:1.5rem;background:#f8fafc;border:1px solid #e2e8f0;">
+                        <h4 style="margin:0 0 0.5rem;font-size:1.05rem;">ℹ️ How Care Triage Works</h4>
+                        <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.5;margin:0;">
+                            Our clinical triage algorithm evaluates your reported symptoms against Mayo Clinic clinical protocols to direct you to the safest level of care — whether it's Emergency, Urgent Care, Specialist Consultation, or Self-Care.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

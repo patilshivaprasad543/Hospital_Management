@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCare Chat | Telehealth Messenger</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { margin: 0; padding: 0; background: #0b141a; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; color: #e9edef; height: 100vh; overflow: hidden; }
+        .wa-container { display: flex; height: 100vh; width: 100vw; background: #111b21; }
+
+        /* Left Sidebar */
+        .wa-sidebar { width: 380px; background: #111b21; border-right: 1px solid #222d34; display: flex; flex-direction: column; }
+        .wa-header { height: 60px; background: #202c33; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
+        .wa-avatar { width: 40px; height: 40px; border-radius: 50%; background: #00a884; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; flex-shrink: 0; }
+        .wa-search { padding: 8px 12px; background: #111b21; }
+        .wa-search-input { width: 100%; background: #202c33; border: none; padding: 8px 14px; border-radius: 8px; color: #e9edef; font-size: 0.9rem; outline: none; box-sizing: border-box; }
+        .wa-contact-list { flex: 1; overflow-y: auto; }
+        .wa-contact-item { display: flex; align-items: center; padding: 12px 16px; gap: 12px; cursor: pointer; border-bottom: 1px solid #202c33; transition: 0.2s; position: relative; }
+        .wa-contact-item:hover, .wa-contact-item.active { background: #2a3942; }
+        .wa-contact-info { flex: 1; overflow: hidden; }
+        .wa-contact-name { font-weight: 600; font-size: 0.95rem; color: #e9edef; margin-bottom: 2px; }
+        .wa-contact-last { font-size: 0.82rem; color: #8696a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .wa-unread-badge { background: #25d366; color: #111b21; font-weight: 700; font-size: 0.72rem; border-radius: 50%; min-width: 18px; height: 18px; display: none; align-items: center; justify-content: center; padding: 2px; }
+
+        /* Right Chat Panel */
+        .wa-chat-panel { flex: 1; display: flex; flex-direction: column; background: #0b141a; position: relative; }
+        .wa-chat-header { height: 60px; background: #202c33; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; z-index: 10; }
+        .wa-chat-bg { flex: 1; padding: 20px 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background-image: radial-gradient(#202c33 1px, transparent 0); background-size: 24px 24px; }
+
+        /* Message Bubbles */
+        .msg-row { display: flex; margin-bottom: 4px; }
+        .msg-row.outgoing { justify-content: flex-end; }
+        .msg-row.incoming { justify-content: flex-start; }
+        .msg-bubble { max-width: 65%; padding: 8px 12px 6px 12px; border-radius: 8px; font-size: 0.95rem; line-height: 1.4; position: relative; word-wrap: break-word; }
+        .msg-outgoing { background: #005c4b; color: #e9edef; border-top-right-radius: 0; }
+        .msg-incoming { background: #202c33; color: #e9edef; border-top-left-radius: 0; }
+        .msg-system { background: #182229; color: #8696a0; text-align: center; font-size: 0.85rem; border-radius: 6px; padding: 6px 16px; margin: 10px auto; max-width: 80%; }
+        .msg-meta { font-size: 0.7rem; color: #8696a0; text-align: right; margin-top: 4px; display: flex; justify-content: flex-end; align-items: center; gap: 4px; }
+        .msg-ticks { color: #53bdeb; font-size: 0.85rem; }
+
+        /* Bottom Input Bar */
+        .wa-input-bar { height: 62px; background: #202c33; padding: 10px 16px; display: flex; align-items: center; gap: 12px; box-sizing: border-box; }
+        .wa-input { flex: 1; background: #2a3942; border: none; padding: 12px 16px; border-radius: 8px; color: #e9edef; font-size: 0.95rem; outline: none; }
+        .wa-btn { background: none; border: none; color: #8696a0; font-size: 1.3rem; cursor: pointer; padding: 6px; transition: 0.2s; }
+        .wa-btn:hover { color: #00a884; }
+        .wa-send-btn { background: #00a884; color: #fff; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="wa-container">
+        <!-- Left Contacts Sidebar -->
+        <div class="wa-sidebar">
+            <div class="wa-header">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="wa-avatar" th:text="${loggedInUser != null ? #strings.substring(loggedInUser.fullName,0,1) : 'U'}">U</div>
+                    <div>
+                        <strong style="font-size:0.95rem;" th:text="${loggedInUser != null ? loggedInUser.fullName : 'User'}">User Name</strong>
+                        <div style="font-size:0.75rem;color:#00a884;">● Online</div>
+                    </div>
+                </div>
+                <div>
+                    <a href="/" class="wa-btn" title="Back to Portal Home"><i class="fas fa-home"></i></a>
+                    <a href="/patient/video-consultations" class="wa-btn" title="Video Consultations"><i class="fas fa-video"></i></a>
+                </div>
+            </div>
+
+            <div class="wa-search">
+                <input type="text" class="wa-search-input" placeholder="🔍 Search contacts or support..." onkeyup="filterContacts(this.value)">
+            </div>
+
+            <div style="padding:8px 16px;font-size:0.8rem;color:#00a884;font-weight:600;background:#182229;" th:text="${contactRoleLabel != null ? contactRoleLabel : '💬 Contacts & Support Desk'}">
+                💬 Contacts &amp; Support Desk
+            </div>
+
+            <div class="wa-contact-list" id="contactList">
+                <div th:if="${contacts == null || contacts.empty}" class="p-3 text-center" style="color:#8696a0;">
+                    No contacts available.
+                </div>
+                <div th:each="c, iter : ${contacts}" class="wa-contact-item" th:classappend="${iter.first ? 'active' : ''}"
+                     th:id="${'contact_item_' + c.id}"
+                     th:data-doc-id="${c.id}" th:data-doc-name="${c.fullName}" th:data-role="${c.role}"
+                     onclick="selectContact(this, this.getAttribute('data-doc-id'), this.getAttribute('data-doc-name'), this.getAttribute('data-role'))">
+                    <div class="wa-avatar" th:style="${c.role.name() == 'ADMIN' ? 'background:#ef4444;' : (c.role.name() == 'DOCTOR' ? 'background:#2563eb;' : (c.role.name() == 'VENDOR' ? 'background:#8b5cf6;' : 'background:#10b981;'))}" th:text="${#strings.substring(c.fullName,0,1)}">C</div>
+                    <div class="wa-contact-info">
+                        <div class="wa-contact-name" th:text="${(c.role.name() == 'DOCTOR' ? 'Dr. ' : '') + c.fullName}">Contact Name</div>
+                        <div class="wa-contact-last" th:id="${'last_msg_' + c.id}" th:text="${c.role.name() == 'ADMIN' ? '🛠️ Hospital Support Desk' : (c.role.name() == 'VENDOR' ? '🧪 Pathology & Lab Desk' : 'Tap to open chat...')}">Tap to start secure medical chat...</div>
+                    </div>
+                    <span class="wa-unread-badge" th:id="${'unread_' + c.id}">0</span>
+                    <span class="badge ms-1" th:style="${c.role.name() == 'ADMIN' ? 'background:#ef4444;font-size:0.65rem;' : (c.role.name() == 'VENDOR' ? 'background:#8b5cf6;font-size:0.65rem;' : 'background:#334155;font-size:0.65rem;')}" th:text="${c.role.name() == 'VENDOR' ? 'LAB' : c.role}">ROLE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Chat Conversation Panel -->
+        <div class="wa-chat-panel">
+            <div class="wa-chat-header">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div class="wa-avatar" id="activeAvatar" style="background:#2563eb;">C</div>
+                    <div>
+                        <div style="font-weight:600;font-size:1.05rem;" id="activeChatName">Select a Contact</div>
+                        <div style="font-size:0.8rem;color:#00a884;" id="activeStatus">● Online | STOMP Encrypted</div>
+                    </div>
+                </div>
+                <div>
+                    <button class="wa-btn" title="Start Telemedicine Video Call" onclick="startInstantVideoCall()"><i class="fas fa-video" style="color:#00a884;"></i></button>
+                    <button class="wa-btn" onclick="clearMessages()" title="Clear Messages"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+
+            <!-- Messages Stream -->
+            <div class="wa-chat-bg" id="chatStream">
+                <div class="msg-system">
+                    🔒 End-to-end encrypted consultation &amp; support channel with SmartCare 360 Staff.
+                </div>
+            </div>
+
+            <!-- Input Controls -->
+            <div class="wa-input-bar">
+                <button class="wa-btn"><i class="far fa-smile"></i></button>
+                <button class="wa-btn" title="Send Telemedicine Video Call Invite" onclick="startInstantVideoCall()"><i class="fas fa-video"></i></button>
+                <button class="wa-btn"><i class="fas fa-paperclip"></i></button>
+                <input type="text" id="chatInput" class="wa-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                <button class="wa-send-btn" onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Telemedicine Video Call Modal Overlay -->
+    <div id="videoModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(11,20,26,0.95);z-index:99999;flex-direction:column;">
+        <div style="padding:12px 24px;background:#202c33;color:#e9edef;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2a3942;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:1.2rem;">📹</span>
+                <div>
+                    <strong style="font-size:1.05rem;" id="videoModalTitle">Telemedicine HD Video Consultation</strong>
+                    <div style="font-size:0.75rem;color:#25d366;">● Live WebRTC Encrypted Stream</div>
+                </div>
+            </div>
+            <div>
+                <button onclick="openVideoModalExternal()" class="btn btn-sm btn-outline-light me-2" style="font-size:0.82rem;color:#fff;border-color:#53bdeb;">↗ Open Full Screen Window</button>
+                <button onclick="closeVideoModal()" class="btn btn-sm btn-danger" style="font-size:0.82rem;background:#ef4444;border:none;">❌ End Video Call</button>
+            </div>
+        </div>
+        <iframe id="videoIframe" src="" allow="camera; microphone; display-capture; autoplay; encrypted-media; fullscreen" style="width:100%;height:calc(100vh - 60px);border:none;"></iframe>
+    </div>
+
+    <!-- SockJS & STOMP Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script th:inline="javascript">
+        const currentUser = /*[[${loggedInUser != null ? loggedInUser.fullName : 'User'}]]*/ 'User';
+        const currentUserId = String(/*[[${loggedInUser != null ? loggedInUser.id : 0}]]*/ 0);
+        let currentRoomId = 'general';
+        let currentContactId = '0';
+        let stompClient = null;
+        let activeSubscription = null;
+
+        function getDirectRoomId(userAId, userBId) {
+            const idA = parseInt(userAId);
+            const idB = parseInt(userBId);
+            if (isNaN(idA) || isNaN(idB)) {
+                return 'chat_dm_' + userAId + '_' + userBId;
+            }
+            const minId = Math.min(idA, idB);
+            const maxId = Math.max(idA, idB);
+            return 'chat_dm_' + minId + '_' + maxId;
+        }
+
+        function connectWebSocket() {
+            if (typeof SockJS !== 'undefined' && typeof Stomp !== 'undefined') {
+                try {
+                    const socket = new SockJS('/ws-video');
+                    stompClient = Stomp.over(socket);
+                    stompClient.debug = null;
+                    stompClient.connect({}, function() {
+                        document.getElementById('activeStatus').innerText = '● Online | STOMP Connected';
+                        
+                        // Subscribe to global notification channel for instant WhatsApp-style incoming message alerts
+                        stompClient.subscribe('/topic/video-chat/global', function(msg) {
+                            const data = JSON.parse(msg.body);
+                            const senderId = String(data.senderId);
+                            const senderName = data.senderName || data.sender || 'Contact';
+                            const text = data.payload || data.content || data.message || '';
+
+                            // Ignore if sent by myself
+                            if (senderId === currentUserId || senderName === currentUser) return;
+
+                            // Update contact list: Move sender contact card to the top
+                            const contactItem = document.getElementById('contact_item_' + senderId);
+                            if (contactItem) {
+                                const list = document.getElementById('contactList');
+                                list.insertBefore(contactItem, list.firstChild);
+                                
+                                const lastElem = document.getElementById('last_msg_' + senderId);
+                                if (lastElem) {
+                                    lastElem.innerText = text;
+                                    lastElem.style.color = '#25d366';
+                                    lastElem.style.fontWeight = 'bold';
+                                }
+
+                                // If sender's chat is NOT currently open, increment unread badge
+                                if (currentContactId !== senderId) {
+                                    const badge = document.getElementById('unread_' + senderId);
+                                    if (badge) {
+                                        let count = parseInt(badge.innerText || '0') + 1;
+                                        badge.innerText = count;
+                                        badge.style.display = 'inline-flex';
+                                    }
+                                }
+                            }
+                        });
+
+                        const firstContact = document.querySelector('.wa-contact-item');
+                        if (firstContact) {
+                            firstContact.click();
+                        }
+                    }, function(err) {
+                        document.getElementById('activeStatus').innerText = 'Connecting...';
+                    });
+                } catch (e) {
+                    console.log('WebSocket fallback initialized', e);
+                }
+            }
+        }
+
+        function selectContact(elem, contactId, contactName, role) {
+            document.querySelectorAll('.wa-contact-item').forEach(el => el.classList.remove('active'));
+            if (elem) elem.classList.add('active');
+
+            currentContactId = contactId;
+            currentRoomId = getDirectRoomId(currentUserId, contactId);
+            const displayName = (role === 'DOCTOR' ? 'Dr. ' : '') + contactName;
+            document.getElementById('activeChatName').innerText = displayName;
+            document.getElementById('activeAvatar').innerText = contactName.charAt(0);
+            
+            // Clear unread badge when contact is clicked
+            const badge = document.getElementById('unread_' + contactId);
+            if (badge) {
+                badge.innerText = '0';
+                badge.style.display = 'none';
+            }
+            const lastElem = document.getElementById('last_msg_' + contactId);
+            if (lastElem) {
+                lastElem.style.color = '#8696a0';
+                lastElem.style.fontWeight = 'normal';
+            }
+
+            loadLocalHistory(currentRoomId, displayName, role);
+
+            if (stompClient && stompClient.connected) {
+                if (activeSubscription) {
+                    try { activeSubscription.unsubscribe(); } catch(e){}
+                }
+                activeSubscription = stompClient.subscribe('/topic/video-chat/' + currentRoomId, function(msg) {
+                    const data = JSON.parse(msg.body);
+                    const senderName = data.senderName || data.sender || 'Contact';
+                    const text = data.payload || data.content || data.message || '';
+                    const isSelf = (String(data.senderId) === currentUserId) || (senderName === currentUser);
+
+                    if (!isSelf) {
+                        appendBubble(senderName, text, false, true);
+                    }
+                });
+            }
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const payload = {
+                senderId: currentUserId,
+                senderName: currentUser,
+                sender: currentUser,
+                senderRole: 'USER',
+                type: 'CHAT',
+                message: text,
+                content: text,
+                payload: text
+            };
+
+            // 1. Render sent message bubble IMMEDIATELY on right side
+            appendBubble(currentUser, text, true, true);
+
+            // 2. Broadcast via STOMP WebSocket
+            if (stompClient && stompClient.connected) {
+                stompClient.send('/app/chat/' + currentRoomId, {}, JSON.stringify(payload));
+            }
+
+            // 3. Update last message preview in left contact list
+            const lastElem = document.getElementById('last_msg_' + currentContactId);
+            if (lastElem) {
+                lastElem.innerText = text;
+            }
+
+            input.value = '';
+        }
+
+        let currentRoomUrl = '';
+        function startInstantVideoCall() {
+            if (!currentContactId || currentContactId === '0') {
+                alert('Please select a contact to start a video call.');
+                return;
+            }
+            
+            fetch('/api/chat/video-room?targetUserId=' + currentContactId)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+                    currentRoomUrl = data.directRoomUrl || data.roomUrl;
+                    const docName = data.doctorName || 'Doctor';
+                    const apptId = data.appointmentId || '';
+                    
+                    const inviteMsg = '📹 VIDEO_CALL_INVITE:' + data.roomUrl + '|' + docName + '|' + (data.waitingRoomUrl || '') + '|' + apptId;
+                    
+                    // Send WS chat invite
+                    const payload = {
+                        senderId: currentUserId,
+                        senderName: currentUser,
+                        senderRole: 'USER',
+                        type: 'CHAT',
+                        message: inviteMsg,
+                        content: inviteMsg,
+                        payload: inviteMsg
+                    };
+                    
+                    if (stompClient && stompClient.connected) {
+                        stompClient.send('/app/chat/' + currentRoomId, {}, JSON.stringify(payload));
+                    }
+                    
+                    // Append local bubble
+                    appendBubble(currentUser, inviteMsg, true, true);
+                    
+                    // Launch full Video Consultation Module directly in new window/tab
+                    window.open(currentRoomUrl, '_blank');
+                })
+                .catch(err => {
+                    console.error('Video room error', err);
+                    alert('Failed to launch video room. Please try again.');
+                });
+        }
+
+        function openVideoCallModal(url, name) {
+            currentRoomUrl = url;
+            document.getElementById('videoIframe').src = url;
+            document.getElementById('videoModalTitle').innerText = '📹 Telemedicine Video Consultation with ' + (name || 'Doctor');
+            document.getElementById('videoModal').style.display = 'flex';
+        }
+
+        function closeVideoModal() {
+            document.getElementById('videoIframe').src = '';
+            document.getElementById('videoModal').style.display = 'none';
+        }
+
+        function openVideoModalExternal() {
+            if (currentRoomUrl) {
+                window.open(currentRoomUrl, '_blank');
+            }
+        }
+
+        window.addEventListener('message', function(e) {
+            if (e.data && e.data.type === 'CLOSE_VIDEO_MODAL') {
+                closeVideoModal();
+            }
+        });
+
+        function appendBubble(sender, text, isSelf, saveToHistory = true) {
+            const stream = document.getElementById('chatStream');
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            const row = document.createElement('div');
+            row.className = `msg-row ${isSelf ? 'outgoing' : 'incoming'}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = `msg-bubble ${isSelf ? 'msg-outgoing' : 'msg-incoming'}`;
+            
+            let html = '';
+            if (text.includes('VIDEO_CALL_INVITE:') || text.includes('/video-consultation/')) {
+                const parts = text.replace('📹 VIDEO_CALL_INVITE:', '').split('|');
+                let targetUrl = parts[0] ? parts[0].trim() : '/video-consultations';
+                let docName = parts[1] ? parts[1].trim() : 'Doctor';
+                let waitingUrl = parts[2] ? parts[2].trim() : (targetUrl + '/waiting-room');
+                let apptId = parts[3] ? parts[3].trim() : '';
+
+                if (!targetUrl.startsWith('/')) {
+                    targetUrl = '/video-consultation/' + targetUrl;
+                }
+                currentRoomUrl = targetUrl;
+                html = `
+                <div style="background:#0f2027;border:2px solid #00a884;padding:14px;border-radius:10px;margin-bottom:4px;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;">
+                        <div style="font-weight:bold;font-size:0.95rem;color:#25d366;display:flex;align-items:center;gap:6px;">
+                            <span>📹</span> Telemedicine Video Consultation
+                        </div>
+                        <span style="background:#00a884;color:#fff;font-size:0.7rem;padding:2px 8px;border-radius:12px;font-weight:600;">● Live WebRTC</span>
+                    </div>
+                    <div style="font-size:0.82rem;color:#cbd5e1;margin-bottom:10px;">
+                        ${apptId ? 'Appointment #<strong>' + apptId + '</strong> | ' : ''}Consultation with <strong>${docName}</strong>.<br>
+                        Both Doctor and Patient can join in real-time.
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                        <a href="${targetUrl}" target="_blank" class="btn btn-sm" style="background:#00a884;color:#fff;font-weight:600;padding:6px 16px;border-radius:20px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 6px rgba(0,168,132,0.4);">
+                            📹 Join Video Call
+                        </a>
+                        <a href="${waitingUrl || (targetUrl + '/waiting-room')}" target="_blank" class="btn btn-sm" style="background:#1e293b;color:#38bdf8;border:1px solid #38bdf8;font-weight:600;padding:6px 12px;border-radius:20px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+                            ⏱️ Waiting Room
+                        </a>
+                        <button onclick="openVideoCallModal('${targetUrl}', '${docName}')" class="btn btn-sm" style="background:#202c33;color:#8696a0;border:1px solid #374151;font-size:0.75rem;padding:4px 8px;border-radius:12px;cursor:pointer;">
+                            📱 View in Chat
+                        </button>
+                    </div>
+                </div>
+                <div class="msg-meta"><span>${timeStr}</span>${isSelf ? '<span class="msg-ticks">✓✓</span>' : ''}</div>
+                `;
+            } else {
+                html = `<div>${text}</div><div class="msg-meta"><span>${timeStr}</span>`;
+                if (isSelf) {
+                    html += `<span class="msg-ticks">✓✓</span>`;
+                }
+                html += `</div>`;
+            }
+            
+            bubble.innerHTML = html;
+            row.appendChild(bubble);
+            stream.appendChild(row);
+            stream.scrollTop = stream.scrollHeight;
+
+            if (saveToHistory) {
+                saveMsgToStorage(currentRoomId, { sender, text, isSelf, timeStr });
+            }
+        }
+
+        function saveMsgToStorage(roomId, msgObj) {
+            try {
+                const key = 'wa_chat_' + roomId;
+                let history = JSON.parse(localStorage.getItem(key) || '[]');
+                history.push(msgObj);
+                if (history.length > 100) history.shift();
+                localStorage.setItem(key, JSON.stringify(history));
+            } catch (e) {}
+        }
+
+        function loadLocalHistory(roomId, displayName, role) {
+            const stream = document.getElementById('chatStream');
+            stream.innerHTML = '<div class="msg-system">🔒 Secure encrypted session loaded for ' + displayName + ' (' + role + ')</div>';
+
+            try {
+                const key = 'wa_chat_' + roomId;
+                let history = JSON.parse(localStorage.getItem(key) || '[]');
+                history.forEach(m => {
+                    appendBubble(m.sender, m.text, m.isSelf, false);
+                });
+            } catch (e) {}
+        }
+
+        function filterContacts(query) {
+            const items = document.querySelectorAll('.wa-contact-item');
+            items.forEach(item => {
+                const name = item.querySelector('.wa-contact-name').innerText.toLowerCase();
+                item.style.display = name.includes(query.toLowerCase()) ? 'flex' : 'none';
+            });
+        }
+
+        function clearMessages() {
+            localStorage.removeItem('wa_chat_' + currentRoomId);
+            document.getElementById('chatStream').innerHTML = '<div class="msg-system">Chat history cleared.</div>';
+        }
+
+        connectWebSocket();
+    </script>
+</body>
+</html>

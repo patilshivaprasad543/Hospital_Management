@@ -7,6 +7,7 @@ public enum NotificationCategory {
     PHARMACY("Pharmacy"),
     BILLING("Billing"),
     REMINDER("Reminder"),
+    AMBULANCE("Ambulance"),
     SYSTEM("General Update");
 
     private final String label;

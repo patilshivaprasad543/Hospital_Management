@@ -41,13 +41,16 @@ public class AdminController {
     @Autowired private HospitalSettingService hospitalSettingService;
     @Autowired private ConsultationRepository consultationRepository;
     @Autowired private AuditLogRepository auditLogRepository;
+    @Autowired private AdmissionService admissionService;
+    @Autowired private InsuranceService insuranceService;
 
     private User getLoggedInAdmin(HttpSession session) {
-        User user = (User) session.getAttribute("loggedInUser");
-        if (user != null && user.getRole() == Role.ADMIN) {
-            return user;
-        }
-        return null;
+        return UserSessionHelper.getLoggedInAdmin(session);
+    }
+
+    @GetMapping({"", "/"})
+    public String adminRootRedirect() {
+        return "redirect:/admin/dashboard";
     }
 
     @GetMapping("/dashboard")
@@ -107,6 +110,10 @@ public class AdminController {
         model.addAttribute("recentAppointments", recent);
         model.addAttribute("pendingDoctors", userService.findPendingDoctors());
         model.addAttribute("pendingVendors", userService.findPendingVendors());
+        model.addAttribute("availableBedsCount", admissionService.getAvailableBedCount());
+        model.addAttribute("pendingBedRequestsCount", admissionService.getPendingAdmissionCount());
+        model.addAttribute("pendingInsuranceClaims", insuranceService.countPendingClaims());
+        model.addAttribute("totalInsuranceClaims", insuranceService.getAllClaims().size());
         return "admin/dashboard";
     }
 
@@ -367,8 +374,8 @@ public class AdminController {
     }
 
     @PostMapping("/departments")
-    public String addDepartment(@RequestParam String name,
-                                @RequestParam(required = false) String description,
+    public String addDepartment(@RequestParam("name") String name,
+                                @RequestParam(value = "description", required = false) String description,
                                 HttpSession session,
                                 RedirectAttributes redirectAttributes) {
         User admin = getLoggedInAdmin(session);
@@ -388,9 +395,9 @@ public class AdminController {
     }
 
     @PostMapping("/announcements")
-    public String createAnnouncement(@RequestParam String title,
-                                     @RequestParam String message,
-                                     @RequestParam(defaultValue = "ALL") String audience,
+    public String createAnnouncement(@RequestParam("title") String title,
+                                     @RequestParam("message") String message,
+                                     @RequestParam(value = "audience", defaultValue = "ALL") String audience,
                                      HttpSession session,
                                      RedirectAttributes redirectAttributes) {
         User admin = getLoggedInAdmin(session);
@@ -401,14 +408,14 @@ public class AdminController {
     }
 
     @PostMapping("/announcements/{id}/toggle")
-    public String toggleAnnouncement(@PathVariable Long id, HttpSession session) {
+    public String toggleAnnouncement(@PathVariable("id") Long id, HttpSession session) {
         if (getLoggedInAdmin(session) == null) return "redirect:/login/admin";
         announcementService.toggleActive(id);
         return "redirect:/admin/announcements";
     }
 
     @PostMapping("/announcements/{id}/delete")
-    public String deleteAnnouncement(@PathVariable Long id, HttpSession session) {
+    public String deleteAnnouncement(@PathVariable("id") Long id, HttpSession session) {
         if (getLoggedInAdmin(session) == null) return "redirect:/login/admin";
         announcementService.delete(id);
         return "redirect:/admin/announcements";
@@ -433,11 +440,11 @@ public class AdminController {
     }
 
     @PostMapping("/notifications/send")
-    public String sendNotification(@RequestParam String title,
-                                   @RequestParam String message,
-                                   @RequestParam(defaultValue = "SYSTEM") String category,
-                                   @RequestParam(defaultValue = "ALL") String audience,
-                                   @RequestParam(required = false) String linkUrl,
+    public String sendNotification(@RequestParam("title") String title,
+                                   @RequestParam("message") String message,
+                                   @RequestParam(value = "category", defaultValue = "SYSTEM") String category,
+                                   @RequestParam(value = "audience", defaultValue = "ALL") String audience,
+                                   @RequestParam(value = "linkUrl", required = false) String linkUrl,
                                    HttpSession session,
                                    RedirectAttributes redirectAttributes) {
         User admin = getLoggedInAdmin(session);
@@ -504,11 +511,11 @@ public class AdminController {
     }
 
     @PostMapping("/settings")
-    public String saveSettings(@RequestParam String hospitalName,
-                               @RequestParam(required = false) String hospitalAddress,
-                               @RequestParam(required = false) String hospitalPhone,
-                               @RequestParam(required = false) String hospitalEmail,
-                               @RequestParam(required = false) String hospitalHours,
+    public String saveSettings(@RequestParam("hospitalName") String hospitalName,
+                               @RequestParam(value = "hospitalAddress", required = false) String hospitalAddress,
+                               @RequestParam(value = "hospitalPhone", required = false) String hospitalPhone,
+                               @RequestParam(value = "hospitalEmail", required = false) String hospitalEmail,
+                               @RequestParam(value = "hospitalHours", required = false) String hospitalHours,
                                @RequestParam(value = "emailEnabled", required = false) String emailEnabled,
                                HttpSession session,
                                RedirectAttributes redirectAttributes) {

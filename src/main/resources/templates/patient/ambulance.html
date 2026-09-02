@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ambulance Booking')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: role-nav}"></nav>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Ambulance Services &amp; Dispatch</h1>
+                <p>24x7 Emergency Ambulance Booking &amp; Fleet Response</p>
+            </div>
+            <div>
+                <a href="/patient/ambulance/current" class="btn btn-outline-secondary">Current Trip Status</a>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card" style="grid-column: span 2;">
+                <h3>Book Emergency Ambulance</h3>
+                <form th:action="@{/patient/ambulance/book}" method="post" class="mt-3">
+                    <div class="form-group">
+                        <label class="form-label">Pickup Address *</label>
+                        <input type="text" name="pickupAddress" class="form-control" placeholder="House/Flat No, Street, Area, City, Pincode" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Destination Hospital Address *</label>
+                        <input type="text" name="destinationAddress" class="form-control" value="SmartCare 360 Emergency Ward, Main Campus" required>
+                    </div>
+
+                    <div class="grid">
+                        <div class="form-group">
+                            <label class="form-label">Emergency Priority</label>
+                            <select name="priority" class="form-select">
+                                <option value="CRITICAL">Critical (Immediate Rescue)</option>
+                                <option value="HIGH">High Priority</option>
+                                <option value="MEDIUM" selected>Medium Priority</option>
+                                <option value="LOW">Low (Routine Transfer)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Ambulance Type</label>
+                            <select name="requestedType" class="form-select">
+                                <option value="BASIC">Basic Life Support (BLS)</option>
+                                <option value="ADVANCED_LIFE_SUPPORT">Advanced Life Support (ALS)</option>
+                                <option value="PATIENT_TRANSPORT">Patient Transport</option>
+                                <option value="ICU_AMBULANCE">ICU Ambulance</option>
+                                <option value="NEONATAL">Neonatal Care</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid">
+                        <div class="form-group">
+                            <label class="form-label">Contact Person Name</label>
+                            <input type="text" name="contactPerson" class="form-control" th:value="${loggedInUser.fullName}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contact Mobile Number</label>
+                            <input type="text" name="contactMobile" class="form-control" th:value="${loggedInUser.mobileNumber}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Reason / Symptoms / Instructions</label>
+                        <textarea name="reason" class="form-control" rows="2" placeholder="Describe symptoms or medical equipment needed..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger btn-block mt-2">🚨 Confirm &amp; Dispatch Ambulance</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Ambulance Fleet Status</h3>
+                <div class="alert alert-info mt-2">
+                    <strong>24x7 Emergency Helpline:</strong><br>
+                    📞 1800-SMARTCARE (1800-762-782)
+                </div>
+                <h4 class="mt-3">Available Vehicles</h4>
+                <ul style="list-style:none;padding:0;">
+                    <li th:each="amb : ${availableAmbulances}" class="py-2" style="border-bottom:1px solid #e2e8f0;">
+                        <strong th:text="${amb.vehicleNumber}">KA-01-AB-1234</strong>
+                        <span class="badge badge-success text-right" th:text="${amb.type}">BASIC</span>
+                        <div class="text-muted" style="font-size:0.82rem;" th:text="${'Driver: ' + amb.driverName + ' (' + amb.driverContact + ')'}"></div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

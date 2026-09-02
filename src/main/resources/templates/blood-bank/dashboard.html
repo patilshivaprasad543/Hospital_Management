@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Blood Bank Dashboard')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: role-nav}"></nav>
+
+    <div class="container">
+        <div th:if="${param.added}" class="alert alert-success">
+            ✅ New donor blood unit successfully added to the Blood Bank inventory!
+        </div>
+        <div th:if="${param.issued}" class="alert alert-success">
+            ✅ Blood unit issued and allocated successfully!
+        </div>
+
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Blood Bank &amp; Component Inventory</h1>
+                <p>Track live blood stocks, register donor units, and issue component packs</p>
+            </div>
+        </div>
+
+        <!-- Real-Time Blood Stock Cards -->
+        <h3 class="section-title">🩸 Available Blood Group Stocks</h3>
+        <div class="grid" style="margin-bottom: 2rem;">
+            <div class="card stat-card">
+                <div class="card-title">A+ (A Positive)</div>
+                <div class="stat-number success" th:text="${(groupCounts != null &amp;&amp; groupCounts.containsKey(T(com.hospital.model.BloodGroup).A_POSITIVE) ? groupCounts.get(T(com.hospital.model.BloodGroup).A_POSITIVE) : 0) + ' Units'}">0 Units</div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">A- (A Negative)</div>
+                <div class="stat-number warning" th:text="${(groupCounts != null &amp;&amp; groupCounts.containsKey(T(com.hospital.model.BloodGroup).A_NEGATIVE) ? groupCounts.get(T(com.hospital.model.BloodGroup).A_NEGATIVE) : 0) + ' Units'}">0 Units</div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">B+ (B Positive)</div>
+                <div class="stat-number success" th:text="${(groupCounts != null &amp;&amp; groupCounts.containsKey(T(com.hospital.model.BloodGroup).B_POSITIVE) ? groupCounts.get(T(com.hospital.model.BloodGroup).B_POSITIVE) : 0) + ' Units'}">0 Units</div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">B- (B Negative)</div>
+                <div class="stat-number warning" th:text="${(groupCounts != null &amp;&amp; groupCounts.containsKey(T(com.hospital.model.BloodGroup).B_NEGATIVE) ? groupCounts.get(T(com.hospital.model.BloodGroup).B_NEGATIVE) : 0) + ' Units'}">0 Units</div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">O+ (O Positive)</div>
+                <div class="stat-number success" th:text="${(groupCounts != null &amp;&amp; groupCounts.containsKey(T(com.hospital.model.BloodGroup).O_POSITIVE) ? groupCounts.get(T(com.hospital.model.BloodGroup).O_POSITIVE) : 0) + ' Units'}">0 Units</div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">O- (Universal Donor)</div>
+                <div class="stat-number danger" th:text="${(groupCounts != null &amp;&amp; groupCounts.containsKey(T(com.hospital.model.BloodGroup).O_NEGATIVE) ? groupCounts.get(T(com.hospital.model.BloodGroup).O_NEGATIVE) : 0) + ' Units'}">0 Units</div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">AB+ (AB Positive)</div>
+                <div class="stat-number info" th:text="${(groupCounts != null &amp;&amp; groupCounts.containsKey(T(com.hospital.model.BloodGroup).AB_POSITIVE) ? groupCounts.get(T(com.hospital.model.BloodGroup).AB_POSITIVE) : 0) + ' Units'}">0 Units</div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">AB- (AB Negative)</div>
+                <div class="stat-number warning" th:text="${(groupCounts != null &amp;&amp; groupCounts.containsKey(T(com.hospital.model.BloodGroup).AB_NEGATIVE) ? groupCounts.get(T(com.hospital.model.BloodGroup).AB_NEGATIVE) : 0) + ' Units'}">0 Units</div>
+            </div>
+        </div>
+
+        <div class="grid" style="margin-bottom: 2rem;">
+            <!-- ➕ Add New Donor Blood Unit Form -->
+            <div class="card">
+                <h3>🩸 Register New Donor Blood Unit</h3>
+                <form th:action="@{/blood-bank/add}" method="post" class="mt-2">
+                    <div class="form-group">
+                        <label class="form-label">Unit Barcode / Code (e.g. BLD-A-9901)</label>
+                        <input type="text" name="unitCode" class="form-control" placeholder="BLD-A-9901" required>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">Blood Group</label>
+                            <select name="bloodGroup" class="form-select" required>
+                                <option value="A_POSITIVE">A+ (A Positive)</option>
+                                <option value="A_NEGATIVE">A- (A Negative)</option>
+                                <option value="B_POSITIVE">B+ (B Positive)</option>
+                                <option value="B_NEGATIVE">B- (B Negative)</option>
+                                <option value="O_POSITIVE">O+ (O Positive)</option>
+                                <option value="O_NEGATIVE">O- (Universal Donor)</option>
+                                <option value="AB_POSITIVE">AB+ (AB Positive)</option>
+                                <option value="AB_NEGATIVE">AB- (AB Negative)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Component Type</label>
+                            <select name="componentType" class="form-select" required>
+                                <option value="WHOLE_BLOOD">Whole Blood</option>
+                                <option value="PACKED_RED_CELLS">Packed Red Blood Cells (PRBC)</option>
+                                <option value="FRESH_FROZEN_PLASMA">Fresh Frozen Plasma (FFP)</option>
+                                <option value="PLATELETS">Platelet Concentrates</option>
+                                <option value="CRYOPRECIPITATE">Cryoprecipitate</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">Donor Full Name</label>
+                            <input type="text" name="donorName" class="form-control" placeholder="Donor Name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Donor Contact Mobile</label>
+                            <input type="text" name="donorContact" class="form-control" placeholder="9876543210" required>
+                        </div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">Volume (ml)</label>
+                            <input type="number" name="volumeMl" class="form-control" value="450" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Expiry Validity (Days)</label>
+                            <input type="number" name="expiryDays" class="form-control" value="42" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger btn-block mt-2">🩸 Add Blood Unit to Stock</button>
+                </form>
+            </div>
+
+            <!-- 📦 Current Inventory Stock Table -->
+            <div class="card">
+                <h3>📦 Live Blood Units Inventory</h3>
+                <div class="table-container mt-2">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Unit Code</th>
+                                <th>Group</th>
+                                <th>Component</th>
+                                <th>Volume</th>
+                                <th>Expiry Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${units == null || units.empty}">
+                                <td colspan="7" class="text-center text-muted">No blood units in inventory. Use the form to register a new donor unit.</td>
+                            </tr>
+                            <tr th:each="unit : ${units}">
+                                <td><strong th:text="${unit.unitCode}">BLD-101</strong></td>
+                                <td><span class="badge badge-danger" th:text="${unit.bloodGroup.label}">A+</span></td>
+                                <td th:text="${unit.componentType.label}">Whole Blood</td>
+                                <td th:text="${unit.volumeMl + ' ml'}">450 ml</td>
+                                <td th:text="${unit.expiryDate}">2026-10-01</td>
+                                <td>
+                                    <span class="badge" th:classappend="${unit.status.name() == 'AVAILABLE' ? 'badge-success' : 'badge-warning'}" th:text="${unit.status}">AVAILABLE</span>
+                                </td>
+                                <td>
+                                    <form th:if="${unit.status.name() == 'AVAILABLE'}" th:action="@{/blood-bank/issue}" method="post">
+                                        <input type="hidden" name="unitId" th:value="${unit.id}">
+                                        <button type="submit" class="btn btn-sm btn-primary">Issue Unit</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📋 Patient Prescription Blood Orders Section -->
+        <div class="card" style="margin-top:2rem;border-top:4px solid #dc2626;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:10px;">
+                <div>
+                    <h3 style="color:#b91c1c;margin:0;display:flex;align-items:center;gap:8px;">
+                        <span>🩸</span> Patient Prescription Blood Orders
+                    </h3>
+                    <p style="margin:4px 0 0 0;font-size:0.85rem;color:#64748b;">
+                        Verify doctor prescriptions, perform serological cross-matching, allocate donor units, and dispatch to hospital wards.
+                    </p>
+                </div>
+                <span class="badge" style="background:#fee2e2;color:#b91c1c;font-weight:700;font-size:0.85rem;padding:6px 12px;border-radius:12px;"
+                      th:text="${(bloodOrders != null ? #lists.size(bloodOrders) : 0) + ' Total Orders'}">0 Total Orders</span>
+            </div>
+
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Patient</th>
+                            <th>Prescription &amp; Doctor</th>
+                            <th>Blood / Component</th>
+                            <th>Ward / Destination</th>
+                            <th>Barcodes Allocated</th>
+                            <th>Status</th>
+                            <th>Staff Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${bloodOrders == null || bloodOrders.empty}">
+                            <td colspan="8" class="text-center text-muted" style="padding:2rem;">
+                                No patient prescription blood orders placed yet.
+                            </td>
+                        </tr>
+                        <tr th:each="bo : ${bloodOrders}">
+                            <td>
+                                <strong style="color:#b91c1c;" th:text="${bo.orderNumber}">BLD-ORD-101</strong>
+                                <div style="font-size:0.75rem;color:#64748b;" th:text="${#temporals.format(bo.createdAt, 'dd MMM, hh:mm a')}">Time</div>
+                            </td>
+                            <td>
+                                <strong th:text="${bo.patient.fullName}">Patient Name</strong>
+                                <div style="font-size:0.8rem;color:#64748b;" th:text="${bo.patientContact}">Phone</div>
+                            </td>
+                            <td>
+                                <div>👨‍⚕️ <strong th:text="${'Dr. ' + bo.doctor.fullName}">Dr. Smith</strong></div>
+                                <div style="font-size:0.8rem;color:#0284c7;">
+                                    <span th:text="${'Rx #' + bo.prescription.id}">Rx #1</span> —
+                                    <span th:text="${bo.prescription.diagnosis}">Diagnosis</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-danger" style="font-size:0.85rem;" th:text="${bo.units + ' Unit(s) ' + bo.bloodGroup.label}">1 Unit O+</span>
+                                <div style="font-size:0.75rem;color:#475569;margin-top:2px;" th:text="${bo.componentType.label}">PRBC</div>
+                            </td>
+                            <td>
+                                <strong th:text="${bo.deliveryLocation != null ? bo.deliveryLocation : bo.deliveryType}">Ward 3</strong>
+                                <div style="font-size:0.75rem;color:#dc2626;font-weight:600;" th:text="${bo.urgencyLevel}">URGENT</div>
+                            </td>
+                            <td>
+                                <span th:if="${bo.allocatedUnitCodes != null and !bo.allocatedUnitCodes.isBlank()}"
+                                      style="font-family:monospace;font-weight:700;color:#166534;" th:text="${bo.allocatedUnitCodes}">BLD-O-9901</span>
+                                <span th:if="${bo.allocatedUnitCodes == null or bo.allocatedUnitCodes.isBlank()}"
+                                      style="color:#94a3b8;font-style:italic;">Unassigned</span>
+                            </td>
+                            <td>
+                                <span class="badge" th:style="${bo.status.name() == 'READY_FOR_COLLECTION' or bo.status.name() == 'COMPLETED' ? 'background:#dcfce7;color:#166534;' : (bo.status.name() == 'REJECTED' ? 'background:#fee2e2;color:#991b1b;' : 'background:#e0f2fe;color:#075985;')}"
+                                      th:text="${bo.status.label}">Status</span>
+                            </td>
+                            <td>
+                                <div style="display:flex;gap:6px;flex-direction:column;min-width:140px;">
+                                    <!-- Step 1: Verify Prescription -->
+                                    <form th:if="${bo.status.name() == 'REQUESTED'}" th:action="@{/blood-bank/orders/{id}/verify(id=${bo.id})}" method="post">
+                                        <button type="submit" class="btn btn-sm btn-info" style="width:100%;">
+                                            ✓ Verify Rx
+                                        </button>
+                                    </form>
+
+                                    <!-- Step 2: Allocate available units -->
+                                    <form th:if="${bo.status.name() == 'VERIFIED' or (bo.status.name() == 'REQUESTED' and bo.allocatedUnitCodes == null)}"
+                                          th:action="@{/blood-bank/orders/{id}/allocate(id=${bo.id})}" method="post" style="display:flex;gap:4px;">
+                                        <select name="unitIds" class="form-select form-select-sm" style="font-size:0.75rem;padding:2px 4px;max-width:100px;">
+                                            <option value="">-- Match Unit --</option>
+                                            <option th:each="au : ${availableUnits}"
+                                                    th:if="${au.bloodGroup == bo.bloodGroup}"
+                                                    th:value="${au.id}"
+                                                    th:text="${au.unitCode + ' (' + au.bloodGroup.label + ')'}">
+                                                BLD-101
+                                            </option>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-warning" style="font-size:0.75rem;padding:3px 6px;">
+                                            Allocate
+                                        </button>
+                                    </form>
+
+                                    <!-- Step 3: Dispatch to ward -->
+                                    <form th:if="${bo.status.name() == 'READY_FOR_COLLECTION'}" th:action="@{/blood-bank/orders/{id}/dispatch(id=${bo.id})}" method="post">
+                                        <button type="submit" class="btn btn-sm btn-primary" style="width:100%;">
+                                            🚚 Dispatch to Ward
+                                        </button>
+                                    </form>
+
+                                    <!-- Step 4: Complete -->
+                                    <form th:if="${bo.status.name() == 'DISPATCHED'}" th:action="@{/blood-bank/orders/{id}/complete(id=${bo.id})}" method="post">
+                                        <button type="submit" class="btn btn-sm btn-success" style="width:100%;">
+                                            ✓ Handed Over
+                                        </button>
+                                    </form>
+
+                                    <!-- Rejection -->
+                                    <form th:if="${bo.status.name() != 'COMPLETED' and bo.status.name() != 'REJECTED'}"
+                                          th:action="@{/blood-bank/orders/{id}/reject(id=${bo.id})}" method="post"
+                                          onsubmit="return confirm('Reject this blood order?');">
+                                        <input type="hidden" name="reason" value="Out of compatible inventory stock or clinical mismatch" />
+                                        <button type="submit" class="btn btn-sm" style="background:none;border:none;color:#ef4444;font-size:0.7rem;text-decoration:underline;cursor:pointer;padding:0;">
+                                            Reject Order
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

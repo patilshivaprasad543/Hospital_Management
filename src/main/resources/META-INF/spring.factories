@@ -1,1 +1,0 @@
-org.springframework.boot.env.EnvironmentPostProcessor=com.hospital.config.DatabaseUrlProcessor,com.hospital.config.AdminCredentialBootstrap

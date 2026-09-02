@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCare 360</title>
+    <title>SmartCare 360 — System Notice</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body class="auth-body">
@@ -13,17 +13,16 @@
     </a>
 </nav>
 <div class="container login-splash-wrapper">
-    <div class="auth-card">
-        <h2 th:text="${status != null} ? (${status} + ' — please retry') : 'Something went wrong'">Something went wrong</h2>
-        <p class="auth-subtitle">
-            If you just opened a free Render URL, wait a minute and refresh — the service may still be starting.
-            Demo logins (patient / doctor / pharmacy / lab) are on the home page.
+    <div class="auth-card text-center" style="max-width:550px;">
+        <h2 th:text="${status != null} ? ('System Notice (' + status + ')') : 'Something went wrong'">Something went wrong</h2>
+        <p class="auth-subtitle my-3">
+            An unexpected request error occurred. Please try navigating back or return to the main portal home page.
         </p>
-        <p>
-            <a class="btn btn-primary" href="/">Home</a>
-            <a class="btn btn-outline" href="/login">Portal Sign In</a>
-            <a class="btn btn-outline" href="/health">Health check</a>
-        </p>
+        <div class="d-flex gap-2 justify-content-center mt-4">
+            <a class="btn btn-primary" href="/">Home Page</a>
+            <a class="btn btn-secondary" href="/login">Portal Sign In</a>
+            <a class="btn btn-outline-secondary" href="/health">System Health</a>
+        </div>
     </div>
 </div>
 </body>

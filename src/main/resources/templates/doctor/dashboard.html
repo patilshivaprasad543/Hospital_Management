@@ -4,231 +4,198 @@
 <body>
     <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
 
-<div class="container">
-        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    <div class="app-layout">
+        <!-- Grouped Navigation Sidebar -->
+        <aside th:replace="~{fragments/layout :: doctor-sidebar}"></aside>
 
-        <div class="page-header">
-            <div class="page-header-content">
-                <h1 th:text="'Dr. ' + ${doctor.fullName}">Doctor</h1>
-                <p th:text="${profile.specialization != null ? profile.specialization : 'General Physician'}">Specialization</p>
+        <!-- Main Content Area -->
+        <main class="main-stage">
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <!-- Doctor Hero Header -->
+            <div class="card" style="background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%);color:#fff;padding:1.75rem;border-radius:var(--radius-lg);margin-bottom:1.5rem;box-shadow:var(--shadow-md);">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+                    <div>
+                        <h2 style="color:#fff;margin:0;font-size:1.6rem;" th:text="'Good Morning, Dr. ' + ${doctor.fullName}">Good Morning, Doctor</h2>
+                        <p style="color:#94a3b8;margin-top:0.35rem;font-size:0.95rem;" th:text="${profile.specialization != null ? profile.specialization + ' | OPD Clinical Console' : 'Clinical Practice Console'}">Cardiology</p>
+                    </div>
+                    <div style="display:flex;gap:0.75rem;">
+                        <a href="/doctor/queue" class="btn btn-primary btn-sm">⏱️ Open Live Queue</a>
+                        <a href="/doctor/multihub-chat" class="btn btn-success btn-sm">💬 Patient Chat</a>
+                    </div>
+                </div>
             </div>
-            <div class="page-header-actions">
-                <a href="/doctor/profile" class="btn btn-outline">Availability</a>
-                <a href="/doctor/earnings" class="btn btn-outline">Earnings</a>
-            </div>
-        </div>
 
-        <div class="grid" style="margin-bottom:1.5rem;">
-            <a href="/doctor/appointments" class="card">📅 Appointments</a>
-            <a href="/doctor/patients" class="card">👥 Patients</a>
-            <a href="/doctor/prescriptions" class="card">💊 Prescriptions</a>
-            <a href="/doctor/lab-tests" class="card">🧪 Lab Tests</a>
-            <a href="/doctor/reports" class="card">📊 Reports</a>
-            <a href="/doctor/notifications" class="card">🔔 Notifications</a>
-        </div>
-
-        <div th:if="${!#lists.isEmpty(announcements)}" class="announcement-banner">
-            <div th:each="a : ${announcements}" class="announcement-item">
-                <strong th:text="${a.title}">Notice</strong>
-                <p th:text="${a.message}">Message</p>
-            </div>
-        </div>
-
-        <!-- Quick Stats -->
-        <div class="grid">
-            <div class="card stat-card">
-                <div>
+            <!-- Summary Metric Cards -->
+            <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1.25rem;margin-bottom:1.75rem;">
+                <div class="card stat-card">
                     <div class="card-title">Pending Requests</div>
                     <div class="stat-number warning" th:text="${#lists.size(pendingAppointments)}">0</div>
                 </div>
-            </div>
-            <div class="card stat-card">
-                <div>
+                <div class="card stat-card">
                     <div class="card-title">Confirmed Appointments</div>
                     <div class="stat-number success" th:text="${#lists.size(confirmedAppointments)}">0</div>
                 </div>
-            </div>
-            <div class="card stat-card">
-                <div>
+                <div class="card stat-card">
+                    <div class="card-title">Checked-In Queue</div>
+                    <div class="stat-number primary" th:text="${#lists.size(checkedInQueue)}">0</div>
+                </div>
+                <div class="card stat-card">
                     <div class="card-title">Consultation Fee</div>
                     <div class="stat-number" th:text="${'₹' + (profile.consultationFee != null ? profile.consultationFee : 0)}">₹500</div>
                 </div>
             </div>
-        </div>
 
-        <!-- Live Patient Queue Room -->
-        <h3 style="margin-bottom: 1rem;">🎟️ Live Patient Queue Room (Checked-In Patients)</h3>
-        <div class="table-container" style="margin-bottom: 2.5rem; border: 2px solid var(--primary-color);">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Queue Ticket</th>
-                        <th>Patient Name</th>
-                        <th>Department</th>
-                        <th>Checked-In At</th>
-                        <th>Queue Status</th>
-                        <th>Consultation Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="app : ${checkedInQueue}">
-                        <td><span class="badge badge-role" style="font-size: 0.95rem; font-weight: 800;" th:text="${app.queueTicket}">#A101</span></td>
-                        <td th:text="${app.patient.fullName}">John Doe</td>
-                        <td th:text="${app.departmentCategory}">General</td>
-                        <td th:text="${#temporals.format(app.checkedInAt, 'HH:mm')}">10:15</td>
-                        <td><span class="badge badge-confirmed" th:text="${app.state}">CHECKED_IN</span></td>
-                        <td>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <form th:action="@{/doctor/appointment/{id}/start-consultation(id=${app.id})}" method="post">
-                                    <button type="submit" class="btn btn-primary btn-sm">▶️ Call Patient / Start</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(checkedInQueue)}">
-                        <td colspan="6" style="text-align: center; color: var(--text-muted);">No checked-in patients in current queue.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+            <!-- Prominent Live Patient Queue Console -->
+            <div class="card" style="border-top:4px solid var(--primary);margin-bottom:2rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+                    <div>
+                        <h3 style="margin:0;">🎟️ Live OPD Queue Room</h3>
+                        <p style="margin:2px 0 0 0;color:var(--text-muted);font-size:0.85rem;">Active checked-in patient queue</p>
+                    </div>
+                    <div style="display:flex;gap:0.5rem;">
+                        <a href="/doctor/queue" class="btn btn-outline btn-sm">View Full Queue</a>
+                    </div>
+                </div>
 
-        <!-- Digital Prescription Builder & Diagnostic Lab Request -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.8rem; margin-bottom: 2.5rem;">
-            <!-- Prescription Form -->
-            <div class="card">
-                <div class="card-title">💊 Digital Prescription Creator</div>
-                <form th:action="@{/doctor/prescription/create}" method="post" style="margin-top: 1rem;">
-                    <div class="form-group">
-                        <label class="form-label">Select Patient Consultation</label>
-                        <select name="appointmentId" class="form-control" required>
-                            <option value="">-- Choose Patient --</option>
-                            <option th:each="app : ${prescribableAppointments}" th:value="${app.id}" th:text="${app.patient.fullName + ' (' + app.appointmentDate + ')'}">Patient</option>
-                        </select>
+                <div th:if="${!#lists.isEmpty(checkedInQueue)}" style="display:grid;grid-template-columns:1fr 2fr;gap:1.5rem;align-items:center;">
+                    <!-- CURRENT PATIENT CARD -->
+                    <div style="background:var(--primary-soft);border:2px solid var(--primary);padding:1.25rem;border-radius:var(--radius-md);">
+                        <small style="color:var(--primary);font-weight:800;letter-spacing:0.05em;text-transform:uppercase;">CURRENT PATIENT</small>
+                        <h2 style="margin:0.25rem 0;color:var(--text-heading);" th:text="${checkedInQueue[0].queueTicket}">#A-012</h2>
+                        <h4 style="margin:0;color:var(--primary);" th:text="${checkedInQueue[0].patient.fullName}">John Doe</h4>
+                        <p style="margin:4px 0 1rem 0;font-size:0.85rem;color:var(--text-muted);" th:text="${'Checked In: ' + #temporals.format(checkedInQueue[0].checkedInAt, 'HH:mm')}">Waiting Time: 12 min</p>
+                        
+                        <form th:action="@{/doctor/appointment/{id}/start-consultation(id=${checkedInQueue[0].id})}" method="post">
+                            <button type="submit" class="btn btn-primary btn-sm w-100">▶️ Start Consultation</button>
+                        </form>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Diagnosis Findings</label>
-                        <input type="text" name="diagnosis" class="form-control" placeholder="e.g. Acute Viral Fever & Mild Dehydration" required>
+
+                    <!-- NEXT QUEUE PATIENTS TABLE -->
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Token</th>
+                                    <th>Patient</th>
+                                    <th>Checked In</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="app, iter : ${checkedInQueue}" th:if="${iter.index > 0}">
+                                    <td><span class="badge badge-role" th:text="${app.queueTicket}">#A-013</span></td>
+                                    <td th:text="${app.patient.fullName}">Patient Name</td>
+                                    <td th:text="${#temporals.format(app.checkedInAt, 'HH:mm')}">10:15</td>
+                                    <td>
+                                        <form th:action="@{/doctor/appointment/{id}/start-consultation(id=${app.id})}" method="post">
+                                            <button type="submit" class="btn btn-outline btn-sm">Call Next</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    
-                    <div style="background: rgba(241, 245, 249, 0.8); padding: 0.8rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
-                        <label class="form-label">Prescribe Medicine #1</label>
-                        <input type="text" name="medicineName" class="form-control" placeholder="Medicine Name (e.g. Paracetamol)" style="margin-bottom: 0.4rem;" required>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.4rem;">
-                            <input type="text" name="dosage" class="form-control" placeholder="500mg" required>
-                            <input type="text" name="frequency" class="form-control" placeholder="1-0-1" required>
-                            <input type="text" name="duration" class="form-control" placeholder="5 Days" required>
+                </div>
+
+                <div th:if="${#lists.isEmpty(checkedInQueue)}" class="p-4 text-center" style="color:var(--text-muted);">
+                    No patients currently waiting in queue.
+                </div>
+            </div>
+
+            <!-- Digital Prescription Creator & Diagnostic Lab Request -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;">
+                <!-- Prescription Creator -->
+                <div class="card">
+                    <h3 style="margin-top:0;">💊 Issue Digital Prescription</h3>
+                    <form th:action="@{/doctor/prescription/create}" method="post" style="margin-top:1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Select Patient</label>
+                            <select name="appointmentId" class="form-control" required>
+                                <option value="">-- Select Patient --</option>
+                                <option th:each="app : ${prescribableAppointments}" th:value="${app.id}" th:text="${app.patient.fullName + ' (' + app.appointmentDate + ')'}">Patient</option>
+                            </select>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Diet & Special Instructions</label>
-                        <textarea name="instructions" class="form-control" placeholder="Drink plenty of fluids, rest for 3 days..."></textarea>
-                    </div>
-
-                    <button type="submit" class="btn btn-success" style="width: 100%;">💊 Issue Digital Prescription</button>
-                </form>
-            </div>
-
-            <!-- Lab Request Form -->
-            <div class="card">
-                <div class="card-title">🔬 Order Diagnostic Lab Test</div>
-                <form th:action="@{/doctor/lab-request/create}" method="post" style="margin-top: 1rem;">
-                    <div class="form-group">
-                        <label class="form-label">Select Patient</label>
-                        <select name="patientId" class="form-control" required>
-                            <option value="">-- Choose Patient --</option>
-                            <option th:each="app : ${confirmedAppointments}" th:value="${app.patient.id}" th:text="${app.patient.fullName}">Patient</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Diagnostic Test Name</label>
-                        <input type="text" name="testName" class="form-control" placeholder="e.g. Complete Blood Count (CBC) / Lipid Profile" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Clinical Notes for Laboratory</label>
-                        <textarea name="notes" class="form-control" placeholder="Fasting blood sample required 8 hours prior..."></textarea>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">🧪 Request Lab Test</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Pending Requests Section -->
-        <h3 style="margin-bottom: 1rem;">Pending Appointment Requests</h3>
-        <div class="table-container" style="margin-bottom: 2.5rem;">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Patient Name</th>
-                        <th>Contact Email</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Reason</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="app : ${pendingAppointments}">
-                        <td th:text="${app.patient.fullName}">John Doe</td>
-                        <td th:text="${app.patient.email}">patient@example.com</td>
-                        <td th:text="${app.appointmentDate}">2026-08-20</td>
-                        <td th:text="${app.appointmentTime}">10:00 AM</td>
-                        <td th:text="${app.reason != null ? app.reason : 'Consultation'}">Reason</td>
-                        <td>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <form th:action="@{/doctor/appointment/{id}/accept(id=${app.id})}" method="post">
-                                    <button type="submit" class="btn btn-success btn-sm">Accept & Send Email</button>
-                                </form>
-                                <form th:action="@{/doctor/appointment/{id}/reject(id=${app.id})}" method="post">
-                                    <button type="submit" class="btn btn-danger btn-sm">Reject</button>
-                                </form>
+                        <div class="form-group">
+                            <label class="form-label">Diagnosis</label>
+                            <input type="text" name="diagnosis" class="form-control" placeholder="e.g. Acute Viral Fever" required>
+                        </div>
+                        <div style="background:var(--bg-page);padding:0.75rem;border-radius:var(--radius-sm);margin-bottom:1rem;">
+                            <label class="form-label">Prescribe Medicine</label>
+                            <input type="text" name="medicineName" class="form-control mb-1" placeholder="Medicine Name (e.g. Paracetamol 500mg)" required>
+                            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.35rem;">
+                                <input type="text" name="dosage" class="form-control" placeholder="500mg" required>
+                                <input type="text" name="frequency" class="form-control" placeholder="1-0-1" required>
+                                <input type="text" name="duration" class="form-control" placeholder="5 Days" required>
                             </div>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(pendingAppointments)}">
-                        <td colspan="6" style="text-align: center; color: var(--text-muted);">No pending appointment requests.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Instructions</label>
+                            <textarea name="instructions" class="form-control" rows="2" placeholder="Drink plenty of fluids..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Issue Digital Prescription</button>
+                    </form>
+                </div>
 
-        <!-- Confirmed Appointments Section -->
-        <h3 style="margin-bottom: 1rem;">Confirmed Appointments</h3>
-        <div class="table-container">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Patient Name</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Status</th>
-                        <th>Notes / Remarks</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="app : ${confirmedAppointments}">
-                        <td th:text="${app.patient.fullName}">John Doe</td>
-                        <td th:text="${app.appointmentDate}">2026-08-20</td>
-                        <td th:text="${app.appointmentTime}">10:00 AM</td>
-                        <td><span class="badge badge-confirmed">Confirmed</span></td>
-                        <td th:text="${app.notes != null ? app.notes : 'None'}">Notes</td>
-                        <td>
-                            <a th:href="@{/doctor/consultation/{id}(id=${app.id})}" class="btn btn-primary btn-sm">Open Consultation</a>
-                            <form th:action="@{/doctor/appointment/{id}/complete(id=${app.id})}" method="post" style="display:inline;">
-                                <button type="submit" class="btn btn-secondary btn-sm">Mark Completed</button>
-                            </form>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(confirmedAppointments)}">
-                        <td colspan="6" style="text-align: center; color: var(--text-muted);">No confirmed appointments.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                <!-- Order Diagnostic Test -->
+                <div class="card">
+                    <h3 style="margin-top:0;">🔬 Order Diagnostic Lab Test</h3>
+                    <form th:action="@{/doctor/lab-request/create}" method="post" style="margin-top:1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Select Patient</label>
+                            <select name="patientId" class="form-control" required>
+                                <option value="">-- Select Patient --</option>
+                                <option th:each="app : ${confirmedAppointments}" th:value="${app.patient.id}" th:text="${app.patient.fullName}">Patient</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Test Name</label>
+                            <input type="text" name="testName" class="form-control" placeholder="e.g. Complete Blood Count (CBC)" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Clinical Notes</label>
+                            <textarea name="notes" class="form-control" rows="4" placeholder="Fasting blood sample required..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">🧪 Request Lab Test</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Confirmed Appointments Table -->
+            <div class="card">
+                <h3 style="margin-top:0;margin-bottom:1rem;">📅 Confirmed Appointments</h3>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Patient Name</th>
+                                <th>Date &amp; Time</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="app : ${confirmedAppointments}">
+                                <td th:text="${app.patient.fullName}">John Doe</td>
+                                <td th:text="${app.appointmentDate + ' ' + app.appointmentTime}">2026-08-20</td>
+                                <td th:text="${app.reason != null ? app.reason : 'Consultation'}">Reason</td>
+                                <td><span class="badge badge-confirmed">Confirmed</span></td>
+                                <td>
+                                    <a th:href="@{/doctor/consultation/{id}(id=${app.id})}" class="btn btn-primary btn-sm">Consultation Console</a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(confirmedAppointments)}" class="table-empty">
+                                <td colspan="5">No confirmed appointments today.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
     </div>
+
     <footer th:replace="~{fragments/layout :: footer}"></footer>
     <script th:src="@{/js/main.js}"></script>
 </body>

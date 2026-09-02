@@ -16,6 +16,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     List<Appointment> findByPatientOrderByCreatedAtDesc(User patient);
 
+    List<Appointment> findByPatientAndAppointmentDate(User patient, LocalDate appointmentDate);
+
     List<Appointment> findByDoctorOrderByCreatedAtDesc(User doctor);
 
     List<Appointment> findByDoctorAndStatusOrderByCreatedAtDesc(User doctor, AppointmentStatus status);

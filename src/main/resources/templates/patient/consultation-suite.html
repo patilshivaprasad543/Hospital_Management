@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Patient Telehealth & AI Consultation Suite')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="container">
+        <div th:if="${param.bedRequested}" class="alert alert-success">
+            ✅ Your IPD Bed Reservation request has been received and routed to the hospital admission desk!
+        </div>
+
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Patient Telehealth &amp; AI Health Suite</h1>
+                <p>Live Video &amp; Chat, Medical Vitals, Digital Prescriptions, Bed &amp; Ambulance Booking, and AI Health Assistant</p>
+            </div>
+            <div class="page-header-actions">
+                <select id="langSelector" class="form-select" onchange="switchLanguage(this.value)">
+                    <option value="en">🌐 Language: English</option>
+                    <option value="te">🌐 Language: తెలుగు (Telugu)</option>
+                    <option value="hi">🌐 Language: हिंदी (Hindi)</option>
+                    <option value="ta">🌐 Language: தமிழ் (Tamil)</option>
+                    <option value="kn">🌐 Language: ಕನ್ನಡ (Kannada)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid" style="margin-bottom:1.5rem;">
+            <!-- 👤 Patient Information & Vitals -->
+            <div class="card">
+                <h3>👤 Patient Information &amp; Medical Vitals</h3>
+                <div class="mt-2">
+                    <p><strong>Name:</strong> <span th:text="${patient.fullName}">Patient Name</span></p>
+                    <p><strong>UHID / ID:</strong> <span th:text="${'PAT-' + patient.id}">PAT-101</span></p>
+                    <p><strong>Blood Group:</strong> <span class="badge badge-danger" th:text="${profile.bloodGroup != null ? profile.bloodGroup : 'O+'}">O+</span></p>
+                    <p><strong>Age / Gender:</strong> <span th:text="${(profile.age != null ? profile.age : '32') + ' Years / ' + (profile.gender != null ? profile.gender : 'Male')}">32 / Male</span></p>
+                    <p><strong>Emergency Contact:</strong> <span th:text="${profile.emergencyContactPhone != null ? profile.emergencyContactPhone : patient.mobileNumber}">9876543210</span></p>
+                    <p><strong>Medical History / Allergies:</strong> <span th:text="${profile.medicalHistory != null ? profile.medicalHistory : 'No known drug allergies.'}">No known drug allergies.</span></p>
+                </div>
+            </div>
+
+            <!-- 🤖 AI Health Assistant & Multi-Language Helper -->
+            <div class="card">
+                <h3>🤖 SmartCare AI Health Assistant</h3>
+                <p class="text-muted" style="font-size:0.85rem;" id="aiGreeting">
+                    Ask AI about symptom guidance, medicine instructions, or report explanations.
+                </p>
+                <div class="form-group my-2">
+                    <input type="text" id="aiQuery" class="form-control" placeholder="Ask AI: e.g. How to take Paracetamol? Or explain CBC report...">
+                </div>
+                <button type="button" class="btn btn-primary btn-sm btn-block" onclick="askAIAssistant()">💬 Ask AI Assistant</button>
+                <div id="aiResponse" class="alert alert-info mt-2" style="display:none;font-size:0.88rem;"></div>
+            </div>
+        </div>
+
+        <!-- Consultation & Video / Chat Hub -->
+        <div class="grid" style="margin-bottom:1.5rem;">
+            <!-- 📹 Video Consultation & 💬 Live Chat Launcher -->
+            <div class="card">
+                <h3>📹 Live Video Consultation &amp; 💬 Chat Console</h3>
+                <p class="text-muted">Join active video appointments or chat with your doctor.</p>
+                <div class="table-container mt-2">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Doctor</th>
+                                <th>Date &amp; Time</th>
+                                <th>Type</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${appointments == null || appointments.empty}">
+                                <td colspan="4" class="text-center text-muted">No appointments scheduled.</td>
+                            </tr>
+                            <tr th:each="app : ${appointments}">
+                                <td th:text="${'Dr. ' + app.doctor.fullName}">Dr. Sarah Jenkins</td>
+                                <td th:text="${app.appointmentDate + ' ' + app.appointmentTime}">2026-08-26 10:00</td>
+                                <td><span class="badge badge-info" th:text="${app.consultationType}">VIDEO</span></td>
+                                <td>
+                                    <a th:href="@{/patient/appointments}" class="btn btn-sm btn-success">📹 Join Video / Chat</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 📅 Follow-up Appointments Scheduler -->
+            <div class="card">
+                <h3>📅 Follow-up Appointments</h3>
+                <p class="text-muted">Schedule your regular follow-up with your doctor.</p>
+                <form th:action="@{/patient/book-appointment}" method="get" class="mt-2">
+                    <div class="form-group">
+                        <label class="form-label">Select Doctor for Follow-up</label>
+                        <select name="doctorId" class="form-select">
+                            <option th:each="doc : ${doctors}" th:value="${doc.id}" th:text="${'Dr. ' + doc.fullName + ' (' + doc.email + ')'}">Doctor</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-block">Schedule Follow-up</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 💊 Prescription How-To-Use Guide & Previous Consultations -->
+        <div class="card mb-4">
+            <h3>📜 Previous Consultations &amp; 💊 Prescription How-To-Use Guide</h3>
+            <div class="table-container mt-2">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Rx ID</th>
+                            <th>Doctor</th>
+                            <th>Diagnosis</th>
+                            <th>Medicine &amp; Dosage</th>
+                            <th>Frequency / Meal Instructions</th>
+                            <th>How To Use (Guide)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${prescriptions == null || prescriptions.empty}">
+                            <td colspan="6" class="text-center text-muted">No prescriptions issued yet.</td>
+                        </tr>
+                        <tr th:each="rx : ${prescriptions}">
+                            <td th:text="${'#' + rx.id}">#101</td>
+                            <td th:text="${'Dr. ' + rx.doctor.fullName}">Dr. Sarah Jenkins</td>
+                            <td th:text="${rx.diagnosis}">Acute Fever</td>
+                            <td>
+                                <ul style="margin:0;padding-left:15px;font-size:0.85rem;">
+                                    <li th:each="item : ${rx.items}" th:text="${item.medicineName + ' (' + item.dosage + ')'}">Paracetamol 650mg</li>
+                                </ul>
+                            </td>
+                            <td>
+                                <ul style="margin:0;padding-left:15px;font-size:0.85rem;">
+                                    <li th:each="item : ${rx.items}" th:text="${item.frequency + ' — ' + (item.duration != null ? item.duration : '5 days')}">1-0-1 (After Food)</li>
+                                </ul>
+                            </td>
+                            <td>
+                                <span class="badge badge-success">Take after meals with water</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quick Booking Tools: Ambulance, Bed, Blood Test -->
+        <div class="grid" style="margin-bottom:2rem;">
+            <!-- 🚨 Ambulance Booking Quick Launcher -->
+            <div class="card">
+                <h3>🚨 Quick Ambulance Booking</h3>
+                <p class="text-muted">Dispatch an emergency ambulance to your current location.</p>
+                <a href="/patient/ambulance" class="btn btn-danger btn-block mt-2">🚨 Book Emergency Ambulance</a>
+            </div>
+
+            <!-- 🛏️ Bed Booking / IPD Admission Request -->
+            <div class="card">
+                <h3>🛏️ IPD Bed Reservation Request</h3>
+                <form th:action="@{/patient/consultation-suite/bed-request}" method="post">
+                    <div class="form-group">
+                        <label class="form-label">Select Ward Type</label>
+                        <select name="wardType" class="form-select">
+                            <option value="General Ward">General Ward</option>
+                            <option value="Semi-Private Deluxe">Semi-Private Deluxe</option>
+                            <option value="Private Suite">Private Suite</option>
+                            <option value="ICU Bed">ICU Bed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Admission Reason</label>
+                        <input type="text" name="reason" class="form-control" placeholder="e.g. Scheduled Surgery / Inpatient Monitoring" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">🛏️ Request Bed Booking</button>
+                </form>
+            </div>
+
+            <!-- 🧪 Blood Test / Diagnostic Lab Request -->
+            <div class="card">
+                <h3>🧪 Order Blood Test / Diagnostic Lab</h3>
+                <p class="text-muted">Book a routine blood test or pathology diagnostic scan.</p>
+                <a href="/patient/lab-reports" class="btn btn-info btn-block mt-2">🧪 Order Blood Test</a>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <script>
+        function askAIAssistant() {
+            const query = document.getElementById('aiQuery').value.trim();
+            const aiBox = document.getElementById('aiResponse');
+            if (!query) {
+                alert('Please enter a medical or prescription query.');
+                return;
+            }
+            aiBox.style.display = 'block';
+            aiBox.innerHTML = '<strong>🤖 SmartCare AI Thinking...</strong><br>Analyzing query: "' + query + '"';
+            setTimeout(() => {
+                let answer = "For your query: <strong>" + query + "</strong>, please follow the prescribed dosage instructions on your prescription badge. Always consume medicines with warm water after meals.";
+                if (query.toLowerCase().includes("paracetamol") || query.toLowerCase().includes("fever")) {
+                    answer = "<strong>Paracetamol 650mg Usage Guide:</strong><br>Take 1 tablet after food every 8 hours (maximum 3 times a day). Stay hydrated.";
+                } else if (query.toLowerCase().includes("blood test") || query.toLowerCase().includes("cbc")) {
+                    answer = "<strong>Blood Test Preparation Guide:</strong><br>Complete Blood Count (CBC) requires 8 hours of fasting prior to sample collection.";
+                }
+                aiBox.innerHTML = '<strong>🤖 SmartCare AI Guidance:</strong><br>' + answer;
+            }, 800);
+        }
+
+        function switchLanguage(lang) {
+            const greeting = document.getElementById('aiGreeting');
+            if (lang === 'te') {
+                greeting.innerText = 'రక్త పరీక్షలు, ఔషధాల మార్గదర్శకాలు మరియు AI సహాయం కోసం అడగండి.';
+            } else if (lang === 'hi') {
+                greeting.innerText = 'दवाओं के उपयोग, रक्त परीक्षण और स्वास्थ्य मार्गदर्शन के लिए एआई से पूछें।';
+            } else if (lang === 'ta') {
+                greeting.innerText = 'மருந்துகள், இரத்த பரிசோதனைகள் மற்றும் சுகாதார வழிகாட்டுதலுக்கு AI ஐக் கேளுங்கள்.';
+            } else if (lang === 'kn') {
+                greeting.innerText = 'ಔಷಧಿಗಳ ಬಳಕೆ, ರಕ್ತ ಪರೀಕ್ಷೆಗಳು ಮತ್ತು ಆರೋಗ್ಯ ಮಾರ್ಗದರ್ಶನಕ್ಕಾಗಿ AI ಅನ್ನು ಕೇಳಿ.';
+            } else {
+                greeting.innerText = 'Ask AI about symptom guidance, medicine instructions, or report explanations.';
+            }
+        }
+    </script>
+</body>
+</html>

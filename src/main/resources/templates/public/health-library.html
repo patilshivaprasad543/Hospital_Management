@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mayo Clinic Style Health Library')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="app-layout">
+        <aside th:replace="~{fragments/layout :: patient-sidebar}"></aside>
+
+        <main class="main-stage">
+            <div class="page-header" style="margin-bottom:1.5rem;">
+                <h1 style="margin:0;font-size:1.75rem;color:var(--text-main);">📚 Mayo-Style Medical Knowledge &amp; Health Library</h1>
+                <p style="margin:0.25rem 0 0;color:var(--text-muted);">Explore evidence-based guides on medical conditions, symptoms, treatments, and wellness prevention.</p>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="card" style="padding:1.25rem;margin-bottom:1.75rem;background:#f8fafc;">
+                <form th:action="@{/health-library}" method="get" style="display:flex;gap:0.75rem;align-items:center;">
+                    <input type="text" name="query" class="form-control" placeholder="Search diseases, symptoms, treatments (e.g. Hypertension, Diabetes, Flu)..." th:value="${query}" style="flex:1;">
+                    <button type="submit" class="btn btn-primary" style="font-weight:600;">🔍 Search Library</button>
+                </form>
+            </div>
+
+            <!-- Articles Grid -->
+            <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:1.5rem;">
+                <div th:each="art : ${articles}" class="card" style="padding:1.5rem;display:flex;flex-direction:column;justify-space-between;">
+                    <div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                            <span style="font-size:1.5rem;" th:text="${art.iconEmoji}">❤️</span>
+                            <span class="badge badge-confirmed" th:text="${art.category}">Conditions</span>
+                        </div>
+                        <h3 style="margin:0 0 0.5rem;font-size:1.15rem;">
+                            <a th:href="@{/health-library/{id}(id=${art.id})}" style="color:var(--text-main);text-decoration:none;" th:text="${art.title}">Title</a>
+                        </h3>
+                        <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.5;margin-bottom:1rem;" th:text="${art.summary}">Summary text</p>
+                    </div>
+                    <div>
+                        <a th:href="@{/health-library/{id}(id=${art.id})}" class="btn btn-outline btn-sm" style="width:100%;text-align:center;">Read Full Guide &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

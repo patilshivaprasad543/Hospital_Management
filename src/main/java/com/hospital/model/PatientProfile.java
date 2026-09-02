@@ -35,6 +35,9 @@ public class PatientProfile {
 
     private String photoFileName;
 
+    @Column(length = 10)
+    private String preferredLanguage = "en";
+
     public PatientProfile() {
     }
 
@@ -118,6 +121,10 @@ public class PatientProfile {
         return allergies;
     }
 
+    public String getKnownAllergies() {
+        return allergies;
+    }
+
     public void setAllergies(String allergies) {
         this.allergies = allergies;
     }
@@ -136,5 +143,13 @@ public class PatientProfile {
 
     public void setPhotoFileName(String photoFileName) {
         this.photoFileName = photoFileName;
+    }
+
+    public String getPreferredLanguage() {
+        return preferredLanguage != null ? preferredLanguage : "en";
+    }
+
+    public void setPreferredLanguage(String preferredLanguage) {
+        this.preferredLanguage = preferredLanguage;
     }
 }

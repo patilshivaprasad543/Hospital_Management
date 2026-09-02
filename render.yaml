@@ -1,61 +1,28 @@
-# Render Blueprint — SmartCare 360 (Spring Boot / Java)
-# IMPORTANT: Use runtime docker (NOT Node). If you see "Couldn't find package.json",
-# delete the service and redeploy with Language = Docker, or use this Blueprint.
-#
-# Always-on: Render "free" sleeps after idle (~15 min) and shows "waking up".
-# Change plan to "starter" (paid) in the Render dashboard for 24/7 uptime.
-# Keep healthCheckPath at /health so Render and uptime pings stay cheap.
-
 services:
   - type: web
-    name: hospital-management-glt1-ge8d
-    runtime: docker
-    plan: free
+    name: hospital-management-system
+    env: java
     region: singapore
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    plan: free
+    buildCommand: "./gradlew clean build -x test"
+    startCommand: "java -jar build/libs/Hospital__Management-0.0.1-SNAPSHOT.jar"
     healthCheckPath: /health
     envVars:
-      - key: SPRING_PROFILES_ACTIVE
-        value: prod
       - key: PORT
-        value: "8080"
-      - key: SMARTCARE_APP_URL
-        value: https://hospital-management-glt1-ge8d.onrender.com
-      - key: SMARTCARE_ADMIN_EMAIL
-        value: admin@smartcare360.local
-      - key: SMARTCARE_ADMIN_PASSWORD
-        generateValue: true
-      - key: SMARTCARE_ADMIN_NAME
-        value: System Administrator
-      - key: SMARTCARE_ADMIN_MOBILE
-        value: "9999999999"
-      - key: SMARTCARE_MAIL_USERNAME
+        value: 8085
+      - key: DB_URL
         sync: false
-      - key: SMARTCARE_MAIL_PASSWORD
+      - key: DB_USERNAME
         sync: false
-      - key: SMARTCARE_MAIL_PROVIDER
-        value: auto
-      - key: SMARTCARE_BREVO_API_KEY
+      - key: DB_PASSWORD
         sync: false
-      - key: SMARTCARE_BREVO_SENDER_EMAIL
-        sync: false
-      - key: SMARTCARE_BREVO_SENDER_NAME
-        value: SmartCare 360
-      - key: SMARTCARE_WHATSAPP_ENABLED
-        value: "false"
-      # Set these on the web service in the dashboard (never commit secrets).
-      # Use the Postgres External Database URL if Internal host fails DNS
-      # (UnknownHostException on dpg-…-a). JDBC URL must use sslmode=require.
-      - key: DATABASE_URL
-        sync: false
-      - key: SMARTCARE_DB_URL
-        sync: false
-      - key: SMARTCARE_DB_DRIVER
-        value: org.postgresql.Driver
-      - key: SMARTCARE_DB_DIALECT
-        value: org.hibernate.dialect.PostgreSQLDialect
-      - key: SMARTCARE_DB_USERNAME
-        sync: false
-      - key: SMARTCARE_DB_PASSWORD
-        sync: false
+      - key: ADMIN_NAME
+        value: System Admin
+      - key: ADMIN_EMAIL
+        value: admin@hospital.com
+      - key: ADMIN_PASSWORD
+        value: Admin@123
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 587

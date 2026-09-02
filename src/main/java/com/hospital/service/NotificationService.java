@@ -21,9 +21,6 @@ public class NotificationService {
     private EmailService emailService;
 
     @Autowired
-    private WhatsAppService whatsAppService;
-
-    @Autowired
     private NotificationChannelService notificationChannelService;
 
     @Value("${smartcare.notifications.email-enabled:true}")
@@ -68,10 +65,6 @@ public class NotificationService {
 
         if (emailEnabled && recipient.getEmail() != null && !recipient.getEmail().isBlank()) {
             emailService.sendNotificationEmail(recipient.getEmail(), recipient.getFullName(), title, fullMessage);
-        }
-        if (notificationChannelService.isWhatsAppEnabled()
-                && recipient.getMobileNumber() != null && !recipient.getMobileNumber().isBlank()) {
-            whatsAppService.sendMessage(recipient.getMobileNumber(), title, fullMessage);
         }
     }
 

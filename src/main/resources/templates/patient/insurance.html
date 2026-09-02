@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Patient Insurance Portal')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: role-nav}"></nav>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Patient Insurance &amp; Claims Portal</h1>
+                <p>Register insurance policies, check coverage eligibility &amp; track claim settlements</p>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>Active Insurance Policy</h3>
+                <div th:if="${insurance == null}" class="alert alert-warning mt-2">
+                    No insurance policy registered yet. Fill the registration form to link your insurance policy.
+                </div>
+                <div th:if="${insurance != null}">
+                    <p><strong>Provider:</strong> <span th:text="${insurance.provider}">Star Health Insurance</span></p>
+                    <p><strong>Policy Number:</strong> <span th:text="${insurance.policyNumber}">POL-987654321</span></p>
+                    <p><strong>Policy Type:</strong> <span th:text="${insurance.policyType}">Comprehensive Family Floater</span></p>
+                    <p><strong>Coverage Amount:</strong> ₹<span th:text="${#numbers.formatDecimal(insurance.coverageAmount, 1, 'COMMA', 2, 'POINT')}">5,00,000.00</span></p>
+                    <p><strong>Validity:</strong> <span th:text="${insurance.startDate + ' to ' + insurance.expiryDate}">2026-01-01 to 2027-01-01</span></p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Register / Update Policy</h3>
+                <form th:action="@{/patient/insurance/apply}" method="post" class="mt-2">
+                    <div class="form-group">
+                        <label class="form-label">Insurance Provider Name *</label>
+                        <input type="text" name="provider" class="form-control" placeholder="e.g. Star Health, HDFC ERGO, ICICI Lombard" required th:value="${insurance != null ? insurance.provider : ''}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Policy Number *</label>
+                        <input type="text" name="policyNumber" class="form-control" placeholder="e.g. POL-123456789" required th:value="${insurance != null ? insurance.policyNumber : ''}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Policy Type</label>
+                        <input type="text" name="policyType" class="form-control" placeholder="e.g. Individual Health Plan" th:value="${insurance != null ? insurance.policyType : ''}">
+                    </div>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" name="startDate" class="form-control" required th:value="${insurance != null ? insurance.startDate : '2026-01-01'}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="date" name="expiryDate" class="form-control" required th:value="${insurance != null ? insurance.expiryDate : '2027-01-01'}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Coverage Sum Insured (₹)</label>
+                        <input type="number" step="0.01" name="coverageAmount" class="form-control" placeholder="500000" required th:value="${insurance != null ? insurance.coverageAmount : 500000.0}">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Save Insurance Policy</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <h3>Insurance Claims History</h3>
+            <div class="table-container mt-2">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Claim ID</th>
+                            <th>Claim Date</th>
+                            <th>Claim Amount</th>
+                            <th>Status</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${claims == null || claims.empty}">
+                            <td colspan="5" class="text-center text-muted">No insurance claims submitted yet.</td>
+                        </tr>
+                        <tr th:each="claim : ${claims}">
+                            <td th:text="${'#' + claim.id}">#1</td>
+                            <td th:text="${#temporals.format(claim.claimDate, 'yyyy-MM-dd HH:mm')}">2026-08-26</td>
+                            <td th:text="${'₹' + claim.claimAmount}">₹5000.00</td>
+                            <td><span class="badge badge-info" th:text="${claim.status}">SUBMITTED</span></td>
+                            <td th:text="${claim.remarks}">Under review by insurer.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

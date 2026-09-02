@@ -46,7 +46,20 @@
                     <strong>Instructions:</strong> <span th:text="${rx.instructions}">Take after food</span>
                 </p>
 
-                <a th:href="@{/patient/prescription/{id}/pdf(id=${rx.id})}" class="btn btn-secondary btn-sm" style="margin-bottom:0.75rem;">Download PDF</a>
+                <div th:if="${rx.hasBloodPrescription()}" style="margin: 1rem 0; background: #fef2f2; border: 1px solid #fecaca; padding: 0.8rem; border-radius: var(--radius-sm);">
+                    <strong style="color:#b91c1c;">🩸 Prescribed Blood Transfusion:</strong>
+                    <div style="font-size:0.88rem;color:#7f1d1d;margin-top:0.3rem;">
+                        <span th:text="${(rx.bloodUnits != null ? rx.bloodUnits : 1) + ' Unit(s) of ' + (rx.bloodGroup != null ? rx.bloodGroup.label : 'Required Blood') + ' (' + (rx.bloodComponentType != null ? rx.bloodComponentType.label : 'PRBC') + ')'}">2 Units of O+</span>
+                        <span th:if="${rx.bloodTransfusionReason != null and !rx.bloodTransfusionReason.isBlank()}" th:text="${' — ' + rx.bloodTransfusionReason}"></span>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:0.75rem;">
+                    <a th:href="@{/patient/prescription/{id}/pdf(id=${rx.id})}" class="btn btn-secondary btn-sm">Download PDF</a>
+                    <a th:href="@{/patient/blood-bank/buy(prescriptionId=${rx.id})}" class="btn btn-sm" style="background:#dc2626;color:#fff;font-weight:600;display:inline-flex;align-items:center;gap:4px;">
+                        🩸 Buy Blood (Rx Verified)
+                    </a>
+                </div>
 
                 <th:block th:with="existingOrder=${latestOrderByPrescription[rx.id]}">
                     <div th:if="${existingOrder != null and !existingOrder.status.terminal}" class="alert alert-success" style="font-size:0.9rem;">

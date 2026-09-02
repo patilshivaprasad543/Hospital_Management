@@ -20,4 +20,6 @@ public interface PharmacyItemRepository extends JpaRepository<PharmacyItem, Long
     long countByStockQuantityLessThanEqualAndStockQuantityGreaterThan(int max, int min);
 
     long countByStockQuantity(int quantity);
+
+    List<PharmacyItem> findByVendorAndItemNameIgnoreCaseAndStockQuantityGreaterThanOrderByExpiryDateAsc(User vendor, String itemName, int minStock);
 }

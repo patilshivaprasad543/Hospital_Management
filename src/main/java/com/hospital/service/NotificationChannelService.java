@@ -10,30 +10,16 @@ public class NotificationChannelService {
     @Autowired
     private EmailService emailService;
 
-    @Autowired
-    private WhatsAppService whatsAppService;
-
     @Value("${smartcare.notifications.email-enabled:true}")
     private boolean emailEnabled;
 
-    @Value("${smartcare.notifications.whatsapp-enabled:false}")
-    private boolean whatsAppEnabled;
-
     @Value("${smartcare.app.base-url:http://localhost:8080}")
     private String appBaseUrl;
-
-    public boolean isWhatsAppEnabled() {
-        return whatsAppEnabled && whatsAppService.isTwilioConfigured();
-    }
 
     public boolean sendOtp(String email, String mobile, String otpCode) {
         boolean delivered = false;
         if (emailEnabled) {
             delivered = emailService.sendOtpEmail(email, otpCode);
-        }
-        if (isWhatsAppEnabled()) {
-            whatsAppService.sendOtp(mobile, otpCode);
-            delivered = true;
         }
         return delivered;
     }
@@ -42,11 +28,6 @@ public class NotificationChannelService {
         boolean delivered = false;
         if (emailEnabled) {
             delivered = emailService.sendPasswordResetEmail(email, otpCode);
-        }
-        if (isWhatsAppEnabled()) {
-            whatsAppService.sendMessage(mobile, "SmartCare 360 Password Reset",
-                    "Your password reset OTP is: " + otpCode + "\nDo not share this code with anyone.");
-            delivered = true;
         }
         return delivered;
     }
@@ -57,20 +38,11 @@ public class NotificationChannelService {
         if (emailEnabled) {
             emailService.sendWelcomeEmail(email, fullName, message);
         }
-        if (isWhatsAppEnabled()) {
-            whatsAppService.sendMessage(mobile, "Account Created", message);
-        }
     }
 
     public void sendApprovalNotice(String email, String mobile, String fullName, boolean approved) {
         if (emailEnabled) {
             emailService.sendApprovalEmail(email, fullName, approved);
-        }
-        if (isWhatsAppEnabled()) {
-            String message = approved
-                    ? "Your SmartCare 360 account has been approved. You can now log in."
-                    : "Your SmartCare 360 account application was not approved. Contact the administrator.";
-            whatsAppService.sendMessage(mobile, "Account Update", message);
         }
     }
 

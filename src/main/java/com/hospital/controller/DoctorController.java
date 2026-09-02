@@ -54,11 +54,12 @@ public class DoctorController {
     private DepartmentService departmentService;
 
     private User getLoggedInDoctor(HttpSession session) {
-        User user = (User) session.getAttribute("loggedInUser");
-        if (user != null && user.getRole() == Role.DOCTOR) {
-            return user;
-        }
-        return null;
+        return UserSessionHelper.getLoggedInDoctor(session);
+    }
+
+    @GetMapping({"", "/"})
+    public String doctorRootRedirect() {
+        return "redirect:/doctor/dashboard";
     }
 
     @GetMapping("/dashboard")
@@ -161,10 +162,14 @@ public class DoctorController {
                                      @RequestParam("diagnosis") String diagnosis,
                                      @RequestParam("instructions") String instructions,
                                      @RequestParam(value = "followUpDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate followUpDate,
-                                     @RequestParam("medicineName") String[] medicineNames,
-                                     @RequestParam("dosage") String[] dosages,
-                                     @RequestParam("frequency") String[] frequencies,
-                                     @RequestParam("duration") String[] durations,
+                                     @RequestParam(value = "medicineName", required = false) String[] medicineNames,
+                                     @RequestParam(value = "dosage", required = false) String[] dosages,
+                                     @RequestParam(value = "frequency", required = false) String[] frequencies,
+                                     @RequestParam(value = "duration", required = false) String[] durations,
+                                     @RequestParam(value = "bloodGroup", required = false) BloodGroup bloodGroup,
+                                     @RequestParam(value = "bloodComponentType", required = false) BloodComponentType bloodComponentType,
+                                     @RequestParam(value = "bloodUnits", required = false) Integer bloodUnits,
+                                     @RequestParam(value = "bloodTransfusionReason", required = false) String bloodTransfusionReason,
                                      HttpSession session,
                                      RedirectAttributes redirectAttributes) {
         User doctor = getLoggedInDoctor(session);
@@ -176,20 +181,28 @@ public class DoctorController {
             return "redirect:/doctor/dashboard";
         }
         List<PrescriptionItem> items = new ArrayList<>();
+        if (medicineNames != null) {
             for (int i = 0; i < medicineNames.length; i++) {
                 if (medicineNames[i] != null && !medicineNames[i].trim().isEmpty()) {
-                    items.add(new PrescriptionItem(medicineNames[i], dosages[i], frequencies[i], durations[i], "Take after food"));
+                    String dos = (dosages != null && i < dosages.length) ? dosages[i] : "";
+                    String freq = (frequencies != null && i < frequencies.length) ? frequencies[i] : "";
+                    String dur = (durations != null && i < durations.length) ? durations[i] : "";
+                    items.add(new PrescriptionItem(medicineNames[i], dos, freq, dur, "Take after food"));
                 }
             }
-            if (items.isEmpty()) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Add at least one medicine to the prescription.");
-                return "redirect:/doctor/consultation/" + appointmentId;
-            }
-            prescriptionService.createPrescription(app, doctor, app.getPatient(), diagnosis, instructions, followUpDate, items);
-            appointmentService.updateAppointmentStatus(appointmentId, AppointmentStatus.COMPLETED, "Prescription issued");
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "Digital prescription sent to " + app.getPatient().getFullName()
-                            + ". The patient can order medicines from the Prescriptions page.");
+        }
+        boolean hasBlood = (bloodUnits != null && bloodUnits > 0) || bloodGroup != null;
+        if (items.isEmpty() && !hasBlood) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Add at least one medicine or blood transfusion order to the prescription.");
+            return "redirect:/doctor/consultation/" + appointmentId;
+        }
+        prescriptionService.createPrescription(app, doctor, app.getPatient(), diagnosis, instructions, followUpDate, items,
+                bloodGroup, bloodComponentType, bloodUnits, bloodTransfusionReason);
+        appointmentService.updateAppointmentStatus(appointmentId, AppointmentStatus.COMPLETED, "Prescription issued");
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Digital prescription sent to " + app.getPatient().getFullName()
+                        + (hasBlood ? " with Blood Transfusion Order." : ".")
+                        + " The patient can order medicines and purchase blood directly.");
         return "redirect:/doctor/consultation/" + appointmentId;
     }
 

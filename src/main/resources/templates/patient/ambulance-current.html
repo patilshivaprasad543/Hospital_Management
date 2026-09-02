@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Current Ambulance Status')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: role-nav}"></nav>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Current Ambulance Trip Status</h1>
+                <p>Live tracking and dispatch update</p>
+            </div>
+            <div>
+                <a href="/patient/ambulance" class="btn btn-outline-secondary">Back to Ambulance</a>
+            </div>
+        </div>
+
+        <div th:if="${activeTrip == null}" class="card text-center my-4">
+            <h3>No Active Ambulance Trips</h3>
+            <p class="text-muted">You do not have any active ambulance dispatch requests.</p>
+            <a href="/patient/ambulance" class="btn btn-primary mt-2">Book Ambulance</a>
+        </div>
+
+        <div th:if="${activeTrip != null}" class="card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Ambulance Trip #<span th:text="${activeTrip.id}">101</span></h2>
+                <span class="badge badge-warning" th:text="${activeTrip.status}">ASSIGNED</span>
+            </div>
+
+            <div class="grid">
+                <div>
+                    <p><strong>Pickup Address:</strong> <span th:text="${activeTrip.pickupAddress}">123 Health Ave</span></p>
+                    <p><strong>Destination:</strong> <span th:text="${activeTrip.destinationAddress}">SmartCare Hospital</span></p>
+                    <p><strong>Requested Priority:</strong> <span class="badge badge-danger" th:text="${activeTrip.priority}">CRITICAL</span></p>
+                    <p><strong>Requested Type:</strong> <span th:text="${activeTrip.requestedType}">BASIC</span></p>
+                </div>
+                <div>
+                    <p><strong>Vehicle Number:</strong> <span th:text="${activeTrip.ambulance != null ? activeTrip.ambulance.vehicleNumber : 'Dispatch Pending'}">KA-01-AB-1234</span></p>
+                    <p><strong>Driver Name:</strong> <span th:text="${activeTrip.ambulance != null ? activeTrip.ambulance.driverName : 'Assigning Driver...'}">John Driver</span></p>
+                    <p><strong>Driver Contact:</strong> <span th:text="${activeTrip.ambulance != null ? activeTrip.ambulance.driverContact : 'N/A'}">9876543210</span></p>
+                    <p><strong>Estimated Fare:</strong> ₹<span th:text="${activeTrip.estimatedFare}">1500.00</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

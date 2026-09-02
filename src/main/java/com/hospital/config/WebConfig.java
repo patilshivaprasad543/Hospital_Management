@@ -14,5 +14,10 @@ public class WebConfig implements WebMvcConfigurer {
         Path uploadDir = Path.of("data/uploads").toAbsolutePath().normalize();
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations(uploadDir.toUri().toString());
+
+        // Cache static CSS, JS, and image assets for 7 days in the browser for instant repeat loads
+        registry.addResourceHandler("/css/**", "/js/**", "/images/**")
+                .addResourceLocations("classpath:/static/css/", "classpath:/static/js/", "classpath:/static/images/")
+                .setCacheControl(org.springframework.http.CacheControl.maxAge(7, java.util.concurrent.TimeUnit.DAYS).cachePublic());
     }
 }

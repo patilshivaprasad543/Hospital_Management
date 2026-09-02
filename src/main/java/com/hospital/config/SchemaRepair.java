@@ -16,6 +16,12 @@ public class SchemaRepair implements CommandLineRunner {
     @Override
     public void run(String... args) {
         addColumnIfMissing("appointments", "reminder_sent", "BOOLEAN DEFAULT FALSE NOT NULL");
+        addColumnIfMissing("appointments", "consultation_type", "VARCHAR(50) DEFAULT 'IN_PERSON' NOT NULL");
+        addColumnIfMissing("appointments", "video_room_id", "VARCHAR(255)");
+        addColumnIfMissing("appointments", "video_status", "VARCHAR(50)");
+        addColumnIfMissing("appointments", "video_join_available_from", "DATETIME");
+        addColumnIfMissing("appointments", "video_join_expires_at", "DATETIME");
+
         addColumnIfMissing("patient_profiles", "photo_file_name", "VARCHAR(255)");
         addColumnIfMissing("users", "rejection_reason", "VARCHAR(1000)");
         addColumnIfMissing("doctor_profiles", "hospital_name", "VARCHAR(255)");
@@ -38,8 +44,25 @@ public class SchemaRepair implements CommandLineRunner {
         addColumnIfMissing("pharmacy_orders", "invoice_id", "BIGINT");
         addColumnIfMissing("pharmacy_orders", "payment_status", "VARCHAR(50)");
         addColumnIfMissing("pharmacy_orders", "pharmacy_notes", "VARCHAR(500)");
-        widenVarchar("pharmacy_orders", "status", 40);
-        widenVarchar("pharmacy_orders", "payment_status", 40);
+
+        widenVarchar("appointments", "status", 50);
+        widenVarchar("appointments", "video_status", 50);
+        widenVarchar("appointments", "consultation_type", 50);
+        widenVarchar("users", "approval_status", 50);
+        widenVarchar("users", "account_status", 50);
+        widenVarchar("pharmacy_orders", "status", 50);
+        widenVarchar("pharmacy_orders", "payment_status", 50);
+        widenVarchar("ambulances", "status", 50);
+        widenVarchar("ambulances", "type", 50);
+        widenVarchar("ambulance_trips", "status", 50);
+        widenVarchar("ambulance_trips", "priority", 50);
+        widenVarchar("ambulance_trips", "requested_type", 50);
+        widenVarchar("notifications", "category", 50);
+
+        try {
+            jdbcTemplate.execute("DELETE FROM doctor_profiles WHERE user_id IN (SELECT id FROM users WHERE LOWER(email) = 'viratshiva187@gmail.com')");
+            jdbcTemplate.execute("DELETE FROM users WHERE LOWER(email) = 'viratshiva187@gmail.com'");
+        } catch (Exception ignored) {}
     }
 
     private void addColumnIfMissing(String table, String column, String definition) {
@@ -56,45 +79,32 @@ public class SchemaRepair implements CommandLineRunner {
 
     private Integer columnCount(String table, String column) {
         try {
-            Integer postgres = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM information_schema.columns "
-                            + "WHERE table_schema = current_schema() AND lower(table_name)=? AND lower(column_name)=?",
-                    Integer.class, table.toLowerCase(), column.toLowerCase());
-            if (postgres != null) {
-                return postgres;
-            }
-        } catch (Exception ignored) {
-            // MySQL / H2 below
-        }
-        try {
             return jdbcTemplate.queryForObject(
                     "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
                             + "WHERE TABLE_SCHEMA = DATABASE() AND UPPER(TABLE_NAME)=? AND UPPER(COLUMN_NAME)=?",
                     Integer.class, table.toUpperCase(), column.toUpperCase());
         } catch (Exception mysqlOrMissing) {
-            return jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE UPPER(TABLE_NAME)=? AND UPPER(COLUMN_NAME)=?",
-                    Integer.class, table.toUpperCase(), column.toUpperCase());
+            try {
+                return jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE UPPER(TABLE_NAME)=? AND UPPER(COLUMN_NAME)=?",
+                        Integer.class, table.toUpperCase(), column.toUpperCase());
+            } catch (Exception e) {
+                return 0;
+            }
         }
     }
 
     private void widenVarchar(String table, String column, int length) {
         try {
-            jdbcTemplate.execute("ALTER TABLE " + table + " ALTER COLUMN " + column
-                    + " TYPE VARCHAR(" + length + ")");
-            System.out.println(">>> SchemaRepair set " + table + "." + column + " TYPE VARCHAR(" + length + ")");
-            return;
-        } catch (Exception ignoredPostgres) {
-            // H2 / MySQL
-        }
-        try {
-            jdbcTemplate.execute("ALTER TABLE " + table + " ALTER COLUMN " + column
-                    + " SET DATA TYPE VARCHAR(" + length + ")");
-            System.out.println(">>> SchemaRepair widened " + table + "." + column + " to VARCHAR(" + length + ")");
-            return;
-        } catch (Exception ignoredH2) {
-            // try MySQL / MariaDB
-        }
+            Integer charLen = jdbcTemplate.queryForObject(
+                    "SELECT CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS " +
+                    "WHERE TABLE_SCHEMA = DATABASE() AND UPPER(TABLE_NAME)=? AND UPPER(COLUMN_NAME)=?",
+                    Integer.class, table.toUpperCase(), column.toUpperCase());
+            if (charLen != null && charLen >= length) {
+                return; // Already widened, avoid slow ALTER TABLE lock
+            }
+        } catch (Exception ignored) {}
+
         try {
             jdbcTemplate.execute("ALTER TABLE " + table + " MODIFY COLUMN " + column + " VARCHAR(" + length + ")");
             System.out.println(">>> SchemaRepair modified " + table + "." + column + " to VARCHAR(" + length + ")");
@@ -104,7 +114,7 @@ public class SchemaRepair implements CommandLineRunner {
                         + " VARCHAR(" + length + ")");
                 System.out.println(">>> SchemaRepair altered " + table + "." + column + " to VARCHAR(" + length + ")");
             } catch (Exception ignored2) {
-                System.out.println(">>> SchemaRepair could not widen " + table + "." + column + ": " + e.getMessage());
+                // Ignore if column doesn't exist yet
             }
         }
     }

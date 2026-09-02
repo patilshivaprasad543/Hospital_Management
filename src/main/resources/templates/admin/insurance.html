@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Insurance & Claims Management')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+
+    <div class="app-layout">
+        <!-- Admin Navigation Sidebar -->
+        <aside th:replace="~{fragments/layout :: admin-sidebar}"></aside>
+
+        <!-- Main Content Area -->
+        <main class="main-stage">
+            <!-- Flash Messages -->
+            <div th:if="${successMessage}" class="alert alert-success" style="margin-bottom: 1.25rem;" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" style="margin-bottom: 1.25rem;" th:text="${errorMessage}"></div>
+
+            <!-- Page Header -->
+            <div class="card" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #fff; padding: 1.75rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem; box-shadow: var(--shadow-md);">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+                    <div>
+                        <h2 style="color:#fff;margin:0;font-size:1.6rem;display:flex;align-items:center;gap:10px;">
+                            <span>🛡️</span> Insurance Claims &amp; Policy Approvals
+                        </h2>
+                        <p style="color:#94a3b8;margin-top:0.35rem;font-size:0.95rem;">
+                            Review patient health insurance claims, authorize hospital pre-authorizations, and manage settlements
+                        </p>
+                    </div>
+                    <div style="display:flex;gap:0.75rem;">
+                        <a href="/admin/billing" class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,0.3);">💳 Billing Overview</a>
+                        <a href="#registered-policies" class="btn btn-primary btn-sm">📋 View All Policies</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Metrics Cards -->
+            <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:1.25rem;margin-bottom:1.75rem;">
+                <div class="card stat-card">
+                    <div class="card-title">Pending Claims</div>
+                    <div class="stat-number accent" th:text="${pendingClaimsCount}">0</div>
+                    <div style="font-size:0.78rem;color:#64748b;margin-top:4px;">Awaiting verification</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="card-title">Approved Claims</div>
+                    <div class="stat-number success" th:text="${approvedClaimsCount}">0</div>
+                    <div style="font-size:0.78rem;color:#64748b;margin-top:4px;">Ready for settlement</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="card-title">Total Claim Value</div>
+                    <div class="stat-number primary" th:text="${'₹' + #numbers.formatDecimal(totalClaimValue, 0, 'COMMA', 0, 'POINT')}">₹0</div>
+                    <div style="font-size:0.78rem;color:#64748b;margin-top:4px;">Cumulative claims submitted</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="card-title">Linked Policies</div>
+                    <div class="stat-number" style="color:#0284c7;" th:text="${totalPoliciesCount}">0</div>
+                    <div style="font-size:0.78rem;color:#64748b;margin-top:4px;">Active patient coverage</div>
+                </div>
+            </div>
+
+            <!-- Status Filter Tabs -->
+            <div class="card" style="padding: 0.75rem 1.25rem; margin-bottom: 1.5rem; background: #f8fafc; border: 1px solid #e2e8f0;">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <span style="font-weight:700;font-size:0.85rem;color:#475569;margin-right:8px;">Filter by Status:</span>
+                    <a href="/admin/insurance" class="btn btn-sm" th:classappend="${selectedStatus == 'ALL'} ? 'btn-primary' : 'btn-outline'" style="border-radius:20px;">All Claims</a>
+                    <a href="/admin/insurance?status=SUBMITTED" class="btn btn-sm" th:classappend="${selectedStatus == 'SUBMITTED'} ? 'btn-warning' : 'btn-outline'" style="border-radius:20px;">Submitted (New)</a>
+                    <a href="/admin/insurance?status=UNDER_REVIEW" class="btn btn-sm" th:classappend="${selectedStatus == 'UNDER_REVIEW'} ? 'btn-info' : 'btn-outline'" style="border-radius:20px;">Under Review</a>
+                    <a href="/admin/insurance?status=APPROVED" class="btn btn-sm" th:classappend="${selectedStatus == 'APPROVED'} ? 'btn-success' : 'btn-outline'" style="border-radius:20px;">Approved</a>
+                    <a href="/admin/insurance?status=SETTLED" class="btn btn-sm" th:classappend="${selectedStatus == 'SETTLED'} ? 'btn-primary' : 'btn-outline'" style="border-radius:20px;">Settled</a>
+                    <a href="/admin/insurance?status=REJECTED" class="btn btn-sm" th:classappend="${selectedStatus == 'REJECTED'} ? 'btn-danger' : 'btn-outline'" style="border-radius:20px;">Rejected</a>
+                </div>
+            </div>
+
+            <!-- Claims Table Card -->
+            <div class="card mb-4">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h3 style="margin:0;font-size:1.15rem;color:#0f172a;">
+                        Submitted Insurance Claims (<span th:text="${claims.size()}">0</span>)
+                    </h3>
+                    <input type="text" id="claimsSearch" placeholder="Search by patient, policy or claim #..." 
+                           onkeyup="filterClaimsTable()"
+                           style="padding:6px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:0.85rem;width:280px;">
+                </div>
+
+                <div class="table-container">
+                    <table class="table" id="claimsTable">
+                        <thead>
+                            <tr style="background:#f8fafc;">
+                                <th>Claim ID</th>
+                                <th>Patient Details</th>
+                                <th>Insurance Policy</th>
+                                <th>Invoice Ref</th>
+                                <th>Claim Amount</th>
+                                <th>Date Filed</th>
+                                <th>Status</th>
+                                <th>Admin Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${claims == null || claims.empty}">
+                                <td colspan="8" class="text-center text-muted" style="padding:2.5rem 1rem;">
+                                    <div style="font-size:2.5rem;margin-bottom:0.5rem;">🛡️</div>
+                                    <div style="font-weight:600;font-size:1rem;color:#475569;">No insurance claims found</div>
+                                    <p style="font-size:0.85rem;color:#94a3b8;margin-top:4px;">No claims have been filed for the selected status filter.</p>
+                                </td>
+                            </tr>
+                            <tr th:each="claim : ${claims}" style="vertical-align:middle;">
+                                <td>
+                                    <strong style="color:#2563eb;" th:text="${'#CLM-' + claim.id}">#CLM-1</strong>
+                                </td>
+                                <td>
+                                    <div style="font-weight:600;color:#0f172a;" th:text="${claim.insurance.patient.fullName}">Patient Name</div>
+                                    <div style="font-size:0.78rem;color:#64748b;" th:text="${claim.insurance.patient.email}">patient@email.com</div>
+                                    <div style="font-size:0.75rem;color:#94a3b8;" th:text="${'📱 ' + claim.insurance.patient.mobile}">📱 9876543210</div>
+                                </td>
+                                <td>
+                                    <div style="font-weight:600;color:#1e293b;" th:text="${claim.insurance.provider}">Star Health</div>
+                                    <div style="font-size:0.78rem;color:#2563eb;font-family:monospace;" th:text="${claim.insurance.policyNumber}">POL-987654321</div>
+                                    <div style="font-size:0.75rem;color:#64748b;" th:text="${claim.insurance.policyType}">Family Floater</div>
+                                </td>
+                                <td>
+                                    <span th:if="${claim.invoice != null}" class="badge badge-secondary" style="font-family:monospace;" th:text="${claim.invoice.invoiceNumber != null ? claim.invoice.invoiceNumber : ('INV-' + claim.invoice.id)}">INV-101</span>
+                                    <span th:if="${claim.invoice == null}" class="text-muted" style="font-size:0.8rem;">Direct</span>
+                                </td>
+                                <td>
+                                    <strong style="font-size:1rem;color:#0f172a;" th:text="${'₹' + #numbers.formatDecimal(claim.claimAmount, 0, 'COMMA', 2, 'POINT')}">₹5,000.00</strong>
+                                </td>
+                                <td>
+                                    <div style="font-size:0.85rem;color:#334155;" th:text="${#temporals.format(claim.claimDate, 'dd MMM yyyy')}">26 Aug 2026</div>
+                                    <div style="font-size:0.75rem;color:#94a3b8;" th:text="${#temporals.format(claim.claimDate, 'hh:mm a')}">10:30 AM</div>
+                                </td>
+                                <td>
+                                    <span th:if="${claim.status == 'SUBMITTED'}" class="badge" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;">SUBMITTED</span>
+                                    <span th:if="${claim.status == 'UNDER_REVIEW'}" class="badge" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;">UNDER REVIEW</span>
+                                    <span th:if="${claim.status == 'APPROVED'}" class="badge badge-success">APPROVED</span>
+                                    <span th:if="${claim.status == 'SETTLED'}" class="badge" style="background:#ede9fe;color:#6d28d9;border:1px solid #ddd6fe;">SETTLED</span>
+                                    <span th:if="${claim.status == 'REJECTED'}" class="badge badge-danger">REJECTED</span>
+                                    <div th:if="${claim.remarks != null and !claim.remarks.isBlank()}" style="font-size:0.75rem;color:#64748b;margin-top:3px;max-width:180px;" th:text="${claim.remarks}">Remarks</div>
+                                </td>
+                                <td>
+                                    <form th:action="@{/admin/insurance/claim/status}" method="post" style="display:flex;flex-direction:column;gap:6px;">
+                                        <input type="hidden" name="claimId" th:value="${claim.id}">
+                                        <div style="display:flex;gap:4px;">
+                                            <select name="status" class="form-select" style="padding:4px 6px;font-size:0.8rem;border-radius:4px;border:1px solid #cbd5e1;">
+                                                <option value="UNDER_REVIEW" th:selected="${claim.status == 'UNDER_REVIEW'}">Under Review</option>
+                                                <option value="APPROVED" th:selected="${claim.status == 'APPROVED'}">Approve</option>
+                                                <option value="SETTLED" th:selected="${claim.status == 'SETTLED'}">Settle</option>
+                                                <option value="REJECTED" th:selected="${claim.status == 'REJECTED'}">Reject</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-primary" style="padding:4px 8px;font-size:0.8rem;">Update</button>
+                                        </div>
+                                        <input type="text" name="remarks" placeholder="Optional audit remark..." 
+                                               th:value="${claim.remarks}" 
+                                               class="form-control" style="padding:3px 6px;font-size:0.75rem;border-radius:4px;border:1px solid #cbd5e1;">
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Registered Insurance Policies Directory -->
+            <div class="card" id="registered-policies">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h3 style="margin:0;font-size:1.15rem;color:#0f172a;">
+                        📋 Registered Patient Insurance Policies (<span th:text="${insurances.size()}">0</span>)
+                    </h3>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr style="background:#f8fafc;">
+                                <th>Patient Name</th>
+                                <th>Insurance Provider</th>
+                                <th>Policy Number</th>
+                                <th>Policy Type</th>
+                                <th>Coverage Amount</th>
+                                <th>Policy Period</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${insurances == null || insurances.empty}">
+                                <td colspan="7" class="text-center text-muted" style="padding:1.5rem;">No patient policies registered yet.</td>
+                            </tr>
+                            <tr th:each="ins : ${insurances}">
+                                <td>
+                                    <strong th:text="${ins.patient.fullName}">Patient</strong>
+                                    <div style="font-size:0.75rem;color:#64748b;" th:text="${ins.patient.email}">email</div>
+                                </td>
+                                <td th:text="${ins.provider}">Star Health</td>
+                                <td style="font-family:monospace;font-weight:600;color:#2563eb;" th:text="${ins.policyNumber}">POL-12345</td>
+                                <td th:text="${ins.policyType}">Individual Health</td>
+                                <td>
+                                    <strong style="color:#0f172a;" th:text="${'₹' + #numbers.formatDecimal(ins.coverageAmount, 0, 'COMMA', 0, 'POINT')}">₹5,00,000</strong>
+                                </td>
+                                <td style="font-size:0.82rem;color:#64748b;" th:text="${ins.startDate + ' to ' + ins.expiryDate}">2026-01-01 to 2027-01-01</td>
+                                <td>
+                                    <span class="badge badge-success">ACTIVE</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function filterClaimsTable() {
+            const input = document.getElementById("claimsSearch");
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById("claimsTable");
+            const tr = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < tr.length; i++) {
+                const text = tr[i].textContent || tr[i].innerText;
+                if (text.toLowerCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

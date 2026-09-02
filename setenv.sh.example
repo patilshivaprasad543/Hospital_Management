@@ -1,0 +1,24 @@
+#!/bin/bash
+# Tomcat setenv.sh - Environment Configuration for Hospital Management System
+# Copy this file to $CATALINA_BASE/bin/setenv.sh and make it executable (chmod +x setenv.sh)
+
+export PORT=8085
+export DB_URL="jdbc:mysql://localhost:3306/hospital_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true"
+export DB_USERNAME="root"
+export DB_PASSWORD="YourSecurePasswordHere"
+
+export ADMIN_NAME="System Admin"
+export ADMIN_EMAIL="admin@hospital.com"
+export ADMIN_PASSWORD="Admin@123"
+export ADMIN_MOBILE="9876543210"
+
+export MAIL_HOST="smtp.gmail.com"
+export MAIL_PORT="587"
+export MAIL_USERNAME="your-email@gmail.com"
+export MAIL_PASSWORD="your-app-password"
+
+export FRONTEND_URL="http://your-domain-or-ip:8085"
+export UPLOAD_DIR="/var/hospital/uploads"
+
+# JVM options
+export JAVA_OPTS="$JAVA_OPTS -Xms512m -Xmx1024m -Djava.awt.headless=true"

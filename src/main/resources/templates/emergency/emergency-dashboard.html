@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Emergency Triage')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: role-nav}"></nav>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Emergency &amp; Trauma Command</h1>
+                <p>24x7 Real-Time Emergency Triage, Trauma Priority &amp; Ambulance Dispatch</p>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card stat-card">
+                <div class="card-title">Critical Priority (Red)</div>
+                <div class="stat-number danger">0</div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">High Priority (Yellow)</div>
+                <div class="stat-number warning">0</div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">Active Trauma Beds</div>
+                <div class="stat-number accent">12</div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">Available Ambulances</div>
+                <div class="stat-number success">4</div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <h3>Active Emergency Cases</h3>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Case ID</th>
+                            <th>Patient Name</th>
+                            <th>Triage Level</th>
+                            <th>Arrival Time</th>
+                            <th>Assigned Doctor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">No active critical cases. Emergency services operational.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

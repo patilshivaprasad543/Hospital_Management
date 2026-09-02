@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Blood Transfusion &amp; Requisition Slip</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; color: #1e293b; }
+        .slip-card { max-width: 800px; margin: 0 auto; border: 2px solid #dc2626; border-radius: 10px; padding: 30px; }
+        .header { text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 25px; }
+        .hospital-name { font-size: 24px; font-weight: 800; color: #b91c1c; margin: 0; }
+        .slip-title { font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #475569; margin-top: 5px; }
+        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .field-label { font-size: 12px; font-weight: 600; text-transform: uppercase; color: #64748b; }
+        .field-value { font-size: 15px; font-weight: 700; color: #0f172a; margin-top: 2px; }
+        .table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+        .table th, .table td { border: 1px solid #cbd5e1; padding: 10px 14px; text-align: left; font-size: 14px; }
+        .table th { background: #f8fafc; font-weight: 700; color: #334155; }
+        .footer { margin-top: 40px; display: flex; justify-content: space-between; border-top: 1px dashed #cbd5e1; padding-top: 25px; font-size: 13px; color: #64748b; }
+        .print-btn { background: #dc2626; color: #fff; padding: 8px 18px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body>
+    <div style="max-width: 800px; margin: 0 auto 15px auto; text-align: right;" class="no-print">
+        <button onclick="window.print()" class="print-btn">🖨️ Print Requisition Slip</button>
+    </div>
+
+    <div class="slip-card">
+        <div class="header">
+            <h1 class="hospital-name">SmartCare 360 Hospital &amp; Medical Centre</h1>
+            <div class="slip-title">Department of Blood Transfusion &amp; Immunohematology</div>
+            <div style="font-size:13px;color:#64748b;margin-top:4px;">Official Blood Unit Requisition &amp; Cross-Match Certificate</div>
+        </div>
+
+        <div class="meta-grid">
+            <div>
+                <div class="field-label">Requisition Order Number</div>
+                <div class="field-value" style="color:#b91c1c;" th:text="${order.orderNumber}">BLD-ORD-1001</div>
+            </div>
+            <div>
+                <div class="field-label">Date &amp; Time</div>
+                <div class="field-value" th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, hh:mm a')}">Date</div>
+            </div>
+            <div>
+                <div class="field-label">Patient Name &amp; Contact</div>
+                <div class="field-value" th:text="${order.patient.fullName + ' (' + order.patientContact + ')'}">John Doe</div>
+            </div>
+            <div>
+                <div class="field-label">Prescribing Physician</div>
+                <div class="field-value" th:text="${'Dr. ' + order.doctor.fullName}">Dr. Smith</div>
+            </div>
+            <div>
+                <div class="field-label">Linked Doctor Prescription</div>
+                <div class="field-value" th:text="${'Rx #' + order.prescription.id + ' — ' + order.prescription.diagnosis}">Rx #1</div>
+            </div>
+            <div>
+                <div class="field-label">Delivery / Ward Location</div>
+                <div class="field-value" th:text="${order.deliveryLocation != null ? order.deliveryLocation : order.deliveryType}">Inpatient Ward 3</div>
+            </div>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Blood Group</th>
+                    <th>Component Type</th>
+                    <th>Units</th>
+                    <th>Allocated Barcodes</th>
+                    <th>Total Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong style="color:#b91c1c;font-size:16px;" th:text="${order.bloodGroup.label}">O+</strong></td>
+                    <td th:text="${order.componentType.label}">Packed Red Blood Cells (PRBC)</td>
+                    <td><strong th:text="${order.units + ' Unit(s)'}">1 Unit</strong></td>
+                    <td style="font-family:monospace;color:#166534;font-weight:700;" 
+                        th:text="${order.allocatedUnitCodes != null and !order.allocatedUnitCodes.isBlank() ? order.allocatedUnitCodes : 'Under Serological Cross-match'}">BLD-O-9901</td>
+                    <td><strong>₹<span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2)}">1,500.00</span></strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:12px;border-radius:6px;font-size:13px;margin-bottom:20px;">
+            <strong>Clinical Indication:</strong> <span th:text="${order.clinicalNotes != null ? order.clinicalNotes : 'Doctor Prescribed Transfusion'}">Notes</span><br>
+            <strong>Current Status:</strong> <span style="font-weight:700;color:#0369a1;" th:text="${order.status.label}">Status</span> |
+            <strong>Payment Status:</strong> <span style="font-weight:700;color:#15803d;" th:text="${order.paymentStatus.name()}">PAID</span>
+        </div>
+
+        <div class="footer">
+            <div>
+                <strong>Blood Bank Medical Officer</strong><br>
+                <span>SmartCare 360 Blood Center</span>
+            </div>
+            <div style="text-align:right;">
+                <strong>Attending Nursing / Ward Officer</strong><br>
+                <span>Recipient Verification Signature</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

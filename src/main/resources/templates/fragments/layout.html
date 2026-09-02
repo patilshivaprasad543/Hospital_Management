@@ -1,5 +1,11 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} ? ${title} + ' | SmartCare 360' : 'SmartCare 360'">SmartCare 360</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script th:src="@{/js/language-changer.js(v=2.1)}"></script>
+</head>
 <body>
 
 <!-- Public website navbar (Home, About, Contact) -->
@@ -45,91 +51,331 @@
     </div>
 </nav>
 
-<!-- Admin navbar -->
-<nav th:fragment="admin-nav" class="navbar">
-    <a href="/" class="navbar-brand">
-        <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-        <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
-        <span class="portal-tag">Admin</span>
-    </a>
-    <ul class="nav-links">
-        <li><a href="/admin/dashboard">Dashboard</a></li>
-        <li><a href="/admin/users">Patients</a></li>
-        <li><a href="/admin/doctors">Doctors</a></li>
-        <li><a href="/admin/pharmacy">Pharmacy</a></li>
-        <li><a href="/admin/laboratories">Labs</a></li>
-        <li><a href="/admin/appointments">Appointments</a></li>
-        <li><a href="/admin/billing">Billing</a></li>
-        <li><a href="/admin/reports">Reports</a></li>
-        <li><a href="/admin/settings">Settings</a></li>
-        <li><a href="/admin/notifications">Notifications</a></li>
-        <li><a href="/logout" class="btn btn-outline btn-sm">Sign Out</a></li>
-    </ul>
+<!-- Global Header with Search & Profile Dropdown for Portals -->
+<nav th:fragment="global-header(portalName)" class="navbar">
+    <div style="display:flex;align-items:center;gap:1.5rem;">
+        <a href="/" class="navbar-brand">
+            <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+            <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
+            <span class="portal-tag" th:text="${portalName}">Portal</span>
+        </a>
+    </div>
+
+    <!-- Header Global Search -->
+    <div class="header-search-box">
+        <span class="header-search-icon">🔍</span>
+        <input type="text" class="header-search-input" placeholder="Search patients, doctors, appointments, reports..." onkeypress="if(event.key==='Enter') alert('Global Search: Searching records for ' + this.value)">
+    </div>
+
+    <!-- Header Quick Actions, Notifications, Language & Profile -->
+    <div class="navbar-actions">
+        <!-- Language Changer Dropdown -->
+        <div class="lang-selector-container" style="position:relative;">
+            <button type="button" class="btn btn-sm btn-outline lang-dropdown-btn" onclick="toggleLanguageDropdown()" 
+                    style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:#f8fafc;border:1px solid #cbd5e1;cursor:pointer;font-weight:600;font-size:0.82rem;color:#1e293b;">
+                <span>🌐</span> <span id="currentLangLabel">English</span> <span style="font-size:0.7rem;">▾</span>
+            </button>
+            <div id="languageDropdownMenu" class="lang-dropdown-menu" 
+                 style="display:none;position:absolute;top:100%;right:0;margin-top:6px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,0.15);width:220px;z-index:9999;padding:6px 0;">
+                <a href="javascript:void(0)" onclick="switchLanguage('en', 'English')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇬🇧</span> English
+                </a>
+                <a href="javascript:void(0)" onclick="switchLanguage('hi', 'हिन्दी (Hindi)')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇮🇳</span> हिन्दी (Hindi)
+                </a>
+                <a href="javascript:void(0)" onclick="switchLanguage('es', 'Español (Spanish)')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇪🇸</span> Español (Spanish)
+                </a>
+                <a href="javascript:void(0)" onclick="switchLanguage('fr', 'Français (French)')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇫🇷</span> Français (French)
+                </a>
+                <a href="javascript:void(0)" onclick="switchLanguage('de', 'Deutsch (German)')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇩🇪</span> Deutsch (German)
+                </a>
+                <a href="javascript:void(0)" onclick="switchLanguage('ar', 'العربية (Arabic)')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇸🇦</span> العربية (Arabic)
+                </a>
+                <a href="javascript:void(0)" onclick="switchLanguage('ta', 'தமிழ் (Tamil)')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇮🇳</span> தமிழ் (Tamil)
+                </a>
+                <a href="javascript:void(0)" onclick="switchLanguage('te', 'తెలుగు (Telugu)')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇮🇳</span> తెలుగు (Telugu)
+                </a>
+                <a href="javascript:void(0)" onclick="switchLanguage('kn', 'ಕನ್ನಡ (Kannada)')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇮🇳</span> ಕನ್ನಡ (Kannada)
+                </a>
+                <div style="border-top:1px solid #f1f5f9;margin-top:4px;padding-top:4px;">
+                    <a href="/patient/language" style="display:block;padding:8px 16px;text-decoration:none;color:#2563eb;font-size:0.8rem;font-weight:600;">
+                        ⚙️ Full Language Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <a href="/patient/multihub-chat" class="btn btn-sm btn-outline" style="border:none;" title="Messages">💬</a>
+        <a href="/patient/notifications" class="btn btn-sm btn-outline" style="border:none;position:relative;" title="Notifications">
+            🔔 <span style="position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:0.6rem;padding:1px 4px;border-radius:50%;">3</span>
+        </a>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:#3b82f6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;"
+                 th:text="${loggedInUser != null ? #strings.substring(loggedInUser.fullName,0,1) : 'U'}">U</div>
+            <a th:href="${portalName != null ? '/logout/' + #strings.toLowerCase(portalName) : '/logout'}" class="btn btn-outline btn-sm">Sign Out</a>
+        </div>
+    </div>
 </nav>
 
-<!-- Patient navbar -->
-<nav th:fragment="patient-nav" class="navbar">
-    <a href="/" class="navbar-brand">
-        <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-        <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
-        <span class="portal-tag">Patient</span>
-    </a>
-    <ul class="nav-links">
-        <li><a href="/patient/dashboard">Dashboard</a></li>
-        <li><a href="/patient/doctors">Doctors</a></li>
-        <li><a href="/patient/book-appointment">Book Appointment</a></li>
-        <li><a href="/patient/appointments">Appointments</a></li>
-        <li><a href="/patient/prescriptions">Prescriptions</a></li>
-        <li><a href="/patient/pharmacy-orders">Pharmacy Orders</a></li>
-        <li><a href="/patient/lab-reports">Lab Reports</a></li>
-        <li><a href="/patient/records">Records</a></li>
-        <li><a href="/patient/bills">Billing</a></li>
-        <li><a href="/patient/notifications">Notifications</a></li>
-        <li><a href="/patient/profile">Profile</a></li>
-        <li><a href="/logout" class="btn btn-outline btn-sm">Sign Out</a></li>
-    </ul>
+<!-- Legacy Navbar Fragments (Maintained for exact backward compatibility) -->
+<nav th:fragment="admin-nav">
+    <div th:replace="~{fragments/layout :: global-header('Admin')}"></div>
 </nav>
 
-<!-- Doctor navbar -->
-<nav th:fragment="doctor-nav" class="navbar">
-    <a href="/" class="navbar-brand">
-        <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-        <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
-        <span class="portal-tag">Doctor</span>
-    </a>
-    <ul class="nav-links">
-        <li><a href="/doctor/dashboard">Dashboard</a></li>
-        <li><a href="/doctor/appointments">Appointments</a></li>
-        <li><a href="/doctor/patients">Patients</a></li>
-        <li><a href="/doctor/prescriptions">Prescriptions</a></li>
-        <li><a href="/doctor/lab-tests">Lab Tests</a></li>
-        <li><a href="/doctor/earnings">Earnings</a></li>
-        <li><a href="/doctor/reports">Reports</a></li>
-        <li><a href="/doctor/notifications">Notifications</a></li>
-        <li><a href="/doctor/profile">Profile</a></li>
-        <li><a href="/logout" class="btn btn-outline btn-sm">Sign Out</a></li>
-    </ul>
+<nav th:fragment="patient-nav">
+    <div th:replace="~{fragments/layout :: global-header('Patient')}"></div>
 </nav>
 
-<!-- Vendor navbar -->
-<nav th:fragment="vendor-nav" class="navbar">
-    <a href="/" class="navbar-brand">
-        <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-        <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
-        <span class="portal-tag" th:text="${vendorTag != null ? vendorTag : 'Vendor'}">Vendor</span>
-    </a>
-    <ul class="nav-links">
-        <li><a href="/vendor/dashboard">Dashboard</a></li>
-        <li th:if="${vendorTag == 'Pharmacy'}"><a href="/vendor/orders">Orders</a></li>
-        <li th:if="${vendorTag == 'Pharmacy'}"><a href="/vendor/inventory">Inventory</a></li>
-        <li th:if="${vendorTag == 'Pharmacy'}"><a href="/vendor/reports">Reports</a></li>
-        <li><a href="/vendor/notifications">Notifications</a></li>
-        <li><a href="/vendor/profile">Profile</a></li>
-        <li><a href="/logout" class="btn btn-outline btn-sm">Sign Out</a></li>
-    </ul>
+<nav th:fragment="doctor-nav">
+    <div th:replace="~{fragments/layout :: global-header('Doctor')}"></div>
 </nav>
 
-<!-- Role-aware navbar (use on shared pages like /notifications) -->
+<nav th:fragment="vendor-nav">
+    <div th:replace="~{fragments/layout :: global-header('Vendor')}"></div>
+</nav>
+
+<!-- Grouped Patient Sidebar Fragment -->
+<aside th:fragment="patient-sidebar" class="sidebar-grouped">
+    <div class="sidebar-group">
+        <div class="sidebar-section-title">MY CARE</div>
+        <a href="/patient/dashboard" class="nav-item-link" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
+            <span class="nav-item-icon">🏠</span><span class="nav-text">Dashboard</span>
+        </a>
+        <a href="/patient/appointments" class="nav-item-link" th:classappend="${activePage == 'appointments'} ? 'active' : ''">
+            <span class="nav-item-icon">📅</span><span class="nav-text">Appointments</span>
+        </a>
+        <a href="/patient/queue" class="nav-item-link" th:classappend="${activePage == 'queue'} ? 'active' : ''">
+            <span class="nav-item-icon">⏱️</span><span class="nav-text">Live Queue</span>
+        </a>
+        <a href="/patient/prescriptions" class="nav-item-link" th:classappend="${activePage == 'prescriptions'} ? 'active' : ''">
+            <span class="nav-item-icon">💊</span><span class="nav-text">Prescriptions</span>
+        </a>
+        <a href="/patient/lab-reports" class="nav-item-link" th:classappend="${activePage == 'lab-reports'} ? 'active' : ''">
+            <span class="nav-item-icon">🧪</span><span class="nav-text">Lab Reports</span>
+        </a>
+        <a href="/patient/records" class="nav-item-link" th:classappend="${activePage == 'records'} ? 'active' : ''">
+            <span class="nav-item-icon">📋</span><span class="nav-text">Medical Records</span>
+        </a>
+    </div>
+
+    <div class="sidebar-group">
+        <div class="sidebar-section-title">SERVICES</div>
+        <a href="/patient/doctors" class="nav-item-link">
+            <span class="nav-item-icon">👨‍⚕️</span><span class="nav-text">Find Doctors</span>
+        </a>
+        <a href="/patient/video-consultations" class="nav-item-link">
+            <span class="nav-item-icon">🎥</span><span class="nav-text">Video Consultation</span>
+        </a>
+        <a href="/patient/consultation-suite" class="nav-item-link">
+            <span class="nav-item-icon">🩺</span><span class="nav-text">AI Health Suite</span>
+        </a>
+        <a href="/patient/vitals" class="nav-item-link">
+            <span class="nav-item-icon">📊</span><span class="nav-text">Health Vitals</span>
+        </a>
+        <a href="/patient/pharmacy-orders" class="nav-item-link">
+            <span class="nav-item-icon">🛍️</span><span class="nav-text">Pharmacy Orders</span>
+        </a>
+        <a href="/patient/blood-bank/orders" class="nav-item-link" th:classappend="${activePage == 'blood'} ? 'active' : ''">
+            <span class="nav-item-icon">🩸</span><span class="nav-text">Buy Blood (Rx)</span>
+        </a>
+        <a href="/patient/beds" class="nav-item-link" th:classappend="${activePage == 'beds'} ? 'active' : ''">
+            <span class="nav-item-icon">🛏️</span><span class="nav-text">Bed Booking</span>
+        </a>
+        <a href="/patient/symptom-checker" class="nav-item-link">
+            <span class="nav-item-icon">🩺</span><span class="nav-text">Symptom Checker</span>
+        </a>
+        <a href="/patient/proxy-access" class="nav-item-link">
+            <span class="nav-item-icon">👨‍👩‍👧</span><span class="nav-text">Family Proxy</span>
+        </a>
+        <a href="/health-library" class="nav-item-link">
+            <span class="nav-item-icon">📚</span><span class="nav-text">Health Library</span>
+        </a>
+        <a href="/patient/ambulance" class="nav-item-link">
+            <span class="nav-item-icon">🚨</span><span class="nav-text">Ambulance</span>
+        </a>
+    </div>
+
+    <div class="sidebar-group">
+        <div class="sidebar-section-title">PAYMENTS</div>
+        <a href="/patient/bills" class="nav-item-link">
+            <span class="nav-item-icon">💳</span><span class="nav-text">Bills &amp; Payments</span>
+        </a>
+        <a href="/patient/insurance" class="nav-item-link">
+            <span class="nav-item-icon">🛡️</span><span class="nav-text">Insurance Claims</span>
+        </a>
+    </div>
+
+    <div class="sidebar-group">
+        <div class="sidebar-section-title">ACCOUNT</div>
+        <a href="/patient/multihub-chat" class="nav-item-link">
+            <span class="nav-item-icon">💬</span><span class="nav-text">Multi-Hub Chat</span>
+        </a>
+        <a href="/patient/notifications" class="nav-item-link">
+            <span class="nav-item-icon">🔔</span><span class="nav-text">Notifications</span>
+        </a>
+        <a href="/patient/profile" class="nav-item-link">
+            <span class="nav-item-icon">👤</span><span class="nav-text">Profile</span>
+        </a>
+        <a href="/patient/language" class="nav-item-link" th:classappend="${activePage == 'language'} ? 'active' : ''">
+            <span class="nav-item-icon">🌐</span><span class="nav-text">Language / भाषा</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Grouped Doctor Sidebar Fragment -->
+<aside th:fragment="doctor-sidebar" class="sidebar-grouped">
+    <div class="sidebar-group">
+        <div class="sidebar-section-title">TODAY'S WORK</div>
+        <a href="/doctor/dashboard" class="nav-item-link" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
+            <span class="nav-item-icon">🏠</span><span class="nav-text">Dashboard</span>
+        </a>
+        <a href="/doctor/queue" class="nav-item-link" th:classappend="${activePage == 'queue'} ? 'active' : ''">
+            <span class="nav-item-icon">⏱️</span><span class="nav-text">Live Queue</span>
+        </a>
+        <a href="/doctor/appointments" class="nav-item-link" th:classappend="${activePage == 'appointments'} ? 'active' : ''">
+            <span class="nav-item-icon">📅</span><span class="nav-text">Today Appointments</span>
+        </a>
+        <a href="/doctor/patients" class="nav-item-link">
+            <span class="nav-item-icon">🧑‍🦽</span><span class="nav-text">My Patients</span>
+        </a>
+    </div>
+
+    <div class="sidebar-group">
+        <div class="sidebar-section-title">CLINICAL</div>
+        <a href="/doctor/prescriptions" class="nav-item-link">
+            <span class="nav-item-icon">💊</span><span class="nav-text">Prescriptions</span>
+        </a>
+        <a href="/doctor/lab-tests" class="nav-item-link">
+            <span class="nav-item-icon">🧪</span><span class="nav-text">Lab Requests</span>
+        </a>
+        <a href="/doctor/video-consultations" class="nav-item-link">
+            <span class="nav-item-icon">🎥</span><span class="nav-text">Video Consultations</span>
+        </a>
+        <a href="/doctor/multihub-chat" class="nav-item-link">
+            <span class="nav-item-icon">💬</span><span class="nav-text">Patient Chat</span>
+        </a>
+    </div>
+
+    <div class="sidebar-group">
+        <div class="sidebar-section-title">PRACTICE</div>
+        <a href="/doctor/earnings" class="nav-item-link">
+            <span class="nav-item-icon">💵</span><span class="nav-text">Earnings</span>
+        </a>
+        <a href="/doctor/reports" class="nav-item-link">
+            <span class="nav-item-icon">📊</span><span class="nav-text">Reports</span>
+        </a>
+        <a href="/doctor/notifications" class="nav-item-link">
+            <span class="nav-item-icon">🔔</span><span class="nav-text">Notifications</span>
+        </a>
+        <a href="/doctor/profile" class="nav-item-link">
+            <span class="nav-item-icon">👤</span><span class="nav-text">Profile</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Grouped Admin Sidebar Fragment -->
+<aside th:fragment="admin-sidebar" class="sidebar-grouped">
+    <div class="sidebar-group">
+        <div class="sidebar-section-title">OVERVIEW</div>
+        <a href="/admin/dashboard" class="nav-item-link" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
+            <span class="nav-item-icon">🏠</span><span class="nav-text">Dashboard</span>
+        </a>
+    </div>
+
+    <div class="sidebar-group">
+        <div class="sidebar-section-title">PEOPLE</div>
+        <a href="/admin/users" class="nav-item-link">
+            <span class="nav-item-icon">🧑‍🦽</span><span class="nav-text">Patients</span>
+        </a>
+        <a href="/admin/doctors" class="nav-item-link">
+            <span class="nav-item-icon">👨‍⚕️</span><span class="nav-text">Doctors</span>
+        </a>
+        <a href="/admin/pharmacy" class="nav-item-link">
+            <span class="nav-item-icon">💊</span><span class="nav-text">Pharmacy</span>
+        </a>
+        <a href="/admin/laboratories" class="nav-item-link">
+            <span class="nav-item-icon">🧪</span><span class="nav-text">Labs</span>
+        </a>
+    </div>
+
+    <div class="sidebar-group">
+        <div class="sidebar-section-title">CARE &amp; OPERATIONS</div>
+        <a href="/admin/appointments" class="nav-item-link">
+            <span class="nav-item-icon">📅</span><span class="nav-text">Appointments</span>
+        </a>
+        <a href="/emergency/dashboard" class="nav-item-link">
+            <span class="nav-item-icon">🚑</span><span class="nav-text">Emergency</span>
+        </a>
+        <a href="/admin/ambulances" class="nav-item-link">
+            <span class="nav-item-icon">🚨</span><span class="nav-text">Ambulances</span>
+        </a>
+        <a href="/blood-bank/dashboard" class="nav-item-link">
+            <span class="nav-item-icon">🩸</span><span class="nav-text">Blood Bank</span>
+        </a>
+        <a href="/admin/beds" class="nav-item-link" th:classappend="${activePage == 'beds'} ? 'active' : ''">
+            <span class="nav-item-icon">🛏️</span><span class="nav-text">Bed Allocation</span>
+        </a>
+    </div>
+
+    <div class="sidebar-group">
+        <div class="sidebar-section-title">FINANCE</div>
+        <a href="/admin/billing" class="nav-item-link">
+            <span class="nav-item-icon">💳</span><span class="nav-text">Billing</span>
+        </a>
+        <a href="/admin/insurance" class="nav-item-link" th:classappend="${activePage == 'insurance'} ? 'active' : ''">
+            <span class="nav-item-icon">🛡️</span><span class="nav-text">Insurance Claims</span>
+        </a>
+        <a href="/admin/reports" class="nav-item-link">
+            <span class="nav-item-icon">📊</span><span class="nav-text">Reports</span>
+        </a>
+    </div>
+
+    <div class="sidebar-group">
+        <div class="sidebar-section-title">SYSTEM</div>
+        <a href="/admin/multihub-chat" class="nav-item-link">
+            <span class="nav-item-icon">💬</span><span class="nav-text">Support Chat</span>
+        </a>
+        <a href="/admin/notifications" class="nav-item-link">
+            <span class="nav-item-icon">🔔</span><span class="nav-text">Notifications</span>
+        </a>
+        <a href="/admin/settings" class="nav-item-link">
+            <span class="nav-item-icon">⚙️</span><span class="nav-text">Settings</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Mobile Bottom Navigation Bar -->
+<div th:fragment="mobile-bottom-nav" class="mobile-bottom-nav">
+    <a href="/" class="mobile-bottom-item active">
+        <span class="mobile-bottom-icon">🏠</span>
+        <span>Home</span>
+    </a>
+    <a href="/patient/appointments" class="mobile-bottom-item">
+        <span class="mobile-bottom-icon">📅</span>
+        <span>Appointments</span>
+    </a>
+    <a href="/patient/multihub-chat" class="mobile-bottom-item">
+        <span class="mobile-bottom-icon">💬</span>
+        <span>Chat</span>
+    </a>
+    <a href="/patient/vitals" class="mobile-bottom-item">
+        <span class="mobile-bottom-icon">📊</span>
+        <span>Vitals</span>
+    </a>
+    <a href="/patient/profile" class="mobile-bottom-item">
+        <span class="mobile-bottom-icon">👤</span>
+        <span>Profile</span>
+    </a>
+</div>
+
+<!-- Role-aware navbar -->
 <th:block th:fragment="role-nav">
     <th:block th:if="${loggedInUser != null and loggedInUser.role != null}" th:switch="${loggedInUser.role.name()}">
         <th:block th:case="'PATIENT'">
@@ -147,61 +393,24 @@
     </th:block>
 </th:block>
 
+<th:block th:fragment="main-nav">
+    <th:block th:replace="~{fragments/layout :: role-nav}"></th:block>
+</th:block>
+
 <footer th:fragment="footer" class="site-footer">
     <div class="footer-inner footer-grid">
         <div class="footer-col footer-brand-col">
-            <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
-            <p>Integrated hospital management platform connecting patients, doctors, laboratories, and pharmacies in one secure ecosystem.</p>
-        </div>
-        <div class="footer-col">
-            <h4>Quick Links</h4>
-            <ul class="footer-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/about">About Us</a></li>
-                <li><a href="/contact">Contact</a></li>
-                <li><a href="/login">Portal Sign In</a></li>
-            </ul>
-        </div>
-        <div class="footer-col">
-            <h4>Services</h4>
-            <ul class="footer-links">
-                <li><a href="/login/patient">Patient Portal</a></li>
-                <li><a href="/login/doctor">Doctor Portal</a></li>
-                <li><a href="/login/vendor">Lab &amp; Diagnostics</a></li>
-                <li><a href="/login/pharmacy">Pharmacy Portal</a></li>
-            </ul>
-        </div>
-        <div class="footer-col">
-            <h4>Contact Us</h4>
-            <ul class="footer-contact">
-                <li>support@smartcare360.com</li>
-                <li>+91 1800-360-2478</li>
-                <li>SmartCare Tower, Health City<br>Bengaluru, Karnataka 560001</li>
-            </ul>
+            <div class="navbar-brand footer-brand">
+                <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+                <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
+            </div>
+            <p class="footer-tagline">Next-Generation Integrated Hospital Management Platform.</p>
         </div>
     </div>
     <div class="footer-bottom">
-        <span>Secure healthcare platform for patients, doctors, and hospitals</span>
-        <span>&copy; 2026 SmartCare 360. All rights reserved.</span>
+        <p>&copy; 2026 SmartCare 360. All rights reserved. | EMR &amp; Telehealth System</p>
     </div>
 </footer>
-
-<div th:fragment="page-header(title, subtitle)" class="page-header">
-    <div class="page-header-content">
-        <h1 th:text="${title}">Page Title</h1>
-        <p th:if="${subtitle != null}" th:text="${subtitle}">Subtitle</p>
-    </div>
-</div>
-
-<head th:fragment="head(title)">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="SmartCare 360 — Integrated Hospital Management Platform">
-    <title th:text="${title} + ' | SmartCare 360'">SmartCare 360</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
 
 </body>
 </html>

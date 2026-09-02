@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Patient Vitals & Health Tracker')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="container">
+        <div th:if="${param.success}" class="alert alert-success">
+            ✅ Vital signs recorded successfully! Your health metrics have been updated.
+        </div>
+
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>📊 Personal Health Vitals &amp; Metrics Tracker</h1>
+                <p>Track your blood pressure, heart rate, blood sugar, SpO2 saturation, temperature, and BMI</p>
+            </div>
+        </div>
+
+        <!-- Latest Vitals Overview Cards -->
+        <div class="grid" style="margin-bottom: 2rem;">
+            <div class="card stat-card">
+                <div class="card-title">Blood Pressure (mmHg)</div>
+                <div class="stat-number danger" th:text="${latestVitals.systolicBp != null ? (latestVitals.systolicBp + '/' + latestVitals.diastolicBp) : '120/80'}">120/80</div>
+                <small class="text-muted">Normal: &lt; 120/80</small>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">Heart Rate (bpm)</div>
+                <div class="stat-number success" th:text="${latestVitals.heartRate != null ? latestVitals.heartRate : '72'}">72</div>
+                <small class="text-muted">Normal: 60-100 bpm</small>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">SpO2 Saturation (%)</div>
+                <div class="stat-number info" th:text="${latestVitals.spo2 != null ? (latestVitals.spo2 + '%') : '98%'}">98%</div>
+                <small class="text-muted">Normal: 95-100%</small>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">Blood Glucose (mg/dL)</div>
+                <div class="stat-number warning" th:text="${latestVitals.bloodGlucose != null ? latestVitals.bloodGlucose : '95.0'}">95.0</div>
+                <small class="text-muted">Fasting Normal: 70-99</small>
+            </div>
+            <div class="card stat-card">
+                <div class="card-title">BMI (kg/m²)</div>
+                <div class="stat-number" th:text="${latestVitals.bmi != null ? latestVitals.bmi : '22.5'}">22.5</div>
+                <small class="text-muted">Normal: 18.5 - 24.9</small>
+            </div>
+        </div>
+
+        <div class="grid" style="margin-bottom: 2rem;">
+            <!-- Record New Vitals Form -->
+            <div class="card">
+                <h3>📝 Record New Vitals</h3>
+                <form th:action="@{/patient/vitals/add}" method="post" class="mt-2">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">Systolic BP (mmHg)</label>
+                            <input type="number" name="systolicBp" class="form-control" placeholder="120" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Diastolic BP (mmHg)</label>
+                            <input type="number" name="diastolicBp" class="form-control" placeholder="80" required>
+                        </div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">Heart Rate (bpm)</label>
+                            <input type="number" name="heartRate" class="form-control" placeholder="72" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Blood Glucose (mg/dL)</label>
+                            <input type="number" step="0.1" name="bloodGlucose" class="form-control" placeholder="95.0">
+                        </div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">Body Temp (°F)</label>
+                            <input type="number" step="0.1" name="bodyTemperature" class="form-control" placeholder="98.6">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Oxygen SpO2 (%)</label>
+                            <input type="number" name="spo2" class="form-control" placeholder="98">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Weight (kg)</label>
+                            <input type="number" step="0.1" name="weightKg" class="form-control" placeholder="68.5">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Height (cm)</label>
+                        <input type="number" step="0.1" name="heightCm" class="form-control" placeholder="175.0">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Notes / Remarks</label>
+                        <input type="text" name="notes" class="form-control" placeholder="e.g. Measured in morning after breakfast">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block mt-2">📊 Save Vital Signs</button>
+                </form>
+            </div>
+
+            <!-- Vitals Log History Table -->
+            <div class="card">
+                <h3>📜 Vitals History Log</h3>
+                <div class="table-container mt-2">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Recorded Date</th>
+                                <th>BP</th>
+                                <th>Pulse</th>
+                                <th>Glucose</th>
+                                <th>SpO2</th>
+                                <th>BMI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${vitalsHistory == null || vitalsHistory.empty}">
+                                <td colspan="6" class="text-center text-muted">No vitals recorded yet. Use the form to enter your first log.</td>
+                            </tr>
+                            <tr th:each="v : ${vitalsHistory}">
+                                <td th:text="${#temporals.format(v.recordedAt, 'yyyy-MM-dd HH:mm')}">2026-08-26 14:00</td>
+                                <td th:text="${v.systolicBp != null ? (v.systolicBp + '/' + v.diastolicBp) : '---'}">120/80</td>
+                                <td th:text="${v.heartRate != null ? (v.heartRate + ' bpm') : '---'}">72 bpm</td>
+                                <td th:text="${v.bloodGlucose != null ? v.bloodGlucose : '---'}">95.0</td>
+                                <td th:text="${v.spo2 != null ? (v.spo2 + '%') : '---'}">98%</td>
+                                <td><span class="badge badge-info" th:text="${v.bmi != null ? v.bmi : '---'}">22.5</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -7,10 +7,12 @@ import com.hospital.service.DepartmentService;
 import com.hospital.service.HospitalSettingService;
 import com.hospital.service.UserService;
 import com.hospital.service.VendorService;
+import com.hospital.service.VideoConsultationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import java.util.List;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -42,11 +44,45 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private HospitalSettingService hospitalSettingService;
 
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+
+    @Autowired
+    private VideoConsultationService videoConsultationService;
+
+    @Autowired
+    private com.hospital.service.AdmissionService admissionService;
+
+    @Autowired
+    private com.hospital.service.BloodBankService bloodBankService;
+
+    @Autowired
+    private com.hospital.service.PrescriptionService prescriptionService;
+
+    @Autowired
+    private com.hospital.repository.PrescriptionRepository prescriptionRepository;
+
+    @Autowired
+    private com.hospital.service.InsuranceService insuranceService;
+
+    @Autowired
+    private com.hospital.repository.InsuranceRepository insuranceRepository;
+
+    @Autowired
+    private com.hospital.repository.InsuranceClaimRepository insuranceClaimRepository;
+
+    @Autowired
+    private com.hospital.service.BillingService billingService;
+
+    @Autowired
+    private com.hospital.repository.InvoiceRepository invoiceRepository;
+
     @Override
     public void run(String... args) {
         userService.createAdminAccount(adminEmail, adminPassword, adminName, adminMobile);
         departmentService.seedDepartmentsIfEmpty();
         hospitalSettingService.ensureDefaults();
+        admissionService.seedWardsAndBedsIfEmpty();
         seedAnnouncementsIfEmpty();
         seedDemoAccountsIfMissing();
 
@@ -73,7 +109,7 @@ public class DataInitializer implements CommandLineRunner {
         createApprovedDoctor("Dr. Anita Mehra", "anita.mehra@smartcare360.com", "9876543217", "doc123",
                 "General Medicine", "MBBS, MD (Medicine)", 10, 500.0, "Mon - Sat (09:00 AM - 05:00 PM)", general);
 
-        createApprovedPatient("John Doe", "patient@smartcare360.com", "9876543214", "patient123",
+        User pat = createApprovedPatient("John Doe", "patient@smartcare360.com", "9876543214", "patient123",
                 34, "O+", "Male", "123 Health Ave, Metro City", "No major chronic conditions.");
 
         User labVendor = createApprovedVendor("Apex Diagnostics Lab", "lab@smartcare360.com", "9876543215", "vendor123",
@@ -91,6 +127,88 @@ public class DataInitializer implements CommandLineRunner {
         pharmacyProfile.setDeliveryArea("Hospital campus and 10 km city radius");
         userService.updateVendorProfile(pharmacyVendor.getId(), pharmacyProfile);
         seedPharmacyItemsIfMissing(pharmacyVendor);
+        seedSampleVideoConsultation(doc1, pat);
+        seedBloodBankDataIfMissing(doc1, pat);
+        seedInsuranceDataIfMissing(pat);
+    }
+
+    private void seedInsuranceDataIfMissing(User patient) {
+        if (insuranceRepository.findAll().isEmpty()) {
+            Insurance starInsurance = insuranceService.registerPolicy(
+                    patient,
+                    "Star Health & Allied Insurance",
+                    "STAR-HLTH-882910",
+                    "Comprehensive Family Floater",
+                    java.time.LocalDate.now().minusMonths(6),
+                    java.time.LocalDate.now().plusMonths(6),
+                    500000.0
+            );
+
+            // Create sample invoices for claims
+            Invoice inv1 = billingService.createInvoice(patient, "CONSULTATION", "Specialist Cardiology Consultation & Diagnostic Workup", 14500.0, null);
+            Invoice inv2 = billingService.createInvoice(patient, "LABORATORY", "Comprehensive Metabolic Panel, Echocardiogram & Blood Cross-Match", 28000.0, null);
+            Invoice inv3 = billingService.createInvoice(patient, "PHARMACY", "Post-Op Cardiac Medications & Anticoagulant Therapy", 8200.0, null);
+            Invoice inv4 = billingService.createInvoice(patient, "OTHER", "Inpatient High-Dependency Ward Stay & Transfusion Setup", 12000.0, null);
+
+            // Create sample claims in different states
+            insuranceService.submitClaim(starInsurance, inv1, 14500.0, "Pre-authorization claim submitted for OPD diagnostics", patient);
+
+            InsuranceClaim claim2 = insuranceService.submitClaim(starInsurance, inv2, 28000.0, "Emergency diagnostics and pre-surgical workup", patient);
+            claim2.setStatus("UNDER_REVIEW");
+            claim2.setRemarks("Insurer requested clinical history sheets and lab verification");
+            insuranceClaimRepository.save(claim2);
+
+            InsuranceClaim claim3 = insuranceService.submitClaim(starInsurance, inv3, 8200.0, "Critical post-operative specialty medication", patient);
+            claim3.setStatus("APPROVED");
+            claim3.setRemarks("Pre-authorized 100% cashless approval granted by TPA");
+            insuranceClaimRepository.save(claim3);
+
+            InsuranceClaim claim4 = insuranceService.submitClaim(starInsurance, inv4, 12000.0, "HD Care bed charges", patient);
+            claim4.setStatus("SETTLED");
+            claim4.setRemarks("Claim settled directly to hospital account via NEFT");
+            insuranceClaimRepository.save(claim4);
+        }
+    }
+
+    private void seedBloodBankDataIfMissing(User doctor, User patient) {
+        if (bloodBankService.getAllUnits().isEmpty()) {
+            bloodBankService.registerBloodUnit("BLD-O-1001", BloodGroup.O_POSITIVE, BloodComponentType.PACKED_RED_CELLS, "David Miller", "9876500111", 450, java.time.LocalDate.now().plusDays(35), null);
+            bloodBankService.registerBloodUnit("BLD-O-1002", BloodGroup.O_POSITIVE, BloodComponentType.WHOLE_BLOOD, "Sarah Connor", "9876500112", 450, java.time.LocalDate.now().plusDays(30), null);
+            bloodBankService.registerBloodUnit("BLD-A-1003", BloodGroup.A_POSITIVE, BloodComponentType.PACKED_RED_CELLS, "Robert Chen", "9876500113", 450, java.time.LocalDate.now().plusDays(40), null);
+            bloodBankService.registerBloodUnit("BLD-B-1004", BloodGroup.B_POSITIVE, BloodComponentType.PLATELETS, "Anita Sharma", "9876500114", 300, java.time.LocalDate.now().plusDays(5), null);
+            bloodBankService.registerBloodUnit("BLD-AB-1005", BloodGroup.AB_POSITIVE, BloodComponentType.FRESH_FROZEN_PLASMA, "Michael Scott", "9876500115", 250, java.time.LocalDate.now().plusDays(180), null);
+        }
+
+        if (prescriptionRepository.findByPatientOrderByCreatedAtDesc(patient).isEmpty()) {
+            List<PrescriptionItem> items = new java.util.ArrayList<>();
+            items.add(new PrescriptionItem("Iron Complex & Folic Acid", "100mg", "1-0-0", "30 Days", "Take with meals"));
+            prescriptionService.createPrescription(
+                    null, doctor, patient,
+                    "Severe Microcytic Anemia & Post-Surgical Recovery",
+                    "Requires 2 units packed red cells transfusion prior to elective surgery. Ensure cross-matching.",
+                    java.time.LocalDate.now().plusDays(14),
+                    items,
+                    BloodGroup.O_POSITIVE,
+                    BloodComponentType.PACKED_RED_CELLS,
+                    2,
+                    "Pre-operative blood transfusion for Hb optimization (Current Hb 6.8 g/dL)"
+            );
+        }
+    }
+
+    private void seedSampleVideoConsultation(User doctor, User patient) {
+        if (appointmentRepository.findByDoctorOrderByCreatedAtDesc(doctor).isEmpty()) {
+            Appointment appt = new Appointment();
+            appt.setDoctor(doctor);
+            appt.setPatient(patient);
+            appt.setAppointmentDate(java.time.LocalDate.now());
+            appt.setAppointmentTime(java.time.LocalTime.of(10, 0));
+            appt.setReason("Cardiology Follow-up Video Consultation");
+            appt.setStatus(AppointmentStatus.CONFIRMED);
+            appt.setConsultationType(ConsultationType.VIDEO);
+            appointmentRepository.save(appt);
+            videoConsultationService.createVideoRoom(appt);
+        }
     }
 
     private void seedLabTestsIfMissing(User labVendor) {

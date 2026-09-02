@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Language Settings')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="container" style="max-width: 1000px; margin: 2rem auto;">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="page-header" style="margin-bottom: 1.5rem;">
+            <div class="page-header-content">
+                <h1 style="color:#2563eb;display:flex;align-items:center;gap:10px;">
+                    <span>🌐</span> Language &amp; Accessibility Settings
+                </h1>
+                <p>Choose your preferred language for the SmartCare 360 Patient Portal. All pages, appointments, prescriptions, and medical reports will automatically adapt to your selection.</p>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="font-size:1.15rem;margin-bottom:0.5rem;color:#0f172a;">Select Your Preferred Language</h3>
+            <p style="font-size:0.88rem;color:#64748b;margin-bottom:1.5rem;">
+                Click any language card below to switch instantly. Your choice is saved across your sessions.
+            </p>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:1rem;">
+                
+                <!-- English -->
+                <div class="card lang-card" onclick="selectAndApplyLang('en', 'English')" id="card-en">
+                    <div style="font-size:2rem;margin-bottom:6px;">🇬🇧</div>
+                    <div style="font-weight:700;font-size:1.05rem;color:#0f172a;">English</div>
+                    <div style="font-size:0.82rem;color:#64748b;margin-top:2px;">Default International</div>
+                    <span class="badge badge-active" id="badge-en">Active</span>
+                </div>
+
+                <!-- Hindi -->
+                <div class="card lang-card" onclick="selectAndApplyLang('hi', 'हिन्दी (Hindi)')" id="card-hi">
+                    <div style="font-size:2rem;margin-bottom:6px;">🇮🇳</div>
+                    <div style="font-weight:700;font-size:1.05rem;color:#0f172a;">हिन्दी (Hindi)</div>
+                    <div style="font-size:0.82rem;color:#64748b;margin-top:2px;">National Language</div>
+                    <span class="badge badge-active" id="badge-hi">Active</span>
+                </div>
+
+                <!-- Spanish -->
+                <div class="card lang-card" onclick="selectAndApplyLang('es', 'Español (Spanish)')" id="card-es">
+                    <div style="font-size:2rem;margin-bottom:6px;">🇪🇸</div>
+                    <div style="font-weight:700;font-size:1.05rem;color:#0f172a;">Español</div>
+                    <div style="font-size:0.82rem;color:#64748b;margin-top:2px;">Spanish</div>
+                    <span class="badge badge-active" id="badge-es">Active</span>
+                </div>
+
+                <!-- French -->
+                <div class="card lang-card" onclick="selectAndApplyLang('fr', 'Français (French)')" id="card-fr">
+                    <div style="font-size:2rem;margin-bottom:6px;">🇫🇷</div>
+                    <div style="font-weight:700;font-size:1.05rem;color:#0f172a;">Français</div>
+                    <div style="font-size:0.82rem;color:#64748b;margin-top:2px;">French</div>
+                    <span class="badge badge-active" id="badge-fr">Active</span>
+                </div>
+
+                <!-- German -->
+                <div class="card lang-card" onclick="selectAndApplyLang('de', 'Deutsch (German)')" id="card-de">
+                    <div style="font-size:2rem;margin-bottom:6px;">🇩🇪</div>
+                    <div style="font-weight:700;font-size:1.05rem;color:#0f172a;">Deutsch</div>
+                    <div style="font-size:0.82rem;color:#64748b;margin-top:2px;">German</div>
+                    <span class="badge badge-active" id="badge-de">Active</span>
+                </div>
+
+                <!-- Arabic -->
+                <div class="card lang-card" onclick="selectAndApplyLang('ar', 'العربية (Arabic)')" id="card-ar">
+                    <div style="font-size:2rem;margin-bottom:6px;">🇸🇦</div>
+                    <div style="font-weight:700;font-size:1.05rem;color:#0f172a;">العربية</div>
+                    <div style="font-size:0.82rem;color:#64748b;margin-top:2px;">Arabic (RTL)</div>
+                    <span class="badge badge-active" id="badge-ar">Active</span>
+                </div>
+
+                <!-- Tamil -->
+                <div class="card lang-card" onclick="selectAndApplyLang('ta', 'தமிழ் (Tamil)')" id="card-ta">
+                    <div style="font-size:2rem;margin-bottom:6px;">🇮🇳</div>
+                    <div style="font-weight:700;font-size:1.05rem;color:#0f172a;">தமிழ் (Tamil)</div>
+                    <div style="font-size:0.82rem;color:#64748b;margin-top:2px;">Regional Language</div>
+                    <span class="badge badge-active" id="badge-ta">Active</span>
+                </div>
+
+                <!-- Telugu -->
+                <div class="card lang-card" onclick="selectAndApplyLang('te', 'తెలుగు (Telugu)')" id="card-te">
+                    <div style="font-size:2rem;margin-bottom:6px;">🇮🇳</div>
+                    <div style="font-weight:700;font-size:1.05rem;color:#0f172a;">తెలుగు (Telugu)</div>
+                    <div style="font-size:0.82rem;color:#64748b;margin-top:2px;">Regional Language</div>
+                    <span class="badge badge-active" id="badge-te">Active</span>
+                </div>
+
+                <!-- Kannada -->
+                <div class="card lang-card" onclick="selectAndApplyLang('kn', 'ಕನ್ನಡ (Kannada)')" id="card-kn">
+                    <div style="font-size:2rem;margin-bottom:6px;">🇮🇳</div>
+                    <div style="font-weight:700;font-size:1.05rem;color:#0f172a;">ಕನ್ನಡ (Kannada)</div>
+                    <div style="font-size:0.82rem;color:#64748b;margin-top:2px;">Regional Language</div>
+                    <span class="badge badge-active" id="badge-kn">Active</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Preview of Medical Vocabulary in Current Language -->
+        <div class="card" style="background:#f8fafc;border:1px solid #e2e8f0;">
+            <h3 style="font-size:1.05rem;color:#1e293b;margin-bottom:0.75rem;">🩺 Live Medical Vocabulary Preview</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:1rem;font-size:0.88rem;">
+                <div style="background:#fff;padding:10px;border-radius:6px;border:1px solid #cbd5e1;">
+                    <div style="color:#64748b;font-size:0.78rem;">Appointments</div>
+                    <div style="font-weight:700;font-size:0.95rem;color:#0f172a;" class="nav-text">Appointments</div>
+                </div>
+                <div style="background:#fff;padding:10px;border-radius:6px;border:1px solid #cbd5e1;">
+                    <div style="color:#64748b;font-size:0.78rem;">Prescriptions</div>
+                    <div style="font-weight:700;font-size:0.95rem;color:#0f172a;" class="nav-text">Prescriptions</div>
+                </div>
+                <div style="background:#fff;padding:10px;border-radius:6px;border:1px solid #cbd5e1;">
+                    <div style="color:#64748b;font-size:0.78rem;">Blood Bank &amp; Transfusion</div>
+                    <div style="font-weight:700;font-size:0.95rem;color:#0f172a;" class="nav-text">Buy Blood (Rx)</div>
+                </div>
+                <div style="background:#fff;padding:10px;border-radius:6px;border:1px solid #cbd5e1;">
+                    <div style="color:#64748b;font-size:0.78rem;">Live Queue Status</div>
+                    <div style="font-weight:700;font-size:0.95rem;color:#0f172a;" class="nav-text">Live Queue</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .lang-card {
+            cursor: pointer;
+            text-align: center;
+            padding: 1.5rem 1rem;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            background: #fff;
+        }
+        .lang-card:hover {
+            transform: translateY(-2px);
+            border-color: #3b82f6;
+            box-shadow: 0 4px 14px rgba(59,130,246,0.15);
+        }
+        .lang-card.selected {
+            border-color: #2563eb;
+            background: #eff6ff;
+            box-shadow: 0 4px 14px rgba(37,99,235,0.2);
+        }
+        .badge-active {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #16a34a;
+            color: #fff;
+            font-size: 0.72rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+        .lang-card.selected .badge-active {
+            display: inline-block;
+        }
+    </style>
+
+    <script>
+        function selectAndApplyLang(code, name) {
+            switchLanguage(code, name);
+            highlightCard(code);
+        }
+
+        function highlightCard(code) {
+            document.querySelectorAll('.lang-card').forEach(c => c.classList.remove('selected'));
+            const activeCard = document.getElementById('card-' + code);
+            if (activeCard) {
+                activeCard.classList.add('selected');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const current = getCurrentLanguage();
+            highlightCard(current);
+        });
+    </script>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Bed Booking & Availability')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="app-layout">
+        <aside th:replace="~{fragments/layout :: patient-sidebar}"></aside>
+
+        <main class="main-stage">
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+                <div>
+                    <h1 style="margin:0;font-size:1.75rem;color:var(--text-main);">🛏️ Bed Availability &amp; Booking</h1>
+                    <p style="margin:0.25rem 0 0;color:var(--text-muted);">Check available hospital beds and manage your inpatient bed booking requests.</p>
+                </div>
+                <div>
+                    <a href="/patient/book-bed" class="btn btn-primary" style="padding:0.6rem 1.2rem;font-weight:600;">
+                        ➕ Request Bed Booking
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Overview Cards -->
+            <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:1rem;margin-bottom:1.5rem;">
+                <div class="card" style="border-left:4px solid #10b981;padding:1.25rem;">
+                    <div style="color:var(--text-muted);font-size:0.85rem;font-weight:600;text-transform:uppercase;">Available Beds</div>
+                    <div style="font-size:1.8rem;font-weight:700;color:#10b981;margin-top:0.25rem;" th:text="${availableBedsCount}">0</div>
+                    <small style="color:var(--text-muted);">Ready for immediate allocation</small>
+                </div>
+
+                <div class="card" style="border-left:4px solid #3b82f6;padding:1.25rem;">
+                    <div style="color:var(--text-muted);font-size:0.85rem;font-weight:600;text-transform:uppercase;">Occupied Beds</div>
+                    <div style="font-size:1.8rem;font-weight:700;color:#3b82f6;margin-top:0.25rem;" th:text="${occupiedBedsCount}">0</div>
+                    <small style="color:var(--text-muted);">Currently in-service</small>
+                </div>
+
+                <div class="card" style="border-left:4px solid #6366f1;padding:1.25rem;">
+                    <div style="color:var(--text-muted);font-size:0.85rem;font-weight:600;text-transform:uppercase;">Total Hospital Capacity</div>
+                    <div style="font-size:1.8rem;font-weight:700;color:#6366f1;margin-top:0.25rem;" th:text="${totalBedsCount}">0</div>
+                    <small style="color:var(--text-muted);">Across all hospital wards</small>
+                </div>
+            </div>
+
+            <!-- My Bed Bookings & Admissions -->
+            <div class="card" style="margin-bottom:2rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h3 style="margin:0;font-size:1.2rem;">📋 My Bed Requests &amp; Admissions</h3>
+                </div>
+
+                <div th:if="${#lists.isEmpty(patientAdmissions)}" class="p-3 text-center" style="color:var(--text-muted);">
+                    You have no active or historical bed booking requests. <a href="/patient/book-bed">Request a bed now</a>.
+                </div>
+
+                <div th:if="${!#lists.isEmpty(patientAdmissions)}" class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Ward / Room / Bed</th>
+                                <th>Doctor</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="adm : ${patientAdmissions}">
+                                <td><strong th:text="${'#BED-' + adm.id}">#BED-1</strong></td>
+                                <td>
+                                    <span th:if="${adm.bed != null}" style="font-weight:600;color:var(--primary);"
+                                          th:text="${adm.bed.room.ward.name + ' - Room ' + adm.bed.room.roomNumber + ' (Bed ' + adm.bed.bedNumber + ')'}">
+                                        General Ward - Room 101 (Bed A)
+                                    </span>
+                                    <span th:if="${adm.bed == null}" style="color:var(--text-muted);font-style:italic;">Pending Bed Allocation</span>
+                                </td>
+                                <td th:text="${adm.doctor != null ? 'Dr. ' + adm.doctor.fullName : 'Hospital Staff'}">Dr. Smith</td>
+                                <td th:text="${adm.reason}">Admission Reason</td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${adm.status.name() == 'ADMITTED' ? 'badge-confirmed' : (adm.status.name() == 'REQUESTED' ? 'badge-pending' : (adm.status.name() == 'DISCHARGED' ? 'badge-completed' : 'badge-rejected'))}"
+                                          th:text="${adm.status.name()}">REQUESTED</span>
+                                </td>
+                                <td th:text="${adm.admissionDate != null ? #temporals.format(adm.admissionDate, 'dd MMM yyyy HH:mm') : 'Pending'}">Date</td>
+                                <td>
+                                    <form th:if="${adm.status.name() == 'REQUESTED'}" th:action="@{/patient/beds/{id}/cancel(id=${adm.id})}" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Cancel this bed request?')">Cancel Request</button>
+                                    </form>
+                                    <span th:if="${adm.status.name() != 'REQUESTED'}" style="color:var(--text-muted);font-size:0.85rem;">-</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Available Hospital Beds List -->
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <div>
+                        <h3 style="margin:0;font-size:1.2rem;">🏨 Available Hospital Beds &amp; Wards</h3>
+                        <p style="margin:0.2rem 0 0;color:var(--text-muted);font-size:0.9rem;">Browse realtime room types and daily rates across hospital wards</p>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(availableBeds)}" class="p-3 text-center" style="color:var(--text-muted);">
+                    No beds are currently available for instant booking. Please contact emergency desk or submit a booking request.
+                </div>
+
+                <div th:if="${!#lists.isEmpty(availableBeds)}" class="grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:1rem;">
+                    <div th:each="b : ${availableBeds}" class="card" style="border:1px solid #e2e8f0;padding:1.25rem;border-radius:var(--radius-md);background:#fafafa;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;">
+                            <div>
+                                <span class="badge badge-confirmed" style="font-size:0.75rem;">AVAILABLE</span>
+                                <h4 style="margin:0.35rem 0 0;font-size:1.1rem;color:var(--text-main);" th:text="${'Bed ' + b.bedNumber}">Bed G-101-A</h4>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-size:1.1rem;font-weight:700;color:var(--primary);" th:text="${'₹' + b.room.dailyRate + '/day'}">₹500/day</div>
+                                <small style="color:var(--text-muted);" th:text="${b.room.roomType}">Shared (3-Bed)</small>
+                            </div>
+                        </div>
+                        <div style="font-size:0.88rem;color:var(--text-muted);margin-bottom:1rem;">
+                            <div>🏢 <strong>Ward:</strong> <span th:text="${b.room.ward.name}">General Ward</span></div>
+                            <div>🚪 <strong>Room No:</strong> <span th:text="${b.room.roomNumber}">101</span></div>
+                            <div th:if="${b.room.ward.description}" style="margin-top:0.25rem;font-style:italic;" th:text="${b.room.ward.description}">Standard patient care unit.</div>
+                        </div>
+                        <a th:href="@{/patient/book-bed(bedId=${b.id})}" class="btn btn-primary btn-sm" style="width:100%;text-align:center;font-weight:600;">Book This Bed</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

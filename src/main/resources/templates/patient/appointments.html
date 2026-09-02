@@ -46,7 +46,10 @@
                                 <button type="submit" class="btn btn-success btn-sm">Check-In</button>
                             </form>
                             <span th:if="${app.queueTicket != null}" class="badge badge-role" th:text="${'Ticket ' + app.queueTicket}">#A101</span>
-                            <a th:if="${(app.status.name() == 'PENDING' or app.status.name() == 'CONFIRMED') and app.queueTicket == null}"
+                            <a th:if="${app.status.name() == 'CONFIRMED' || app.status.name() == 'PENDING'}"
+                               th:href="@{/patient/appointments/{id}/pre-checkin(id=${app.id})}"
+                               class="btn btn-success btn-sm" style="background:#10b981;border-color:#10b981;font-weight:600;">📋 Pre-Check-In</a>
+                            <a th:if="${app.status.name() != 'COMPLETED' && app.status.name() != 'CANCELLED' && app.status.name() != 'REJECTED'}"
                                th:href="@{/patient/appointments/{id}/reschedule(id=${app.id})}" class="btn btn-secondary btn-sm">Reschedule</a>
                             <form th:if="${app.status.name() != 'COMPLETED' && app.status.name() != 'CANCELLED' && app.status.name() != 'REJECTED' && app.queueTicket == null}"
                                   th:action="@{/patient/appointments/{id}/cancel(id=${app.id})}" method="post" style="display:inline;">

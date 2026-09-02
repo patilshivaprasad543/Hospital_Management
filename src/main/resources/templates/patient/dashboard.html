@@ -4,115 +4,157 @@
 <body>
     <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
 
-    <div class="container">
-        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div class="app-layout">
+        <!-- Grouped Navigation Sidebar -->
+        <aside th:replace="~{fragments/layout :: patient-sidebar}"></aside>
 
-        <div class="page-header">
-            <div class="page-header-content">
-                <h1 th:text="'Welcome, ' + ${patient.fullName}">Welcome, Patient</h1>
-                <p>Manage your appointments, prescriptions, and health records</p>
-            </div>
-            <div class="page-header-actions">
-                <a href="/patient/book-appointment" class="btn btn-primary">Book Appointment</a>
-            </div>
-        </div>
+        <!-- Main Content Area -->
+        <main class="main-stage">
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
-        <div th:if="${!#lists.isEmpty(announcements)}" class="announcement-banner">
-            <div th:each="a : ${announcements}" class="announcement-item">
-                <strong th:text="${a.title}">Notice</strong>
-                <p th:text="${a.message}">Message</p>
-            </div>
-        </div>
-
-        <div class="grid" style="margin-bottom:1.5rem;">
-            <div class="card emergency-card">
-                <h3>Emergency Contacts</h3>
-                <p><strong>Hospital Emergency:</strong> 108 / +91 1800-360-2478</p>
-                <p th:if="${profile.emergencyContactName != null}">
-                    <strong>Your Emergency Contact:</strong>
-                    <span th:text="${profile.emergencyContactName}">Name</span> —
-                    <span th:text="${profile.emergencyContactPhone}">Phone</span>
-                </p>
-                <p th:if="${profile.emergencyContactName == null}" class="text-muted">
-                    <a href="/patient/profile">Add emergency contact</a> in your profile.
-                </p>
-            </div>
-            <div class="card">
-                <h3>Quick Actions</h3>
-                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;">
-                    <a href="/patient/symptom-wizard" class="btn btn-secondary btn-sm">Symptom Checker</a>
-                    <a href="/patient/timeline" class="btn btn-secondary btn-sm">Health Timeline</a>
-                    <a href="/patient/records" class="btn btn-secondary btn-sm">Medical Records</a>
-                    <a href="/patient/prescriptions" class="btn btn-secondary btn-sm">Prescriptions</a>
-                    <a href="/patient/pharmacy-orders" class="btn btn-secondary btn-sm">Pharmacy Orders</a>
-                    <a href="/patient/lab-reports" class="btn btn-secondary btn-sm">Lab Reports</a>
-                    <a href="/notifications" class="btn btn-secondary btn-sm">Notifications</a>
+            <!-- Hero Top Greeting Card -->
+            <div class="card" style="background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%);color:#fff;padding:1.75rem;border-radius:var(--radius-lg);margin-bottom:1.5rem;box-shadow:var(--shadow-md);">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+                    <div>
+                        <h2 style="color:#fff;margin:0;font-size:1.6rem;" th:text="'Good Morning, ' + ${patient.fullName}">Good Morning, Patient</h2>
+                        <p style="color:#94a3b8;margin-top:0.35rem;font-size:0.95rem;">How can SmartCare 360 help you today?</p>
+                    </div>
+                    <div style="display:flex;gap:0.75rem;">
+                        <a href="/patient/book-appointment" class="btn btn-primary btn-sm">📅 Book Appointment</a>
+                        <a href="/emergency/dashboard" class="btn btn-danger btn-sm">🚨 Emergency Help</a>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="grid">
-            <div class="card stat-card">
-                <div class="card-title">Total Appointments</div>
-                <div class="stat-number" th:text="${#lists.size(appointments)}">0</div>
+            <!-- Quick Action Grid (5 Primary CTAs) -->
+            <div class="quick-action-grid">
+                <a href="/patient/book-appointment" class="quick-action-card">
+                    <div class="quick-action-icon">📅</div>
+                    <span>Book Appointment</span>
+                </a>
+                <a href="/patient/video-consultations" class="quick-action-card">
+                    <div class="quick-action-icon">🎥</div>
+                    <span>Join Consultation</span>
+                </a>
+                <a href="/patient/prescriptions" class="quick-action-card">
+                    <div class="quick-action-icon">💊</div>
+                    <span>View Prescription</span>
+                </a>
+                <a href="/patient/lab-reports" class="quick-action-card">
+                    <div class="quick-action-icon">🧪</div>
+                    <span>View Reports</span>
+                </a>
+                <a href="/patient/beds" class="quick-action-card">
+                    <div class="quick-action-icon">🛏️</div>
+                    <span>Bed Booking</span>
+                </a>
+                <a href="/patient/bills" class="quick-action-card">
+                    <div class="quick-action-icon">💳</div>
+                    <span>Pay Bills</span>
+                </a>
             </div>
-            <div class="card stat-card">
-                <div class="card-title">Blood Group</div>
-                <div class="stat-number danger" th:text="${profile.bloodGroup != null ? profile.bloodGroup : 'N/A'}">O+</div>
-            </div>
-            <div class="card stat-card">
-                <div class="card-title">Available Doctors</div>
-                <div class="stat-number success" th:text="${#lists.size(doctors)}">0</div>
-            </div>
-        </div>
 
-        <div th:if="${!#lists.isEmpty(prescriptions)}" style="margin-bottom: 1.5rem;">
-            <h3 class="section-title">Recent Prescriptions — Order Medicines</h3>
-            <div class="grid">
-                <div class="card" th:each="rx : ${prescriptions}" th:if="${rxStat.index < 3}">
-                    <div class="card-title" th:text="${'Rx #' + rx.id + ' — Dr. ' + rx.doctor.fullName}">Prescription</div>
-                    <p th:text="${rx.diagnosis}">Diagnosis</p>
-                    <ul style="margin:0.5rem 0 0.75rem 1.2rem;font-size:0.88rem;">
-                        <li th:each="item : ${rx.items}" th:text="${item.medicineName}">Medicine</li>
-                    </ul>
-                    <a href="/patient/prescriptions" class="btn btn-success btn-sm">Order Medicines</a>
+            <!-- Main Dashboard Content Grid -->
+            <div class="grid" style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;">
+                <div>
+                    <!-- Upcoming Next Appointment Card -->
+                    <div class="card" style="margin-bottom:1.5rem;border-left:4px solid var(--primary);">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                            <h3 style="margin:0;">🗓️ Upcoming Appointment</h3>
+                            <span class="badge badge-confirmed">Confirmed</span>
+                        </div>
+                        <div th:if="${!#lists.isEmpty(appointments)}">
+                            <div th:with="nextApp=${appointments[0]}" style="display:flex;align-items:center;gap:1.25rem;">
+                                <div style="width:52px;height:52px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;">
+                                    🩺
+                                </div>
+                                <div style="flex:1;">
+                                    <h4 style="margin:0;font-size:1.1rem;" th:text="${'Dr. ' + nextApp.doctor.fullName}">Dr. Smith</h4>
+                                    <p style="margin:2px 0;color:var(--text-muted);font-size:0.88rem;" th:text="${nextApp.appointmentDate + ' at ' + nextApp.appointmentTime}">10:30 AM</p>
+                                    <small style="color:var(--primary);" th:text="${'Reason: ' + (nextApp.reason != null ? nextApp.reason : 'General Checkup')}">Cardiology</small>
+                                </div>
+                                <div style="display:flex;gap:0.5rem;">
+                                    <a href="/patient/appointments" class="btn btn-outline btn-sm">View</a>
+                                    <a href="/patient/video-consultations" class="btn btn-primary btn-sm">Join Video</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${#lists.isEmpty(appointments)}" class="p-3 text-center" style="color:var(--text-muted);">
+                            No upcoming appointments scheduled. <a href="/patient/book-appointment">Book one now</a>.
+                        </div>
+                    </div>
+
+                    <!-- Recent Appointments Table -->
+                    <div class="card">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                            <h3 style="margin:0;">📋 Appointment History</h3>
+                            <a href="/patient/appointments" class="small text-muted">View All</a>
+                        </div>
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Doctor</th>
+                                        <th>Date &amp; Time</th>
+                                        <th>Reason</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="app, iter : ${appointments}" th:if="${iter.index < 4}">
+                                        <td th:text="${'Dr. ' + app.doctor.fullName}">Dr. Smith</td>
+                                        <td th:text="${app.appointmentDate + ' ' + app.appointmentTime}">2026-08-20</td>
+                                        <td th:text="${app.reason != null ? app.reason : 'Consultation'}">Reason</td>
+                                        <td>
+                                            <span class="badge" th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : 'badge-pending'}" th:text="${app.status.label}">CONFIRMED</span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(appointments)}" class="table-empty">
+                                        <td colspan="4">No appointments scheduled.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Health Summary & Need Help -->
+                <div style="display:flex;flex-direction:column;gap:1.5rem;">
+                    <!-- Health Summary Card -->
+                    <div class="card">
+                        <h3 style="margin-top:0;">📊 Health Summary</h3>
+                        <div style="display:flex;flex-direction:column;gap:0.85rem;margin-top:1rem;">
+                            <div style="display:flex;justify-content:space-between;padding:0.6rem;background:var(--bg-page);border-radius:var(--radius-sm);">
+                                <span style="color:var(--text-muted);font-size:0.88rem;">Blood Group</span>
+                                <strong style="color:var(--danger);" th:text="${profile.bloodGroup != null ? profile.bloodGroup : 'O+'}">O+</strong>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;padding:0.6rem;background:var(--bg-page);border-radius:var(--radius-sm);">
+                                <span style="color:var(--text-muted);font-size:0.88rem;">Total Appointments</span>
+                                <strong th:text="${#lists.size(appointments)}">0</strong>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;padding:0.6rem;background:var(--bg-page);border-radius:var(--radius-sm);">
+                                <span style="color:var(--text-muted);font-size:0.88rem;">Active Prescriptions</span>
+                                <strong style="color:var(--success);" th:text="${#lists.size(prescriptions)}">0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emergency & Assistance Card -->
+                    <div class="card" style="background:#fff1f2;border:1px solid #fecdd3;">
+                        <h3 style="color:#e11d48;margin-top:0;">🚑 Need Emergency Assistance?</h3>
+                        <p style="font-size:0.88rem;color:#9f1239;margin-bottom:1rem;">24/7 Hospital Helpline and Instant Ambulance Dispatch.</p>
+                        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                            <a href="/patient/ambulance" class="btn btn-danger btn-sm w-100">🚨 Dispatch Ambulance</a>
+                            <a href="/patient/multihub-chat" class="btn btn-outline btn-sm w-100">💬 Chat Support</a>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <h3 class="section-title">Recent Appointments</h3>
-        <div class="table-container">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Doctor</th>
-                        <th>Specialization</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Reason</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="app : ${appointments}">
-                        <td th:text="${app.doctor.fullName}">Dr. Smith</td>
-                        <td th:text="${app.doctor.email}">Specialist</td>
-                        <td th:text="${app.appointmentDate}">2026-08-20</td>
-                        <td th:text="${app.appointmentTime}">10:00 AM</td>
-                        <td th:text="${app.reason != null ? app.reason : 'Consultation'}">Reason</td>
-                        <td>
-                            <span class="badge"
-                                  th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : 'badge-rejected')}"
-                                  th:text="${app.status.label}">Status</span>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(appointments)}" class="table-empty">
-                        <td colspan="6">No appointments scheduled. Book an appointment to get started.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        </main>
     </div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <div th:replace="~{fragments/layout :: mobile-bottom-nav}"></div>
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>
     <script th:src="@{/js/main.js}"></script>

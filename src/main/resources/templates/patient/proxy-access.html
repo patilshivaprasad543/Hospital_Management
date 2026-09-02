@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Family Proxy Access')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="app-layout">
+        <aside th:replace="~{fragments/layout :: patient-sidebar}"></aside>
+
+        <main class="main-stage">
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <div class="page-header" style="margin-bottom:1.5rem;">
+                <h1 style="margin:0;font-size:1.75rem;color:var(--text-main);">👨‍👩‍👧 Family &amp; Caregiver Proxy Access</h1>
+                <p style="margin:0.25rem 0 0;color:var(--text-muted);">Mayo Clinic-style proxy access allows you to grant trusted family members or caregivers permission to manage health records and appointments on your behalf.</p>
+            </div>
+
+            <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;">
+                <!-- Grant Proxy Access Form -->
+                <div class="card" style="padding:1.5rem;">
+                    <h3 style="margin-top:0;font-size:1.2rem;">➕ Grant Access to a Caregiver / Family Member</h3>
+                    
+                    <form th:action="@{/patient/proxy-access/add}" method="post">
+                        <div class="form-group" style="margin-bottom:1rem;">
+                            <label style="font-weight:600;display:block;margin-bottom:0.4rem;">Caregiver / Family Member Email <span style="color:#ef4444;">*</span></label>
+                            <input type="email" name="proxyEmail" class="form-control" placeholder="caregiver@email.com" required>
+                            <small style="color:var(--text-muted);">Must be a registered patient account on SmartCare 360.</small>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:1rem;">
+                            <label style="font-weight:600;display:block;margin-bottom:0.4rem;">Relationship <span style="color:#ef4444;">*</span></label>
+                            <select name="relationship" class="form-control" required>
+                                <option value="">-- Select Relationship --</option>
+                                <option value="Spouse">Spouse / Partner</option>
+                                <option value="Parent">Parent / Legal Guardian</option>
+                                <option value="Child">Adult Child</option>
+                                <option value="Sibling">Sibling</option>
+                                <option value="Caregiver">Designated Caregiver</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:1.25rem;">
+                            <label style="font-weight:600;display:block;margin-bottom:0.4rem;">Access Level</label>
+                            <select name="accessLevel" class="form-control">
+                                <option value="FULL_ACCESS">Full Access (View Records &amp; Book Appointments)</option>
+                                <option value="APPOINTMENTS_ONLY">Appointments Only</option>
+                                <option value="READ_ONLY">Read Only Medical Records</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">Grant Proxy Access</button>
+                    </form>
+                </div>
+
+                <!-- Info Card -->
+                <div class="card" style="padding:1.5rem;background:#f8fafc;border:1px solid #e2e8f0;">
+                    <h4 style="margin:0 0 0.5rem;color:var(--primary);">ℹ️ About Family Proxy Access</h4>
+                    <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.5;margin-bottom:1rem;">
+                        Caregiver proxy access lets family members help coordinate care, view lab results, and message doctors. You remain in full control and can revoke access anytime.
+                    </p>
+                    <div style="background:#eff6ff;padding:0.75rem;border-radius:var(--radius-sm);border-left:3px solid #3b82f6;font-size:0.85rem;color:#1e40af;">
+                        🔒 All proxy delegations are logged in security audit history for patient protection.
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Authorized Caregivers List -->
+            <div class="card" style="margin-bottom:2rem;">
+                <h3 style="margin-top:0;font-size:1.2rem;">👥 Caregivers Authorized for My Account</h3>
+                
+                <div th:if="${#lists.isEmpty(myCaregivers)}" class="p-3 text-center" style="color:var(--text-muted);">
+                    You have not authorized any family members or caregivers yet.
+                </div>
+
+                <div th:if="${!#lists.isEmpty(myCaregivers)}" class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Caregiver Name</th>
+                                <th>Email</th>
+                                <th>Relationship</th>
+                                <th>Access Level</th>
+                                <th>Granted Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p : ${myCaregivers}">
+                                <td th:text="${p.proxyUser.fullName}">Caregiver Name</td>
+                                <td th:text="${p.proxyUser.email}">caregiver@email.com</td>
+                                <td><span class="badge badge-confirmed" th:text="${p.relationship}">Spouse</span></td>
+                                <td th:text="${p.accessLevel}">FULL_ACCESS</td>
+                                <td th:text="${#temporals.format(p.createdAt, 'dd MMM yyyy')}">Date</td>
+                                <td>
+                                    <form th:action="@{/patient/proxy-access/{id}/revoke(id=${p.id})}" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Revoke proxy access?')">Revoke Access</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Dependents / Family Members I Manage -->
+            <div class="card">
+                <h3 style="margin-top:0;font-size:1.2rem;">👶 Family Accounts I Manage as Caregiver</h3>
+                
+                <div th:if="${#lists.isEmpty(managingDependents)}" class="p-3 text-center" style="color:var(--text-muted);">
+                    No family members have authorized you as a caregiver proxy.
+                </div>
+
+                <div th:if="${!#lists.isEmpty(managingDependents)}" class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Patient Name</th>
+                                <th>Contact</th>
+                                <th>Relationship</th>
+                                <th>Access Level</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="m : ${managingDependents}">
+                                <td th:text="${m.patient.fullName}">John Doe</td>
+                                <td th:text="${m.patient.email}">patient@email.com</td>
+                                <td><span class="badge badge-confirmed" th:text="${m.relationship}">Child</span></td>
+                                <td th:text="${m.accessLevel}">FULL_ACCESS</td>
+                                <td>
+                                    <a href="/patient/dashboard" class="btn btn-outline btn-sm">View Patient Dashboard</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

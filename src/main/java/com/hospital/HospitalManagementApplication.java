@@ -2,16 +2,19 @@ package com.hospital;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 @SpringBootApplication
-@EnableAsync
-@EnableScheduling
-public class HospitalManagementApplication {
+public class HospitalManagementApplication extends SpringBootServletInitializer {
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(HospitalManagementApplication.class);
+    }
 
     public static void main(String[] args) {
-        com.hospital.config.LocalEnvLoader.load();
         SpringApplication.run(HospitalManagementApplication.class, args);
     }
+
 }

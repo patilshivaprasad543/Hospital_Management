@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Appointment Pre-Check-In')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="app-layout">
+        <aside th:replace="~{fragments/layout :: patient-sidebar}"></aside>
+
+        <main class="main-stage">
+            <div class="page-header" style="margin-bottom:1.5rem;">
+                <h1 style="margin:0;font-size:1.75rem;color:var(--text-main);">📋 Appointment Digital Pre-Check-In</h1>
+                <p style="margin:0.25rem 0 0;color:var(--text-muted);">Save time at the clinic by completing your intake questionnaire prior to your appointment.</p>
+            </div>
+
+            <div class="card" style="padding:1.75rem;max-width:800px;">
+                <div style="background:#eff6ff;border:1px solid #bfdbfe;padding:1rem;border-radius:var(--radius-md);margin-bottom:1.5rem;">
+                    <h4 style="margin:0 0 0.5rem;color:#1e40af;" th:text="${'Appointment #' + appointment.id + ' — Dr. ' + appointment.doctor.fullName}">Appointment Info</h4>
+                    <div style="font-size:0.88rem;color:#1e3a8a;">
+                        📅 Date: <strong th:text="${appointment.appointmentDate}">2026-08-31</strong> &nbsp;|&nbsp; 
+                        ⏰ Time: <strong th:text="${appointment.appointmentTime}">10:00 AM</strong>
+                    </div>
+                </div>
+
+                <form th:action="@{/patient/appointments/{id}/pre-checkin(id=${appointment.id})}" method="post">
+                    <div class="form-group" style="margin-bottom:1.25rem;">
+                        <label style="font-weight:600;display:block;margin-bottom:0.5rem;">Known Allergies / Sensitivities</label>
+                        <input type="text" name="confirmedAllergies" class="form-control"
+                               placeholder="e.g. Penicillin, Latex, Peanuts, None"
+                               th:value="${preCheckIn != null ? preCheckIn.confirmedAllergies : ''}">
+                        <small style="color:var(--text-muted);">List any drug or environmental allergies.</small>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:1.25rem;">
+                        <label style="font-weight:600;display:block;margin-bottom:0.5rem;">Current Medications &amp; Supplements</label>
+                        <textarea name="currentMedications" class="form-control" rows="3"
+                                  placeholder="List all prescriptions, over-the-counter meds, or supplements currently taking."
+                                  th:text="${preCheckIn != null ? preCheckIn.currentMedications : ''}"></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:1.25rem;">
+                        <label style="font-weight:600;display:block;margin-bottom:0.5rem;">Chief Complaint / Reason for Visit Today</label>
+                        <input type="text" name="chiefComplaint" class="form-control" required
+                               placeholder="Describe primary symptom or reason for visit today"
+                               th:value="${preCheckIn != null ? preCheckIn.chiefComplaint : appointment.reason}">
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+                        <div class="form-group">
+                            <label style="font-weight:600;display:block;margin-bottom:0.5rem;">Emergency Contact Name</label>
+                            <input type="text" name="emergencyContactName" class="form-control"
+                                   placeholder="Full Name"
+                                   th:value="${preCheckIn != null ? preCheckIn.emergencyContactName : ''}">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight:600;display:block;margin-bottom:0.5rem;">Emergency Contact Phone</label>
+                            <input type="text" name="emergencyContactPhone" class="form-control"
+                                   placeholder="Mobile Number"
+                                   th:value="${preCheckIn != null ? preCheckIn.emergencyContactPhone : ''}">
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:1rem;align-items:center;">
+                        <button type="submit" class="btn btn-success" style="padding:0.75rem 1.5rem;font-weight:600;background:#10b981;border-color:#10b981;">
+                            ✅ Complete Pre-Check-In
+                        </button>
+                        <a href="/patient/appointments" class="btn btn-outline">Back to Appointments</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${article.title})}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="app-layout">
+        <aside th:replace="~{fragments/layout :: patient-sidebar}"></aside>
+
+        <main class="main-stage">
+            <div style="margin-bottom:1rem;">
+                <a href="/health-library" class="btn btn-outline btn-sm">&larr; Back to Health Library</a>
+            </div>
+
+            <div class="card" style="padding:2rem;max-width:900px;">
+                <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;">
+                    <span style="font-size:2.5rem;" th:text="${article.iconEmoji}">❤️</span>
+                    <div>
+                        <span class="badge badge-confirmed" th:text="${article.category}">Category</span>
+                        <h1 style="margin:0.25rem 0 0;font-size:1.8rem;color:var(--text-main);" th:text="${article.title}">Title</h1>
+                    </div>
+                </div>
+
+                <div style="font-size:1.05rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.6;padding:1rem;background:#f8fafc;border-left:4px solid var(--primary);border-radius:var(--radius-sm);" th:text="${article.summary}">
+                    Summary
+                </div>
+
+                <h3 style="color:var(--text-main);margin-top:1.5rem;">Overview &amp; Pathology</h3>
+                <p style="font-size:0.95rem;line-height:1.6;color:var(--text-main);" th:text="${article.content}">Content</p>
+
+                <h3 style="color:var(--text-main);margin-top:1.5rem;">Key Symptoms</h3>
+                <p style="font-size:0.95rem;line-height:1.6;color:var(--text-main);" th:text="${article.symptomsInfo}">Symptoms</p>
+
+                <h3 style="color:var(--text-main);margin-top:1.5rem;">Treatment &amp; Therapies</h3>
+                <p style="font-size:0.95rem;line-height:1.6;color:var(--text-main);" th:text="${article.treatmentInfo}">Treatment</p>
+
+                <h3 style="color:var(--text-main);margin-top:1.5rem;">Prevention &amp; Lifestyle Management</h3>
+                <p style="font-size:0.95rem;line-height:1.6;color:var(--text-main);" th:text="${article.preventionTips}">Prevention</p>
+
+                <div style="margin-top:2rem;padding:1rem;background:#eff6ff;border-radius:var(--radius-md);border:1px solid #bfdbfe;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+                    <div>
+                        <strong style="color:#1e40af;">Need medical guidance regarding this condition?</strong>
+                        <p style="margin:0.2rem 0 0;font-size:0.88rem;color:#1e3a8a;">Schedule a consultation with our hospital specialists.</p>
+                    </div>
+                    <a href="/patient/doctors" class="btn btn-primary btn-sm">📅 Consult Doctor</a>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

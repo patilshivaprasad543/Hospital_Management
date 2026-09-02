@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Admin - Bed Allocation & Operations')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
+
+    <div class="app-layout">
+        <aside th:replace="~{fragments/layout :: admin-sidebar}"></aside>
+
+        <main class="main-stage">
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+                <div>
+                    <h1 style="margin:0;font-size:1.75rem;color:var(--text-main);">🛏️ Bed Allocation &amp; Operations Management</h1>
+                    <p style="margin:0.25rem 0 0;color:var(--text-muted);">Allocate beds to incoming patient requests, manage inpatient admissions, and monitor hospital ward capacity.</p>
+                </div>
+            </div>
+
+            <!-- Stats Overview Row -->
+            <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1rem;margin-bottom:1.5rem;">
+                <div class="card" style="border-left:4px solid #f59e0b;padding:1.25rem;">
+                    <div style="color:var(--text-muted);font-size:0.85rem;font-weight:600;text-transform:uppercase;">Pending Allocation</div>
+                    <div style="font-size:1.8rem;font-weight:700;color:#d97706;margin-top:0.25rem;" th:text="${pendingRequestsCount}">0</div>
+                    <small style="color:var(--text-muted);">Patient bed requests waiting</small>
+                </div>
+
+                <div class="card" style="border-left:4px solid #10b981;padding:1.25rem;">
+                    <div style="color:var(--text-muted);font-size:0.85rem;font-weight:600;text-transform:uppercase;">Available Beds</div>
+                    <div style="font-size:1.8rem;font-weight:700;color:#10b981;margin-top:0.25rem;" th:text="${availableBedsCount}">0</div>
+                    <small style="color:var(--text-muted);">Ready for allocation</small>
+                </div>
+
+                <div class="card" style="border-left:4px solid #3b82f6;padding:1.25rem;">
+                    <div style="color:var(--text-muted);font-size:0.85rem;font-weight:600;text-transform:uppercase;">Occupied Beds</div>
+                    <div style="font-size:1.8rem;font-weight:700;color:#3b82f6;margin-top:0.25rem;" th:text="${occupiedBedsCount}">0</div>
+                    <small style="color:var(--text-muted);">Currently admitted patients</small>
+                </div>
+
+                <div class="card" style="border-left:4px solid #ef4444;padding:1.25rem;">
+                    <div style="color:var(--text-muted);font-size:0.85rem;font-weight:600;text-transform:uppercase;">Maintenance Beds</div>
+                    <div style="font-size:1.8rem;font-weight:700;color:#ef4444;margin-top:0.25rem;" th:text="${maintenanceBedsCount}">0</div>
+                    <small style="color:var(--text-muted);">Out of service</small>
+                </div>
+
+                <div class="card" style="border-left:4px solid #6366f1;padding:1.25rem;">
+                    <div style="color:var(--text-muted);font-size:0.85rem;font-weight:600;text-transform:uppercase;">Total Beds</div>
+                    <div style="font-size:1.8rem;font-weight:700;color:#6366f1;margin-top:0.25rem;" th:text="${totalBedsCount}">0</div>
+                    <small style="color:var(--text-muted);">Total hospital bed count</small>
+                </div>
+            </div>
+
+            <!-- Direct Bed Allocation & Admission Form Card -->
+            <div class="card" style="margin-bottom:2rem;border-top:4px solid #10b981;background:#f8fafc;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <div>
+                        <h3 style="margin:0;font-size:1.25rem;color:var(--text-main);">⚡ Direct Bed Allocation &amp; Walk-In Admission</h3>
+                        <p style="margin:0.2rem 0 0;color:var(--text-muted);font-size:0.88rem;">Allocate a hospital bed directly to any patient immediately.</p>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(availableBeds)}" class="alert alert-danger" style="margin-bottom:1rem;">
+                    ⚠️ No beds are currently <strong>AVAILABLE</strong>. Scroll down to "Hospital Beds &amp; Ward Inventory" to set a bed status to AVAILABLE or add a new bed.
+                </div>
+
+                <form th:action="@{/admin/beds/direct-allocate}" method="post" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1rem;align-items:end;">
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:0.85rem;font-weight:600;">Select Patient *</label>
+                        <select name="patientId" class="form-control" required th:disabled="${#lists.isEmpty(availableBeds)}">
+                            <option value="">-- Choose Patient --</option>
+                            <option th:each="p : ${patients}" th:value="${p.id}" th:text="${p.fullName + ' (' + (p.mobileNumber != null ? p.mobileNumber : p.email) + ')'}">John Doe</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:0.85rem;font-weight:600;">Select Available Bed *</label>
+                        <select name="bedId" class="form-control" required th:disabled="${#lists.isEmpty(availableBeds)}">
+                            <option value="">-- Choose Bed --</option>
+                            <option th:each="b : ${availableBeds}" th:value="${b.id}" th:text="${b.bedNumber + ' — ' + b.room.ward.name + ' (Room ' + b.room.roomNumber + ')'}">Bed G-101-A</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:0.85rem;font-weight:600;">Attending Doctor (Optional)</label>
+                        <select name="doctorId" class="form-control" th:disabled="${#lists.isEmpty(availableBeds)}">
+                            <option value="">-- Select Doctor --</option>
+                            <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${'Dr. ' + d.fullName}">Dr. Smith</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:0.85rem;font-weight:600;">Admission Reason</label>
+                        <input type="text" name="reason" class="form-control" placeholder="e.g. Inpatient Care, Surgery" th:disabled="${#lists.isEmpty(availableBeds)}">
+                    </div>
+
+                    <div style="margin:0;grid-column:1 / -1;display:flex;justify-content:flex-end;margin-top:0.5rem;">
+                        <button type="submit" class="btn btn-success" style="font-weight:600;padding:0.65rem 1.75rem;background:#10b981;border-color:#10b981;" th:disabled="${#lists.isEmpty(availableBeds)}">
+                            ⚡ Allocate Bed &amp; Admit Patient
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Pending Bed Booking Requests Table -->
+            <div class="card" style="margin-bottom:2rem;border-top:4px solid #f59e0b;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <div>
+                        <h3 style="margin:0;font-size:1.25rem;">⏳ Pending Patient Bed Allocation Requests</h3>
+                        <p style="margin:0.2rem 0 0;color:var(--text-muted);font-size:0.88rem;">Allocate an available hospital bed to confirm patient admission request.</p>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(pendingRequests)}" class="p-3 text-center" style="color:var(--text-muted);">
+                    No pending bed booking requests at this time. Use the direct allocation form above to admit a walk-in patient.
+                </div>
+
+                <div th:if="${!#lists.isEmpty(pendingRequests)}" class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Patient Name</th>
+                                <th>Doctor</th>
+                                <th>Admission Reason</th>
+                                <th>Notes</th>
+                                <th>Patient Selected Bed &amp; Allocation</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="req : ${pendingRequests}">
+                                <td><strong th:text="${'#BED-' + req.id}">#BED-1</strong></td>
+                                <td>
+                                    <strong th:text="${req.patient.fullName}">Patient Name</strong>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);" th:text="${req.patient.email + ' | ' + req.patient.mobileNumber}">Contact</div>
+                                </td>
+                                <td th:text="${req.doctor != null ? 'Dr. ' + req.doctor.fullName : 'General Medical Desk'}">Doctor</td>
+                                <td th:text="${req.reason}">Reason</td>
+                                <td th:text="${req.notes != null ? req.notes : 'N/A'}">Notes</td>
+                                <td>
+                                    <!-- Patient selected a specific bed -->
+                                    <div th:if="${req.bed != null}" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                                        <span class="badge badge-confirmed" style="font-size:0.85rem;font-weight:600;padding:0.4rem 0.6rem;"
+                                              th:text="${'Bed ' + req.bed.bedNumber + ' (' + req.bed.room.ward.name + ' - Room ' + req.bed.room.roomNumber + ')'}">
+                                            Bed G-101-A (General Ward)
+                                        </span>
+                                        <form th:action="@{/admin/beds/allocate}" method="post" style="display:inline;">
+                                            <input type="hidden" name="admissionId" th:value="${req.id}"/>
+                                            <input type="hidden" name="bedId" th:value="${req.bed.id}"/>
+                                            <button type="submit" class="btn btn-success btn-sm" style="font-weight:600;white-space:nowrap;background:#10b981;border-color:#10b981;">
+                                                ✅ Allocate Selected Bed (<span th:text="${req.bed.bedNumber}">G-101-A</span>)
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <!-- Fallback if no bed was pre-selected by patient -->
+                                    <div th:if="${req.bed == null}">
+                                        <form th:action="@{/admin/beds/allocate}" method="post" style="display:flex;gap:0.5rem;align-items:center;">
+                                            <input type="hidden" name="admissionId" th:value="${req.id}"/>
+                                            <select name="bedId" class="form-control" style="width:auto;min-width:180px;" required>
+                                                <option value="">-- Choose Bed --</option>
+                                                <option th:each="b : ${availableBeds}"
+                                                        th:value="${b.id}"
+                                                        th:text="${b.bedNumber + ' (' + b.room.ward.name + ' - Room ' + b.room.roomNumber + ')'}">
+                                                    G-101-A (General Ward)
+                                                </option>
+                                            </select>
+                                            <button type="submit" class="btn btn-success btn-sm" style="font-weight:600;white-space:nowrap;background:#10b981;border-color:#10b981;">
+                                                ✅ Allocate &amp; Admit
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                                <td>
+                                    <form th:action="@{/admin/beds/reject}" method="post" style="display:inline;">
+                                        <input type="hidden" name="admissionId" th:value="${req.id}"/>
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Reject this bed request?')">Reject</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Currently Admitted Inpatients & Beds -->
+            <div class="card" style="margin-bottom:2rem;border-top:4px solid #3b82f6;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <div>
+                        <h3 style="margin:0;font-size:1.25rem;">🏥 Currently Admitted Patients</h3>
+                        <p style="margin:0.2rem 0 0;color:var(--text-muted);font-size:0.88rem;">Patients currently occupying hospital beds.</p>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(activeAdmissions)}" class="p-3 text-center" style="color:var(--text-muted);">
+                    No patients currently admitted.
+                </div>
+
+                <div th:if="${!#lists.isEmpty(activeAdmissions)}" class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Admission ID</th>
+                                <th>Patient</th>
+                                <th>Allocated Bed</th>
+                                <th>Ward &amp; Room</th>
+                                <th>Admitted Date</th>
+                                <th>Doctor</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="adm : ${activeAdmissions}">
+                                <td><strong th:text="${'#ADM-' + adm.id}">#ADM-1</strong></td>
+                                <td th:text="${adm.patient.fullName}">John Doe</td>
+                                <td>
+                                    <span class="badge badge-confirmed" th:text="${adm.bed != null ? 'Bed ' + adm.bed.bedNumber : 'N/A'}">Bed G-101-A</span>
+                                </td>
+                                <td>
+                                    <span th:text="${adm.bed != null ? adm.bed.room.ward.name + ' (Room ' + adm.bed.room.roomNumber + ')' : 'N/A'}">General Ward</span>
+                                </td>
+                                <td th:text="${adm.admissionDate != null ? #temporals.format(adm.admissionDate, 'dd MMM yyyy HH:mm') : 'N/A'}">Date</td>
+                                <td th:text="${adm.doctor != null ? 'Dr. ' + adm.doctor.fullName : 'N/A'}">Dr. Smith</td>
+                                <td>
+                                    <form th:action="@{/admin/beds/discharge}" method="post" style="display:inline;">
+                                        <input type="hidden" name="admissionId" th:value="${adm.id}"/>
+                                        <button type="submit" class="btn btn-outline btn-sm" onclick="return confirm('Discharge patient and release bed?')">Discharge &amp; Free Bed</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Complete Hospital Wards & Beds Inventory -->
+            <div class="card" style="margin-bottom:2rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <div>
+                        <h3 style="margin:0;font-size:1.25rem;">🏨 Hospital Beds &amp; Ward Inventory</h3>
+                        <p style="margin:0.2rem 0 0;color:var(--text-muted);font-size:0.88rem;">Manage bed status and hospital capacity.</p>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Bed Number</th>
+                                <th>Ward Name</th>
+                                <th>Room Number</th>
+                                <th>Room Type</th>
+                                <th>Daily Rate</th>
+                                <th>Status</th>
+                                <th>Change Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="b : ${beds}">
+                                <td><strong th:text="${b.bedNumber}">Bed G-101-A</strong></td>
+                                <td th:text="${b.room.ward.name}">General Ward</td>
+                                <td th:text="${'Room ' + b.room.roomNumber}">Room 101</td>
+                                <td th:text="${b.room.roomType}">Shared</td>
+                                <td th:text="${'₹' + b.room.dailyRate}">₹500</td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${b.status.name() == 'AVAILABLE' ? 'badge-confirmed' : (b.status.name() == 'OCCUPIED' ? 'badge-pending' : 'badge-rejected')}"
+                                          th:text="${b.status.name()}">AVAILABLE</span>
+                                </td>
+                                <td>
+                                    <form th:action="@{/admin/beds/update-status}" method="post" style="display:flex;gap:0.4rem;align-items:center;">
+                                        <input type="hidden" name="bedId" th:value="${b.id}"/>
+                                        <select name="status" class="form-control" style="width:auto;font-size:0.85rem;" onchange="this.form.submit()">
+                                            <option value="AVAILABLE" th:selected="${b.status.name() == 'AVAILABLE'}">AVAILABLE</option>
+                                            <option value="OCCUPIED" th:selected="${b.status.name() == 'OCCUPIED'}">OCCUPIED</option>
+                                            <option value="MAINTENANCE" th:selected="${b.status.name() == 'MAINTENANCE'}">MAINTENANCE</option>
+                                            <option value="RESERVED" th:selected="${b.status.name() == 'RESERVED'}">RESERVED</option>
+                                        </select>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quick Add Ward, Room, Bed Management Grid -->
+            <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:1.5rem;">
+                <!-- Add Ward Card -->
+                <div class="card" style="padding:1.25rem;">
+                    <h4 style="margin:0 0 1rem;font-size:1.1rem;color:var(--text-main);">➕ Add New Ward</h4>
+                    <form th:action="@{/admin/beds/add-ward}" method="post">
+                        <div class="form-group" style="margin-bottom:0.75rem;">
+                            <label style="font-size:0.85rem;font-weight:600;">Ward Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. Maternity Ward" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0.75rem;">
+                            <label style="font-size:0.85rem;font-weight:600;">Category</label>
+                            <input type="text" name="category" class="form-control" placeholder="e.g. Maternity, General, Surgery" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:1rem;">
+                            <label style="font-size:0.85rem;font-weight:600;">Description</label>
+                            <input type="text" name="description" class="form-control" placeholder="Short ward description">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">Create Ward</button>
+                    </form>
+                </div>
+
+                <!-- Add Room Card -->
+                <div class="card" style="padding:1.25rem;">
+                    <h4 style="margin:0 0 1rem;font-size:1.1rem;color:var(--text-main);">🚪 Add New Room</h4>
+                    <form th:action="@{/admin/beds/add-room}" method="post">
+                        <div class="form-group" style="margin-bottom:0.75rem;">
+                            <label style="font-size:0.85rem;font-weight:600;">Select Ward</label>
+                            <select name="wardId" class="form-control" required>
+                                <option value="">-- Select Ward --</option>
+                                <option th:each="w : ${wards}" th:value="${w.id}" th:text="${w.name}">General Ward</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0.75rem;">
+                            <label style="font-size:0.85rem;font-weight:600;">Room Number</label>
+                            <input type="text" name="roomNumber" class="form-control" placeholder="e.g. 105 or ICU-03" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0.75rem;">
+                            <label style="font-size:0.85rem;font-weight:600;">Room Type</label>
+                            <input type="text" name="roomType" class="form-control" placeholder="Single, Deluxe, Shared" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:1rem;">
+                            <label style="font-size:0.85rem;font-weight:600;">Daily Rate (₹)</label>
+                            <input type="number" step="0.01" name="dailyRate" class="form-control" placeholder="500.0" defaultValue="500.0">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">Create Room</button>
+                    </form>
+                </div>
+
+                <!-- Add Bed Card -->
+                <div class="card" style="padding:1.25rem;">
+                    <h4 style="margin:0 0 1rem;font-size:1.1rem;color:var(--text-main);">🛏️ Add New Bed</h4>
+                    <form th:action="@{/admin/beds/add-bed}" method="post">
+                        <div class="form-group" style="margin-bottom:0.75rem;">
+                            <label style="font-size:0.85rem;font-weight:600;">Select Room</label>
+                            <select name="roomId" class="form-control" required>
+                                <option value="">-- Select Room --</option>
+                                <option th:each="r : ${rooms}" th:value="${r.id}" th:text="${r.ward.name + ' - Room ' + r.roomNumber}">Room 101</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:1rem;">
+                            <label style="font-size:0.85rem;font-weight:600;">Bed Number / Identifier</label>
+                            <input type="text" name="bedNumber" class="form-control" placeholder="e.g. G-101-D or ICU-03-A" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">Add Bed to Inventory</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

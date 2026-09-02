@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Queue Tracker | SmartCare 360</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        .queue-hero { background: linear-gradient(135deg, #1e293b, #0f172a); color: #fff; border-radius: 16px; padding: 30px; margin-bottom: 25px; text-align: center; }
+        .queue-token { font-size: 3.5rem; font-weight: 800; color: #38bdf8; letter-spacing: 2px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .stat-box { background: #f8fafc; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: #0f172a; }
+    </style>
+</head>
+<body class="portal-body">
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="container my-4" style="max-width:850px;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>🎟 Live Patient Queue Position</h2>
+            <span id="liveBadge" class="badge bg-success p-2">🟢 Real-Time Updates Active</span>
+        </div>
+
+        <div class="queue-hero">
+            <p class="mb-1 text-light">Dr. <span th:text="${appointment != null and appointment.doctor != null ? appointment.doctor.fullName : queueInfo.doctorName}">Doctor</span> (<span th:text="${appointment != null and appointment.departmentCategory != null ? appointment.departmentCategory : queueInfo.department}">General</span>)</p>
+            <small class="text-muted">Appointment: <span th:text="${appointment != null and appointment.appointmentDate != null ? appointment.appointmentDate : 'Today'}">Today</span> at <span th:text="${appointment != null and appointment.appointmentTime != null ? appointment.appointmentTime : 'Scheduled Time'}">Scheduled Time</span></small>
+
+            <div class="my-3">
+                <small class="text-uppercase text-light" style="letter-spacing:1px;">Your Queue Ticket</small>
+                <div id="queueNumDisplay" class="queue-token" th:text="${queueInfo != null and queueInfo.queueNumber != null ? queueInfo.queueNumber : '---'}">A-001</div>
+            </div>
+
+            <div th:if="${appointment != null and appointment.consultationType != null and appointment.consultationType.name() == 'VIDEO'}" class="mt-3">
+                <a th:href="@{/patient/video-consultation/{id}(id=${appointment.id})}" class="btn btn-primary btn-lg" style="border-radius:30px;padding:10px 30px;">📹 Join Video Consultation Room</a>
+            </div>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="text-muted small">Status</div>
+                <div id="statusDisplay" class="stat-value text-primary" th:text="${queueInfo != null and queueInfo.status != null ? queueInfo.status : 'NOT CHECKED IN'}">WAITING</div>
+            </div>
+            <div class="stat-box">
+                <div class="text-muted small">Currently Serving</div>
+                <div id="servingDisplay" class="stat-value text-success" th:text="${queueInfo != null and queueInfo.currentlyServing != null ? queueInfo.currentlyServing : '---'}">---</div>
+            </div>
+            <div class="stat-box">
+                <div class="text-muted small">Patients Ahead</div>
+                <div id="aheadDisplay" class="stat-value" th:text="${queueInfo != null and queueInfo.patientsAhead != null ? queueInfo.patientsAhead : 0}">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="text-muted small">Est. Waiting Time</div>
+                <div id="estWaitDisplay" class="stat-value text-warning"><span th:text="${queueInfo != null and queueInfo.estimatedWaitMinutes != null ? queueInfo.estimatedWaitMinutes : 0}">0</span>m</div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <script th:inline="javascript">
+        const appointmentId = /*[[${appointment != null ? appointment.id : 0}]]*/ 0;
+        const doctorId = /*[[${appointment != null and appointment.doctor != null ? appointment.doctor.id : 0}]]*/ 0;
+
+        function refreshPosition() {
+            if (!appointmentId) return;
+            fetch(`/api/queue/my-position/${appointmentId}`)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.checkedIn) {
+                        document.getElementById('queueNumDisplay').innerText = d.queueNumber;
+                        document.getElementById('statusDisplay').innerText = d.status;
+                        document.getElementById('servingDisplay').innerText = d.currentlyServing;
+                        document.getElementById('aheadDisplay').innerText = d.patientsAhead;
+                        document.getElementById('estWaitDisplay').innerText = d.estimatedWaitMinutes + 'm';
+                    }
+                });
+        }
+
+        // STOMP WebSocket Live Connection
+        if (typeof SockJS !== 'undefined' && typeof Stomp !== 'undefined' && doctorId > 0) {
+            try {
+                const socket = new SockJS('/ws-video');
+                const stompClient = Stomp.over(socket);
+                stompClient.debug = null;
+                stompClient.connect({}, () => {
+                    stompClient.subscribe(`/topic/doctor/${doctorId}/queue`, () => {
+                        refreshPosition();
+                    });
+                });
+            } catch (e) {
+                console.log('WebSocket connect fallback', e);
+            }
+        }
+    </script>
+</body>
+</html>

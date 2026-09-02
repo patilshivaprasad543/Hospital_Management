@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Consultation | Patient Portal</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        .call-wrapper { display: grid; grid-template-columns: 1fr 340px; gap: 15px; height: calc(100vh - 40px); padding: 15px; background: #0f172a; color: #fff; }
+        .video-stage { position: relative; background: #1e293b; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+        .remote-video-box { flex: 1; width: 100%; height: 100%; position: relative; }
+        .remote-video-box video { width: 100%; height: 100%; object-fit: cover; }
+        .local-pip { position: absolute; bottom: 20px; right: 20px; width: 180px; height: 120px; background: #000; border: 2px solid #3b82f6; border-radius: 8px; overflow: hidden; z-index: 10; }
+        .local-pip video { width: 100%; height: 100%; object-fit: cover; }
+        .call-header { padding: 12px 20px; background: rgba(0,0,0,0.4); display: flex; justify-content: space-between; align-items: center; }
+        .call-controls { padding: 15px; background: rgba(0,0,0,0.6); display: flex; justify-content: center; gap: 20px; }
+        .btn-ctrl { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-ctrl-primary { background: #3b82f6; color: #fff; }
+        .btn-ctrl-success { background: #10b981; color: #fff; width: auto; border-radius: 24px; padding: 0 20px; font-size: 0.95rem; font-weight: 600; }
+        .btn-ctrl-danger { background: #ef4444; color: #fff; }
+        .sidebar-panel { background: #1e293b; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
+        .chat-area { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .chat-bubble { padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; max-width: 85%; }
+        .chat-incoming { background: #334155; align-self: flex-start; }
+        .chat-outgoing { background: #2563eb; color: #fff; align-self: flex-end; }
+        .chat-input-box { padding: 10px; background: #0f172a; display: flex; gap: 8px; }
+    </style>
+</head>
+<body style="background:#0f172a;">
+    <div class="call-wrapper">
+        <div class="video-stage">
+            <div class="call-header">
+                <div>
+                    <h4 style="margin:0;">Dr. <span th:text="${appointment.doctor != null ? appointment.doctor.fullName : 'Doctor'}">Doctor Name</span></h4>
+                    <small class="text-muted">Cardiology &amp; General Medicine</small>
+                </div>
+                <div>
+                    <span id="connectionStatus" class="badge bg-warning">Initializing Stream...</span>
+                </div>
+            </div>
+
+            <div class="remote-video-box">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <div class="local-pip">
+                    <video id="localVideo" autoplay playsinline muted></video>
+                </div>
+            </div>
+
+            <div class="call-controls">
+                <button id="startStreamBtn" class="btn-ctrl btn-ctrl-success" onclick="startVideoNow()">▶️ Start HD Video Stream</button>
+                <button id="micBtn" class="btn-ctrl btn-ctrl-primary" onclick="toggleMic()">🎤</button>
+                <button id="camBtn" class="btn-ctrl btn-ctrl-primary" onclick="toggleCam()">📷</button>
+                <button class="btn-ctrl btn-ctrl-danger" onclick="endCall()">📞 End</button>
+            </div>
+        </div>
+
+        <div class="sidebar-panel">
+            <div class="p-3 border-bottom border-secondary">
+                <h5 style="margin:0;">In-Call Chat</h5>
+            </div>
+            <div id="chatContainer" class="chat-area">
+                <div class="chat-bubble chat-incoming">
+                    <small>System</small><br>
+                    Welcome to your secure WebRTC video consultation.
+                </div>
+            </div>
+            <div class="chat-input-box">
+                <input type="text" id="chatInput" class="form-control form-control-sm" placeholder="Type message..." onkeypress="if(event.key==='Enter') sendChat()">
+                <button class="btn btn-primary btn-sm" onclick="sendChat()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/webrtc-consultation.js}"></script>
+    <script th:inline="javascript">
+        const appointmentId = /*[[${appointment.id}]]*/ 0;
+        const roomId = /*[[${videoRoom != null ? videoRoom.roomId : 'VR-TEST'}]]*/ 'VR-ROOM';
+        const userId = /*[[${loggedInUser != null ? loggedInUser.id : 0}]]*/ 0;
+        const userName = /*[[${loggedInUser != null ? loggedInUser.fullName : 'Patient'}]]*/ 'Patient';
+
+        const engine = new WebRtcConsultationEngine({
+            appointmentId: appointmentId,
+            roomId: roomId,
+            userId: userId,
+            userName: userName,
+            role: 'PATIENT',
+            localVideoId: 'localVideo',
+            remoteVideoId: 'remoteVideo',
+            statusElemId: 'connectionStatus'
+        });
+
+        async function init() {
+            await engine.initMedia();
+            engine.connectSignaling();
+        }
+        init();
+
+        function startVideoNow() {
+            init();
+            const btn = document.getElementById('startStreamBtn');
+            if (btn) btn.style.display = 'none';
+        }
+
+        function toggleMic() {
+            const muted = engine.toggleAudio();
+            document.getElementById('micBtn').style.background = muted ? '#ef4444' : '#3b82f6';
+        }
+
+        function toggleCam() {
+            const off = engine.toggleVideo();
+            document.getElementById('camBtn').style.background = off ? '#ef4444' : '#3b82f6';
+        }
+
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            engine.sendChatMessage(input.value);
+            input.value = '';
+        }
+
+        function endCall() {
+            if (confirm('Leave consultation room?')) {
+                engine.leaveCall();
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'CLOSE_VIDEO_MODAL' }, '*');
+                } else {
+                    window.location.href = '/patient/dashboard';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

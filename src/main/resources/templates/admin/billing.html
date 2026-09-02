@@ -8,7 +8,7 @@
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
         <div class="grid">
-            <div class="card stat-card"><div class="card-title">Revenue (paid)</div><div class="stat-number" th:text="${'₹' + #numbers.formatDecimal(totalRevenue, 1, 2)}">0</div></div>
+            <div class="card stat-card"><div class="card-title">Revenue (paid)</div><div class="stat-number" th:text="${'₹' + (totalRevenue != null ? #numbers.formatDecimal(totalRevenue, 1, 2) : '0.00')}">0</div></div>
             <div class="card stat-card"><div class="card-title">Pending invoices</div><div class="stat-number warning" th:text="${pendingPayments}">0</div></div>
         </div>
         <h3>Invoices</h3>

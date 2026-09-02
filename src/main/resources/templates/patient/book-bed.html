@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Request Bed Booking')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="app-layout">
+        <aside th:replace="~{fragments/layout :: patient-sidebar}"></aside>
+
+        <main class="main-stage">
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <div class="page-header" style="margin-bottom:1.5rem;">
+                <h1 style="margin:0;font-size:1.75rem;color:var(--text-main);">🛏️ Request Inpatient Bed Booking</h1>
+                <p style="margin:0.25rem 0 0;color:var(--text-muted);">Fill in details to request hospital admission and bed allocation from hospital administration.</p>
+            </div>
+
+            <div class="grid" style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;">
+                <div class="card" style="padding:1.75rem;">
+                    <form th:action="@{/patient/book-bed}" method="post">
+                        <div class="form-group" style="margin-bottom:1.25rem;">
+                            <label style="font-weight:600;margin-bottom:0.5rem;display:block;">Select Preferred Bed for Admission <span style="color:#ef4444;">*</span></label>
+                            <select name="bedId" class="form-control" style="width:100%;" required>
+                                <option value="">-- Choose Available Bed --</option>
+                                <option th:each="bed : ${availableBeds}"
+                                        th:value="${bed.id}"
+                                        th:selected="${selectedBedId != null and selectedBedId == bed.id}"
+                                        th:text="${bed.bedNumber + ' — ' + bed.room.ward.name + ' (Room ' + bed.room.roomNumber + ' - ₹' + bed.room.dailyRate + '/day)'}">
+                                    Bed G-101-A (General Ward)
+                                </option>
+                            </select>
+                            <small style="color:var(--text-muted);">Choose the exact hospital bed you wish to book.</small>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:1.25rem;">
+                            <label style="font-weight:600;margin-bottom:0.5rem;display:block;">Attending / Consulting Doctor (Optional)</label>
+                            <select name="doctorId" class="form-control" style="width:100%;">
+                                <option value="">-- Select Doctor (Optional) --</option>
+                                <option th:each="doc : ${doctors}"
+                                        th:value="${doc.id}"
+                                        th:selected="${selectedDoctorId != null and selectedDoctorId == doc.id}"
+                                        th:text="${'Dr. ' + doc.fullName}">Dr. Smith</option>
+                            </select>
+                            <small style="color:var(--text-muted);">If recommended by a doctor, select their name above.</small>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:1.25rem;">
+                            <label style="font-weight:600;margin-bottom:0.5rem;display:block;">Reason for Hospital Admission <span style="color:#ef4444;">*</span></label>
+                            <input type="text" name="reason" class="form-control" style="width:100%;" placeholder="e.g. Post-surgery observation, Fever &amp; Dehydration, Chest pain observation" required>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:1.5rem;">
+                            <label style="font-weight:600;margin-bottom:0.5rem;display:block;">Additional Notes &amp; Preferred Ward Type</label>
+                            <textarea name="notes" class="form-control" rows="4" style="width:100%;" placeholder="Provide any special requirements (e.g. Prefer Deluxe Ward, Oxygen Support required, Emergency admission)."></textarea>
+                        </div>
+
+                        <div style="display:flex;gap:1rem;align-items:center;">
+                            <button type="submit" class="btn btn-primary" style="padding:0.75rem 1.5rem;font-weight:600;">
+                                📩 Submit Bed Booking Request
+                            </button>
+                            <a href="/patient/beds" class="btn btn-outline">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+
+                <div>
+                    <div class="card" style="padding:1.5rem;background:#f8fafc;border:1px solid #e2e8f0;margin-bottom:1.5rem;">
+                        <h4 style="margin:0 0 0.75rem;font-size:1.1rem;color:var(--text-main);">🏥 Hospital Wards Overview</h4>
+                        <div th:each="ward : ${wards}" style="margin-bottom:0.75rem;padding-bottom:0.75rem;border-bottom:1px solid #e2e8f0;">
+                            <div style="font-weight:600;color:var(--primary);" th:text="${ward.name}">General Ward</div>
+                            <div style="font-size:0.85rem;color:var(--text-muted);" th:text="${ward.description}">Description</div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="padding:1.25rem;background:#eff6ff;border:1px solid #bfdbfe;">
+                        <h4 style="margin:0 0 0.5rem;font-size:1rem;color:#1e40af;">ℹ️ What Happens Next?</h4>
+                        <ol style="margin:0;padding-left:1.2rem;font-size:0.88rem;color:#1e3a8a;line-height:1.5;">
+                            <li>Your request is logged in hospital administration.</li>
+                            <li>Admin checks current bed availability in requested ward.</li>
+                            <li>Admin allocates a bed and notifies you instantly on your portal.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

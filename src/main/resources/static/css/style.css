@@ -1644,4 +1644,210 @@ footer, .site-footer {
     font-size: 0.8rem;
 }
 
+/* ============================================================
+   SmartCare 360 — Modern UI/UX Redesign & Navigation System
+   ============================================================ */
+
+.app-layout {
+    display: flex;
+    min-height: calc(100vh - var(--nav-height));
+    width: 100%;
+}
+
+.sidebar-grouped {
+    width: 270px;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    overflow-y: auto;
+    flex-shrink: 0;
+    transition: width var(--transition);
+}
+
+.sidebar-grouped.collapsed {
+    width: 72px;
+    padding: 1.5rem 0.5rem;
+}
+
+.sidebar-grouped.collapsed .sidebar-section-title,
+.sidebar-grouped.collapsed .nav-text,
+.sidebar-grouped.collapsed .sidebar-badge {
+    display: none;
+}
+
+.sidebar-grouped.collapsed .nav-item-link {
+    justify-content: center;
+    padding: 0.75rem;
+}
+
+.sidebar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.sidebar-section-title {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    padding: 0.4rem 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.nav-item-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    color: var(--text-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: all var(--transition);
+}
+
+.nav-item-link:hover, .nav-item-link.active {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+.nav-item-icon {
+    font-size: 1.1rem;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.main-stage {
+    flex: 1;
+    padding: 2rem;
+    background: var(--bg-page);
+    overflow-y: auto;
+}
+
+.header-search-box {
+    position: relative;
+    max-width: 380px;
+    width: 100%;
+}
+
+.header-search-input {
+    width: 100%;
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+    padding: 0.45rem 1rem 0.45rem 2.2rem;
+    border-radius: 99px;
+    font-size: 0.875rem;
+    color: var(--text-heading);
+    outline: none;
+    transition: all var(--transition);
+}
+
+.header-search-input:focus {
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(91, 143, 217, 0.15);
+}
+
+.header-search-icon {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+
+.quick-action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.quick-action-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.65rem;
+    text-decoration: none;
+    color: var(--text-heading);
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: all var(--transition);
+    box-shadow: var(--shadow-xs);
+}
+
+.quick-action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+    color: var(--primary);
+}
+
+.quick-action-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+}
+
+.mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    z-index: 1000;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.mobile-bottom-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    gap: 2px;
+}
+
+.mobile-bottom-item.active, .mobile-bottom-item:hover {
+    color: var(--primary);
+}
+
+.mobile-bottom-icon {
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .sidebar-grouped { display: none; }
+    .mobile-bottom-nav { display: flex; }
+    .main-stage { padding: 1.25rem; padding-bottom: 80px; }
+    .header-search-box { display: none; }
+}
+
+
 

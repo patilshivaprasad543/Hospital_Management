@@ -16,8 +16,11 @@
                 · <span th:text="${profile.workStartTime}">09:00</span>–<span th:text="${profile.workEndTime}">17:00</span></p>
             <p>Rating: ★ <span th:text="${#numbers.formatDecimal(rating, 1, 1)}">4.5</span>
                 (<span th:text="${ratingCount}">0</span> reviews)</p>
-            <a th:href="@{/patient/book-appointment(doctorId=${doctor.id})}" class="btn btn-primary">Select Doctor &amp; Book</a>
-            <a href="/patient/doctors" class="btn btn-outline">Back to search</a>
+            <div style="display:flex;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;">
+                <a th:href="@{/patient/book-appointment(doctorId=${doctor.id})}" class="btn btn-primary">Book In-Person Visit</a>
+                <a th:href="@{/patient/book-video-consultation(doctorId=${doctor.id})}" class="btn btn-success" style="background:#10b981;border-color:#10b981;font-weight:600;">📹 Book Video Consultation</a>
+                <a href="/patient/doctors" class="btn btn-outline">Back to Search</a>
+            </div>
         </div>
     </div>
     <footer th:replace="~{fragments/layout :: footer}"></footer>

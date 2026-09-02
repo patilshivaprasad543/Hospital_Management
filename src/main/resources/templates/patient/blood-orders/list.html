@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Blood Requisition Orders')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="container" style="max-width: 1100px; margin: 2rem auto;">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+            <div class="page-header-content">
+                <h1 style="color:#b91c1c;display:flex;align-items:center;gap:10px;">
+                    <span>🩸</span> My Blood Purchase Orders
+                </h1>
+                <p>Track prescription verification, serological cross-matching, and hospital ward dispatch in real-time.</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="/patient/blood-bank/buy" class="btn" style="background:#dc2626;color:#fff;font-weight:600;">
+                    ➕ Buy Blood with Prescription
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(orders)}" class="card" style="text-align:center;padding:3rem 1.5rem;">
+            <div style="font-size:3rem;margin-bottom:1rem;">🩸</div>
+            <h3 style="color:#1e293b;">No Blood Orders Yet</h3>
+            <p style="color:#64748b;max-width:500px;margin:0.5rem auto 1.5rem;">
+                When you order donor blood or blood components with your doctor prescription, your orders and cross-match status will appear here.
+            </p>
+            <a href="/patient/blood-bank/buy" class="btn btn-primary">Buy Blood with Doctor Prescription</a>
+        </div>
+
+        <div th:if="${not #lists.isEmpty(orders)}" style="display:flex;flex-direction:column;gap:1rem;">
+            <div class="card" th:each="order : ${orders}" style="border-left: 5px solid #dc2626;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;border-bottom:1px solid #e2e8f0;padding-bottom:0.75rem;margin-bottom:0.75rem;">
+                    <div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span style="font-weight:700;font-size:1.1rem;color:#0f172a;" th:text="${order.orderNumber}">BLD-ORD-1001</span>
+                            <span class="badge" th:style="${order.status.name() == 'READY_FOR_COLLECTION' or order.status.name() == 'COMPLETED' ? 'background:#dcfce7;color:#166534;' : (order.status.name() == 'REJECTED' ? 'background:#fee2e2;color:#991b1b;' : 'background:#e0f2fe;color:#075985;')}"
+                                  th:text="${order.status.label}">Requested</span>
+                        </div>
+                        <div style="font-size:0.8rem;color:#64748b;margin-top:2px;">
+                            Ordered on <span th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, hh:mm a')}">Date</span>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:1.2rem;font-weight:700;color:#b91c1c;">
+                            ₹<span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2)}">1,500.00</span>
+                        </div>
+                        <span class="badge" th:style="${order.paymentStatus.name() == 'PAID' ? 'background:#dcfce7;color:#166534;' : 'background:#fef9c3;color:#854d0e;'}"
+                              th:text="${order.paymentStatus.name()}">PENDING</span>
+                    </div>
+                </div>
+
+                <!-- Order Body Details -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:1rem;font-size:0.9rem;margin-bottom:1rem;">
+                    <div>
+                        <span style="color:#64748b;">Prescribing Doctor:</span><br>
+                        <strong th:text="${'Dr. ' + order.doctor.fullName}">Dr. Smith</strong>
+                        <div style="font-size:0.8rem;color:#475569;">Prescription #<span th:text="${order.prescription.id}">1</span></div>
+                    </div>
+                    <div>
+                        <span style="color:#64748b;">Blood Specification:</span><br>
+                        <strong style="color:#b91c1c;" th:text="${order.units + ' Unit(s) — ' + order.bloodGroup.label}">2 Units - O+</strong>
+                        <div style="font-size:0.8rem;color:#475569;" th:text="${order.componentType.label}">Packed Red Cells</div>
+                    </div>
+                    <div>
+                        <span style="color:#64748b;">Delivery Destination:</span><br>
+                        <strong th:text="${order.deliveryLocation != null ? order.deliveryLocation : order.deliveryType}">Ward 3</strong>
+                        <div style="font-size:0.8rem;color:#475569;">Urgency: <span th:text="${order.urgencyLevel}">URGENT</span></div>
+                    </div>
+                    <div>
+                        <span style="color:#64748b;">Allocated Unit Barcodes:</span><br>
+                        <strong th:if="${order.allocatedUnitCodes != null and !order.allocatedUnitCodes.isBlank()}"
+                                style="color:#166534;font-family:monospace;" th:text="${order.allocatedUnitCodes}">BLD-O-9901</strong>
+                        <span th:if="${order.allocatedUnitCodes == null or order.allocatedUnitCodes.isBlank()}" style="color:#94a3b8;font-style:italic;">Pending allocation</span>
+                    </div>
+                </div>
+
+                <!-- Rejection or Clinical Note -->
+                <div th:if="${order.rejectionReason != null and !order.rejectionReason.isBlank()}" style="background:#fee2e2;border:1px solid #fecaca;padding:8px 12px;border-radius:6px;font-size:0.85rem;color:#991b1b;margin-bottom:0.75rem;">
+                    <strong>Rejection Reason:</strong> <span th:text="${order.rejectionReason}">Reason</span>
+                </div>
+
+                <!-- Footer Actions -->
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid #f1f5f9;padding-top:0.75rem;">
+                    <div style="font-size:0.82rem;color:#64748b;">
+                        Payment Mode: <strong th:text="${order.paymentMethod}">HOSPITAL_BILL</strong>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <a th:href="@{/patient/blood-bank/orders/{id}/slip(id=${order.id})}" target="_blank" class="btn btn-sm btn-outline">
+                            📄 Blood Requisition Slip
+                        </a>
+                        <form th:if="${order.paymentStatus.name() == 'PENDING'}"
+                              th:action="@{/patient/blood-bank/orders/{id}/pay(id=${order.id})}" method="post" style="margin:0;">
+                            <button type="submit" class="btn btn-sm btn-success">
+                                💳 Pay ₹<span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 0)}">1,500</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

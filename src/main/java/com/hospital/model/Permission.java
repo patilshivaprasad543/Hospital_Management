@@ -1,0 +1,47 @@
+package com.hospital.model;
+
+public enum Permission {
+    // Admin Permissions
+    USER_VIEW,
+    USER_EDIT,
+    USER_DELETE,
+    DOCTOR_APPROVE,
+    VENDOR_APPROVE,
+    PATIENT_VIEW,
+    APPOINTMENT_MANAGE,
+    PHARMACY_MANAGE,
+    INVENTORY_MANAGE,
+    BILLING_MANAGE,
+    REPORT_VIEW,
+    AUDIT_VIEW,
+
+    // Doctor Permissions
+    APPOINTMENT_VIEW,
+    CONSULTATION_CREATE,
+    PRESCRIPTION_CREATE,
+    LAB_REQUEST_CREATE,
+    LAB_REPORT_VIEW,
+
+    // Patient Permissions
+    PROFILE_VIEW,
+    PROFILE_EDIT,
+    DOCTOR_SEARCH,
+    APPOINTMENT_CREATE,
+    PRESCRIPTION_VIEW,
+    BILL_VIEW,
+    PAYMENT_CREATE,
+    DOCUMENT_DOWNLOAD,
+
+    // Vendor Permissions
+    PROFILE_MANAGE,
+    PRODUCT_MANAGE,
+    PURCHASE_ORDER_VIEW,
+    PURCHASE_ORDER_UPDATE,
+    INVOICE_VIEW,
+
+    // Pharmacy Permissions
+    MEDICINE_VIEW,
+    PRESCRIPTION_PROCESS,
+    MEDICINE_DISPENSE,
+    PHARMACY_BILL_CREATE
+}

@@ -28,7 +28,7 @@ public class Appointment {
     private LocalTime appointmentTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(50)")
     private AppointmentStatus status = AppointmentStatus.PENDING;
 
     @Column(length = 500)
@@ -42,9 +42,23 @@ public class Appointment {
     private String departmentCategory;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
     private AppointmentState state = AppointmentState.PENDING_DOCTOR_APPROVAL;
 
     private LocalDateTime checkedInAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(50)")
+    private ConsultationType consultationType = ConsultationType.IN_PERSON;
+
+    private String videoRoomId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
+    private VideoRoomStatus videoStatus;
+
+    private LocalDateTime videoJoinAvailableFrom;
+    private LocalDateTime videoJoinExpiresAt;
 
     private boolean reminderSent = false;
 
@@ -173,5 +187,45 @@ public class Appointment {
 
     public void setReminderSent(boolean reminderSent) {
         this.reminderSent = reminderSent;
+    }
+
+    public ConsultationType getConsultationType() {
+        return consultationType;
+    }
+
+    public void setConsultationType(ConsultationType consultationType) {
+        this.consultationType = consultationType;
+    }
+
+    public String getVideoRoomId() {
+        return videoRoomId;
+    }
+
+    public void setVideoRoomId(String videoRoomId) {
+        this.videoRoomId = videoRoomId;
+    }
+
+    public VideoRoomStatus getVideoStatus() {
+        return videoStatus;
+    }
+
+    public void setVideoStatus(VideoRoomStatus videoStatus) {
+        this.videoStatus = videoStatus;
+    }
+
+    public LocalDateTime getVideoJoinAvailableFrom() {
+        return videoJoinAvailableFrom;
+    }
+
+    public void setVideoJoinAvailableFrom(LocalDateTime videoJoinAvailableFrom) {
+        this.videoJoinAvailableFrom = videoJoinAvailableFrom;
+    }
+
+    public LocalDateTime getVideoJoinExpiresAt() {
+        return videoJoinExpiresAt;
+    }
+
+    public void setVideoJoinExpiresAt(LocalDateTime videoJoinExpiresAt) {
+        this.videoJoinExpiresAt = videoJoinExpiresAt;
     }
 }

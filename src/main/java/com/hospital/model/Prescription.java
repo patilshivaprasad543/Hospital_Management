@@ -33,6 +33,17 @@ public class Prescription {
 
     private LocalDate followUpDate;
 
+    @Enumerated(EnumType.STRING)
+    private BloodGroup bloodGroup;
+
+    @Enumerated(EnumType.STRING)
+    private BloodComponentType bloodComponentType;
+
+    private Integer bloodUnits;
+
+    @Column(length = 500)
+    private String bloodTransfusionReason;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "prescription", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -125,5 +136,41 @@ public class Prescription {
 
     public void setItems(List<PrescriptionItem> items) {
         this.items = items;
+    }
+
+    public BloodGroup getBloodGroup() {
+        return bloodGroup;
+    }
+
+    public void setBloodGroup(BloodGroup bloodGroup) {
+        this.bloodGroup = bloodGroup;
+    }
+
+    public BloodComponentType getBloodComponentType() {
+        return bloodComponentType;
+    }
+
+    public void setBloodComponentType(BloodComponentType bloodComponentType) {
+        this.bloodComponentType = bloodComponentType;
+    }
+
+    public Integer getBloodUnits() {
+        return bloodUnits;
+    }
+
+    public void setBloodUnits(Integer bloodUnits) {
+        this.bloodUnits = bloodUnits;
+    }
+
+    public String getBloodTransfusionReason() {
+        return bloodTransfusionReason;
+    }
+
+    public void setBloodTransfusionReason(String bloodTransfusionReason) {
+        this.bloodTransfusionReason = bloodTransfusionReason;
+    }
+
+    public boolean hasBloodPrescription() {
+        return (bloodUnits != null && bloodUnits > 0) || bloodGroup != null;
     }
 }

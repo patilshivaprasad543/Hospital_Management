@@ -4,155 +4,138 @@
 <body>
     <nav th:replace="~{fragments/layout :: admin-nav}"></nav>
 
-    <div class="container">
-        <div class="page-header">
-            <div class="page-header-content">
-                <h1>Admin Dashboard</h1>
-                <p>Welcome, <span th:text="${admin.fullName}">Admin</span>
-                    — <span th:text="${hospitalName}">SmartCare 360 Hospital</span></p>
-            </div>
-        </div>
+    <div class="app-layout">
+        <!-- Grouped Navigation Sidebar -->
+        <aside th:replace="~{fragments/layout :: admin-sidebar}"></aside>
 
-        <h3 class="section-title">Hospital modules</h3>
-        <div class="admin-module-grid">
-            <a class="admin-module-card" href="/admin/dashboard"><span>📊</span><strong>Dashboard</strong><small>Hospital statistics</small></a>
-            <a class="admin-module-card" href="/admin/users"><span>👥</span><strong>Patients</strong><small th:text="${totalPatients + ' registered'}">0</small></a>
-            <a class="admin-module-card" href="/admin/doctors"><span>👨‍⚕️</span><strong>Doctors</strong><small th:text="${pendingDoctorApprovals + ' pending verify'}">0 pending</small></a>
-            <a class="admin-module-card" href="/admin/pharmacy"><span>💊</span><strong>Pharmacy</strong><small th:text="${pendingPharmacyApprovals + ' licenses pending'}">0 pending</small></a>
-            <a class="admin-module-card" href="/admin/laboratories"><span>🧪</span><strong>Laboratory</strong><small th:text="${pendingLabApprovals + ' licenses pending'}">0 pending</small></a>
-            <a class="admin-module-card" href="/admin/appointments"><span>📅</span><strong>Appointments</strong><small th:text="${todayAppointments + ' today'}">0 today</small></a>
-            <a class="admin-module-card" href="/admin/prescriptions"><span>📝</span><strong>Prescriptions</strong><small th:text="${prescriptionCount + ' issued'}">0</small></a>
-            <a class="admin-module-card" href="/admin/medicines"><span>📦</span><strong>Medicines</strong><small th:text="${lowStockMedicines + ' low stock'}">0 low</small></a>
-            <a class="admin-module-card" href="/admin/pharmacy-orders"><span>🚚</span><strong>Pharmacy Orders</strong><small th:text="${pharmacyOrderCount + ' orders'}">0</small></a>
-            <a class="admin-module-card" href="/admin/lab-reports"><span>🔬</span><strong>Lab Reports</strong><small th:text="${pendingTests + ' in process'}">0</small></a>
-            <a class="admin-module-card" href="/admin/billing"><span>💳</span><strong>Billing</strong><small th:text="${pendingPayments + ' unpaid'}">0 unpaid</small></a>
-            <a class="admin-module-card" href="/admin/records"><span>📋</span><strong>Medical Records</strong><small th:text="${consultationCount + ' consultations'}">0</small></a>
-            <a class="admin-module-card" href="/admin/notifications"><span>🔔</span><strong>Notifications</strong><small>Send and manage alerts</small></a>
-            <a class="admin-module-card" href="/admin/reports"><span>📈</span><strong>Reports</strong><small>Hospital analytics</small></a>
-            <a class="admin-module-card" href="/admin/settings"><span>⚙️</span><strong>Settings</strong><small>System configuration</small></a>
-            <a class="admin-module-card" href="/logout"><span>🚪</span><strong>Logout</strong><small>Secure sign out</small></a>
-        </div>
+        <!-- Main Content Area -->
+        <main class="main-stage">
+            <!-- Hero Top Header -->
+            <div class="card" style="background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%);color:#fff;padding:1.75rem;border-radius:var(--radius-lg);margin-bottom:1.5rem;box-shadow:var(--shadow-md);">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+                    <div>
+                        <h2 style="color:#fff;margin:0;font-size:1.6rem;" th:text="'Admin Control Center — ' + ${admin.fullName}">Admin Control Center</h2>
+                        <p style="color:#94a3b8;margin-top:0.35rem;font-size:0.95rem;" th:text="${hospitalName}">SmartCare 360 Healthcare System</p>
+                    </div>
+                    <div style="display:flex;gap:0.75rem;">
+                        <a href="/emergency/dashboard" class="btn btn-danger btn-sm">🚑 Emergency Desk</a>
+                        <a href="/admin/multihub-chat" class="btn btn-success btn-sm">💬 Support Chat</a>
+                    </div>
+                </div>
+            </div>
 
-        <div class="grid">
-            <div class="card stat-card">
-                <div class="card-title">Patients</div>
-                <div class="stat-number" th:text="${totalPatients}">0</div>
+            <!-- Executive Metric Cards (4 Primary Stats) -->
+            <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1.25rem;margin-bottom:1.75rem;">
+                <div class="card stat-card">
+                    <div class="card-title">Registered Patients</div>
+                    <div class="stat-number primary" th:text="${totalPatients}">0</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="card-title">Active Doctors</div>
+                    <div class="stat-number success" th:text="${totalDoctors}">0</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="card-title">Today's Appointments</div>
+                    <div class="stat-number accent" th:text="${todayAppointments}">0</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="card-title">Total Revenue</div>
+                    <div class="stat-number success" th:text="${'₹' + (totalRevenue != null ? #numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT') : '0')}">₹0</div>
+                </div>
             </div>
-            <div class="card stat-card">
-                <div class="card-title">Doctors</div>
-                <div class="stat-number success" th:text="${totalDoctors}">0</div>
-            </div>
-            <div class="card stat-card">
-                <div class="card-title">Pharmacies</div>
-                <div class="stat-number warning" th:text="${pharmacyCount}">0</div>
-            </div>
-            <div class="card stat-card">
-                <div class="card-title">Laboratories</div>
-                <div class="stat-number warning" th:text="${labCount}">0</div>
-            </div>
-            <div class="card stat-card">
-                <div class="card-title">Today's Appointments</div>
-                <div class="stat-number accent" th:text="${todayAppointments}">0</div>
-            </div>
-            <div class="card stat-card">
-                <div class="card-title">Completed Consultations</div>
-                <div class="stat-number" th:text="${completedConsultations}">0</div>
-            </div>
-            <div class="card stat-card">
-                <div class="card-title">Pending Tests</div>
-                <div class="stat-number warning" th:text="${pendingTests}">0</div>
-            </div>
-            <div class="card stat-card">
-                <div class="card-title">Completed Tests</div>
-                <div class="stat-number success" th:text="${completedTests}">0</div>
-            </div>
-            <div class="card stat-card">
-                <div class="card-title">Available Medicines</div>
-                <div class="stat-number" th:text="${availableMedicines}">0</div>
-            </div>
-            <div class="card stat-card">
-                <div class="card-title">Low Stock Medicines</div>
-                <div class="stat-number warning" th:text="${lowStockMedicines}">0</div>
-            </div>
-            <div class="card stat-card">
-                <div class="card-title">Total Revenue</div>
-                <div class="stat-number" th:text="${'₹' + #numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')}">₹0</div>
-            </div>
-            <div class="card stat-card">
-                <div class="card-title">Pending Payments</div>
-                <div class="stat-number" th:text="${pendingPayments}">0</div>
-            </div>
-        </div>
 
-        <h3 class="section-title">Pending Approvals</h3>
-        <div class="grid">
-            <div class="card" th:if="${pendingDoctorApprovals > 0}">
-                <div class="card-title">Doctors Awaiting Approval</div>
-                <div class="stat-number warning" th:text="${pendingDoctorApprovals}">0</div>
-                <a href="/admin/doctors" class="btn btn-primary btn-sm mt-2">Verify Doctors</a>
+            <!-- Pending Approvals & Critical Alerts -->
+            <div class="card" style="border-left:4px solid var(--warning);margin-bottom:2rem;" th:if="${pendingDoctorApprovals > 0 or pendingPharmacyApprovals > 0 or pendingLabApprovals > 0 or (pendingInsuranceClaims != null and pendingInsuranceClaims > 0)}">
+                <h3 style="margin-top:0;color:var(--warning-color);">⚠️ Pending System Approvals &amp; Claims</h3>
+                <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-top:1rem;">
+                    <div th:if="${pendingInsuranceClaims != null and pendingInsuranceClaims > 0}" style="padding:0.75rem 1rem;background:#f0fdf4;border:1px solid #86efac;border-radius:var(--radius-sm);">
+                        <strong>🛡️ Insurance Claims:</strong> <span class="badge" style="background:#15803d;color:#fff;" th:text="${pendingInsuranceClaims}">0</span>
+                        <a href="/admin/insurance" class="btn btn-primary btn-sm ms-2">Review Claims</a>
+                    </div>
+                    <div th:if="${pendingDoctorApprovals > 0}" style="padding:0.75rem 1rem;background:#fffbe6;border:1px solid #ffe58f;border-radius:var(--radius-sm);">
+                        <strong>Doctor Verifications:</strong> <span class="badge badge-pending" th:text="${pendingDoctorApprovals}">0</span>
+                        <a href="/admin/doctors" class="btn btn-primary btn-sm ms-2">Verify Doctors</a>
+                    </div>
+                    <div th:if="${pendingPharmacyApprovals > 0}" style="padding:0.75rem 1rem;background:#fffbe6;border:1px solid #ffe58f;border-radius:var(--radius-sm);">
+                        <strong>Pharmacy Licenses:</strong> <span class="badge badge-pending" th:text="${pendingPharmacyApprovals}">0</span>
+                        <a href="/admin/pharmacy" class="btn btn-primary btn-sm ms-2">Verify Licenses</a>
+                    </div>
+                    <div th:if="${pendingLabApprovals > 0}" style="padding:0.75rem 1rem;background:#fffbe6;border:1px solid #ffe58f;border-radius:var(--radius-sm);">
+                        <strong>Lab Licenses:</strong> <span class="badge badge-pending" th:text="${pendingLabApprovals}">0</span>
+                        <a href="/admin/laboratories" class="btn btn-primary btn-sm ms-2">Verify Licenses</a>
+                    </div>
+                </div>
             </div>
-            <div class="card" th:if="${pendingPharmacyApprovals > 0}">
-                <div class="card-title">Pharmacy Licenses</div>
-                <div class="stat-number warning" th:text="${pendingPharmacyApprovals}">0</div>
-                <a href="/admin/pharmacy" class="btn btn-primary btn-sm mt-2">Verify Licenses</a>
-            </div>
-            <div class="card" th:if="${pendingLabApprovals > 0}">
-                <div class="card-title">Lab Licenses</div>
-                <div class="stat-number warning" th:text="${pendingLabApprovals}">0</div>
-                <a href="/admin/laboratories" class="btn btn-primary btn-sm mt-2">Verify Licenses</a>
-            </div>
-            <div class="card" th:if="${pendingDoctorApprovals == 0 and pendingVendorApprovals == 0}">
-                <p class="text-muted" style="margin:0;">No pending doctor or vendor approvals.</p>
-            </div>
-        </div>
 
-        <h3 class="section-title">Operational Metrics</h3>
-        <div class="grid">
-            <div class="card metric-card success">
-                <div class="card-title">Completion Rate</div>
-                <div class="stat-number success" th:text="${hospitalCompletionRate + '%'}">0%</div>
+            <!-- Operational Group Shortcuts -->
+            <h3 style="margin-bottom:1rem;">⚡ Quick Operations Hub</h3>
+            <div class="quick-action-grid">
+                <a href="/admin/users" class="quick-action-card">
+                    <div class="quick-action-icon">👥</div>
+                    <span>Manage Patients</span>
+                </a>
+                <a href="/admin/doctors" class="quick-action-card">
+                    <div class="quick-action-icon">👨‍⚕️</div>
+                    <span>Doctor Registry</span>
+                </a>
+                <a href="/admin/appointments" class="quick-action-card">
+                    <div class="quick-action-icon">📅</div>
+                    <span>Appointments</span>
+                </a>
+                <a href="/emergency/dashboard" class="quick-action-card">
+                    <div class="quick-action-icon">🚑</div>
+                    <span>Emergency Center</span>
+                </a>
+                <a href="/admin/ambulances" class="quick-action-card">
+                    <div class="quick-action-icon">🚨</div>
+                    <span>Ambulance Fleet</span>
+                </a>
+                <a href="/blood-bank/dashboard" class="quick-action-card">
+                    <div class="quick-action-icon">🩸</div>
+                    <span>Blood Bank</span>
+                </a>
+                <a href="/admin/beds" class="quick-action-card">
+                    <div class="quick-action-icon">🛏️</div>
+                    <span>Bed Allocation</span>
+                </a>
+                <a href="/admin/insurance" class="quick-action-card">
+                    <div class="quick-action-icon">🛡️</div>
+                    <span>Insurance Claims</span>
+                </a>
             </div>
-            <div class="card metric-card">
-                <div class="card-title">Avg Waiting Time</div>
-                <div class="stat-number" th:text="${avgWaitTime + ' min'}">15 min</div>
-            </div>
-            <div class="card metric-card accent">
-                <div class="card-title">Doctor Availability</div>
-                <div class="stat-number accent" th:text="${doctorAvailabilityRate + '%'}">0%</div>
-            </div>
-            <div class="card metric-card warning">
-                <div class="card-title">Lab Processing Score</div>
-                <div class="stat-number warning" th:text="${labProcessingRate + '%'}">0%</div>
-            </div>
-        </div>
 
-        <h3 class="section-title">Recent Appointments</h3>
-        <div class="table-container">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Patient</th>
-                        <th>Doctor</th>
-                        <th>Date &amp; Time</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="app : ${recentAppointments}">
-                        <td th:text="${'#APP-' + app.id}">#1</td>
-                        <td th:text="${app.patient.fullName}">Patient</td>
-                        <td th:text="${app.doctor.fullName}">Doctor</td>
-                        <td th:text="${app.appointmentDate + ' ' + app.appointmentTime}">Date Time</td>
-                        <td>
-                            <span class="badge"
-                                  th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : (app.status.name() == 'PENDING' ? 'badge-pending' : 'badge-rejected')}"
-                                  th:text="${app.status.label}">Status</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+            <!-- Recent Hospital Appointments -->
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h3 style="margin:0;">📋 Recent Hospital Appointments</h3>
+                    <a href="/admin/appointments" class="small text-muted">View All</a>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Appointment ID</th>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Date &amp; Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="app : ${recentAppointments}">
+                                <td th:text="${'#APP-' + app.id}">#1</td>
+                                <td th:text="${app.patient.fullName}">Patient Name</td>
+                                <td th:text="${'Dr. ' + app.doctor.fullName}">Doctor Name</td>
+                                <td th:text="${app.appointmentDate + ' ' + app.appointmentTime}">2026-08-20</td>
+                                <td>
+                                    <span class="badge" th:classappend="${app.status.name() == 'CONFIRMED' ? 'badge-confirmed' : 'badge-pending'}" th:text="${app.status.label}">CONFIRMED</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
     </div>
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>

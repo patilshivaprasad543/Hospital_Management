@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ambulance Control Command')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: role-nav}"></nav>
+
+    <div class="container">
+        <div th:if="${param.added}" class="alert alert-success">
+            ✅ New ambulance vehicle successfully registered to the emergency fleet!
+        </div>
+        <div th:if="${param.assigned}" class="alert alert-success">
+            ✅ Ambulance vehicle successfully dispatched and assigned to patient request!
+        </div>
+        <div th:if="${param.updated}" class="alert alert-success">
+            ✅ Ambulance trip status updated successfully!
+        </div>
+
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>Ambulance Fleet &amp; Dispatch Command</h1>
+                <p>Register new vehicles, assign dispatch units, &amp; track live emergency trips</p>
+            </div>
+        </div>
+
+        <div class="grid" style="margin-bottom: 2rem;">
+            <!-- ➕ Add New Ambulance Form -->
+            <div class="card">
+                <h3>➕ Register New Ambulance to Fleet</h3>
+                <form th:action="@{/admin/ambulances/add}" method="post" class="mt-2">
+                    <div class="form-group">
+                        <label class="form-label">Vehicle Number (e.g. KA-01-AMB-99)</label>
+                        <input type="text" name="vehicleNumber" class="form-control" placeholder="KA-01-AMB-99" required>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">Ambulance Type</label>
+                            <select name="type" class="form-select" required>
+                                <option value="BASIC">BASIC (BLS)</option>
+                                <option value="ADVANCED_LIFE_SUPPORT">ADVANCED LIFE SUPPORT (ALS)</option>
+                                <option value="PATIENT_TRANSPORT">PATIENT TRANSPORT</option>
+                                <option value="ICU_AMBULANCE">ICU AMBULANCE</option>
+                                <option value="NEONATAL">NEONATAL</option>
+                                <option value="CARDIAC">CARDIAC CARE</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Base Price / Rate (₹)</label>
+                            <input type="number" step="100" name="basePrice" class="form-control" value="1500" required>
+                        </div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">Driver Name</label>
+                            <input type="text" name="driverName" class="form-control" placeholder="Driver Full Name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Driver Contact Mobile</label>
+                            <input type="text" name="driverContact" class="form-control" placeholder="9876543210" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Onboard Equipment List</label>
+                        <input type="text" name="equipmentList" class="form-control" placeholder="Oxygen Cylinder, Defibrillator, Ventilator, First Aid Kit">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block mt-2">🚨 Register Ambulance to Fleet</button>
+                </form>
+            </div>
+
+            <!-- 🚨 Registered Fleet Vehicles -->
+            <div class="card">
+                <h3>🚑 Current Fleet Vehicles</h3>
+                <div class="table-container mt-2">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Vehicle No</th>
+                                <th>Type</th>
+                                <th>Driver</th>
+                                <th>Base Fare</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${ambulances == null || ambulances.empty}">
+                                <td colspan="5" class="text-center text-muted">No ambulances registered yet. Use the form to add one.</td>
+                            </tr>
+                            <tr th:each="amb : ${ambulances}">
+                                <td><strong th:text="${amb.vehicleNumber}">KA-01-AMB-01</strong></td>
+                                <td><span class="badge badge-info" th:text="${amb.type}">BASIC</span></td>
+                                <td th:text="${amb.driverName + ' (' + amb.driverContact + ')'}">Driver (9876543210)</td>
+                                <td th:text="${'₹' + amb.basePrice}">₹1500</td>
+                                <td>
+                                    <span class="badge" th:classappend="${amb.status.name() == 'AVAILABLE' ? 'badge-success' : 'badge-warning'}" th:text="${amb.status}">AVAILABLE</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Trips & Dispatch Section -->
+        <div class="card mb-4">
+            <h3>Active Ambulance Trips &amp; Pending Patient Requests</h3>
+            <div class="table-container mt-2">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Trip ID</th>
+                            <th>Patient</th>
+                            <th>Pickup Address</th>
+                            <th>Priority</th>
+                            <th>Requested Type</th>
+                            <th>Assigned Vehicle</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${trips == null || trips.empty}">
+                            <td colspan="8" class="text-center text-muted">No ambulance trip requests found.</td>
+                        </tr>
+                        <tr th:each="trip : ${trips}">
+                            <td th:text="${'#' + trip.id}">#101</td>
+                            <td th:text="${trip.patient.fullName}">Patient Name</td>
+                            <td th:text="${trip.pickupAddress}">Pickup Address</td>
+                            <td><span class="badge badge-danger" th:text="${trip.priority}">CRITICAL</span></td>
+                            <td th:text="${trip.requestedType}">BASIC</td>
+                            <td th:text="${trip.ambulance != null ? trip.ambulance.vehicleNumber : 'Unassigned'}">KA-01-AB-1234</td>
+                            <td><span class="badge badge-warning" th:text="${trip.status}">REQUESTED</span></td>
+                            <td>
+                                <form th:if="${trip.ambulance == null}" th:action="@{/admin/ambulances/assign}" method="post" style="display:flex;gap:5px;">
+                                    <input type="hidden" name="tripId" th:value="${trip.id}">
+                                    <select name="ambulanceId" class="form-select" style="padding:2px 5px;font-size:0.8rem;" required>
+                                        <option value="" disabled selected>Select Ambulance</option>
+                                        <option th:each="amb : ${availableAmbulances}" th:value="${amb.id}" th:text="${amb.vehicleNumber + ' (' + amb.type + ')'}"></option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary">Assign</button>
+                                </form>
+
+                                <form th:if="${trip.ambulance != null &amp;&amp; trip.status.name() != 'COMPLETED'}" th:action="@{/admin/ambulances/status}" method="post" style="display:flex;gap:5px;">
+                                    <input type="hidden" name="tripId" th:value="${trip.id}">
+                                    <select name="status" class="form-select" style="padding:2px 5px;font-size:0.8rem;">
+                                        <option value="EN_ROUTE">En Route</option>
+                                        <option value="AT_PICKUP">At Pickup</option>
+                                        <option value="PATIENT_ON_BOARD">Patient On Board</option>
+                                        <option value="ARRIVED">Arrived</option>
+                                        <option value="COMPLETED">Completed</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-success">Update</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -41,13 +41,13 @@
                 <input type="hidden" name="portalRole" th:value="${portalRole.name()}" />
                 <div class="form-group">
                     <label class="form-label">Email or Mobile Number</label>
-                    <input type="text" name="email" class="form-control"
+                    <input type="text" id="emailInput" name="email" class="form-control"
                            placeholder="name@email.com or 9876543210"
                            required autofocus>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                    <input type="password" id="passwordInput" name="password" class="form-control" placeholder="Enter your password" required>
                 </div>
 
                 <div th:if="${portalRole.name() != 'ADMIN'}" class="text-right mt-1">

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Patient Queue | Doctor Console</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body class="portal-body">
+    <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
+
+    <div class="container my-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2>📋 Live Patient Queue Dashboard</h2>
+                <p class="text-muted mb-0">Real-time patient queue for Dr. <span th:text="${loggedInUser != null ? loggedInUser.fullName : 'Doctor'}">Doctor</span></p>
+            </div>
+            <div>
+                <button class="btn btn-success btn-lg" onclick="callNext()">▶ Call Next Patient</button>
+            </div>
+        </div>
+
+        <div class="card p-3 mb-4" style="background:#f8fafc;border-left:5px solid #3b82f6;">
+            <h5>Serving Status</h5>
+            <div id="queueListContainer">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Patient Name</th>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="queueTbody">
+                        <tr th:if="${queueList == null || queueList.empty}">
+                            <td colspan="6" class="text-center text-muted">No patients in queue for today.</td>
+                        </tr>
+                        <tr th:each="q : ${queueList}">
+                            <td><strong class="text-primary" th:text="${q.queueNumber}">A-001</strong></td>
+                            <td th:text="${q.patient != null ? q.patient.fullName : 'Unknown'}">Patient Name</td>
+                            <td th:text="${q.appointment != null ? q.appointment.appointmentTime : '---'}">10:30 AM</td>
+                            <td>
+                                <span th:if="${q.appointment != null and q.appointment.consultationType != null and q.appointment.consultationType.name() == 'VIDEO'}" class="badge bg-primary">📹 Video</span>
+                                <span th:unless="${q.appointment != null and q.appointment.consultationType != null and q.appointment.consultationType.name() == 'VIDEO'}" class="badge bg-secondary">🏥 In-Person</span>
+                            </td>
+                            <td><span class="badge bg-info" th:text="${q.status}">WAITING</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" th:onclick="'recallPatient(' + ${q.id} + ')'">Recall</button>
+                                    <button class="btn btn-success" th:onclick="'startConsultation(' + ${q.id} + ')'">Start</button>
+                                    <button class="btn btn-warning" th:onclick="'holdPatient(' + ${q.id} + ')'">Hold</button>
+                                    <button class="btn btn-secondary" th:onclick="'skipPatient(' + ${q.id} + ')'">Skip</button>
+                                    <button class="btn btn-outline-success" th:onclick="'completeConsultation(' + ${q.id} + ')'">Complete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <script th:inline="javascript">
+        const doctorId = /*[[${loggedInUser != null ? loggedInUser.id : 0}]]*/ 0;
+
+        function loadQueue() {
+            fetch('/api/doctor/queue/today')
+                .then(r => r.json())
+                .then(data => {
+                    const tbody = document.getElementById('queueTbody');
+                    if (!tbody) return;
+                    tbody.innerHTML = '';
+                    if (!Array.isArray(data) || data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No patients in queue for today.</td></tr>';
+                        return;
+                    }
+                    data.forEach(q => {
+                        const tr = document.createElement('tr');
+                        const isVideo = q.appointment && q.appointment.consultationType === 'VIDEO';
+                        tr.innerHTML = `
+                            <td><strong class="text-primary">${q.queueNumber}</strong></td>
+                            <td>${q.patient ? q.patient.fullName : ''}</td>
+                            <td>${q.appointment ? q.appointment.appointmentTime : ''}</td>
+                            <td><span class="badge ${isVideo ? 'bg-primary' : 'bg-secondary'}">${isVideo ? '📹 Video' : '🏥 In-Person'}</span></td>
+                            <td><span class="badge bg-info">${q.status}</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" onclick="recallPatient(${q.id})">Recall</button>
+                                    <button class="btn btn-success" onclick="startConsultation(${q.id}, '${q.appointment ? q.appointment.id : ''}', '${isVideo}')">Start</button>
+                                    <button class="btn btn-warning" onclick="holdPatient(${q.id})">Hold</button>
+                                    <button class="btn btn-secondary" onclick="skipPatient(${q.id})">Skip</button>
+                                    <button class="btn btn-outline-success" onclick="completeConsultation(${q.id})">Complete</button>
+                                </div>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                });
+        }
+
+        function callNext() {
+            fetch('/api/doctor/queue/call-next', { method: 'POST' })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.error) alert(d.error);
+                    loadQueue();
+                });
+        }
+
+        function recallPatient(id) {
+            fetch(`/api/doctor/queue/${id}/recall`, { method: 'POST' }).then(loadQueue);
+        }
+
+        function startConsultation(id, apptId, isVideo) {
+            fetch(`/api/doctor/queue/${id}/start`, { method: 'POST' })
+                .then(() => {
+                    if (isVideo === 'true' && apptId) {
+                        window.location.href = `/doctor/video-consultation/${apptId}`;
+                    } else {
+                        loadQueue();
+                    }
+                });
+        }
+
+        function completeConsultation(id) {
+            fetch(`/api/doctor/queue/${id}/complete`, { method: 'POST' }).then(loadQueue);
+        }
+
+        function skipPatient(id) {
+            const reason = prompt('Reason for skipping patient:', 'Patient not present');
+            if (reason !== null) {
+                fetch(`/api/doctor/queue/${id}/skip?reason=${encodeURIComponent(reason)}`, { method: 'POST' }).then(loadQueue);
+            }
+        }
+
+        function holdPatient(id) {
+            const reason = prompt('Reason for hold:', 'Temporarily unavailable');
+            if (reason !== null) {
+                fetch(`/api/doctor/queue/${id}/hold?reason=${encodeURIComponent(reason)}`, { method: 'POST' }).then(loadQueue);
+            }
+        }
+
+        // STOMP WebSocket Live Connection
+        if (typeof SockJS !== 'undefined' && typeof Stomp !== 'undefined') {
+            try {
+                const socket = new SockJS('/ws-video');
+                const stompClient = Stomp.over(socket);
+                stompClient.debug = null;
+                stompClient.connect({}, () => {
+                    stompClient.subscribe(`/topic/doctor/${doctorId}/queue`, () => {
+                        loadQueue();
+                    });
+                });
+            } catch (e) {
+                console.log('WebSocket connect fallback', e);
+            }
+        }
+    </script>
+</body>
+</html>

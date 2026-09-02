@@ -64,6 +64,9 @@ public class PatientController {
     private PrescriptionRepository prescriptionRepository;
 
     @Autowired
+    private VideoConsultationService videoConsultationService;
+
+    @Autowired
     private AnnouncementService announcementService;
 
     @Autowired
@@ -78,12 +81,16 @@ public class PatientController {
     @Autowired
     private ConsultationService consultationService;
 
+    @Autowired
+    private AdmissionService admissionService;
+
     private User getLoggedInPatient(HttpSession session) {
-        User user = (User) session.getAttribute("loggedInUser");
-        if (user != null && user.getRole() == Role.PATIENT) {
-            return user;
-        }
-        return null;
+        return UserSessionHelper.getLoggedInPatient(session);
+    }
+
+    @GetMapping({"", "/"})
+    public String patientRootRedirect() {
+        return "redirect:/patient/dashboard";
     }
 
     @GetMapping("/dashboard")
@@ -236,18 +243,76 @@ public class PatientController {
                                   @RequestParam("appointmentTime") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime appointmentTime,
                                   @RequestParam(value = "reason", required = false) String reason,
                                   @RequestParam(value = "department", required = false) String department,
+                                  @RequestParam(value = "consultationType", required = false) ConsultationType consultationType,
                                   HttpSession session,
                                   RedirectAttributes redirectAttributes) {
         User patient = getLoggedInPatient(session);
         if (patient == null) return "redirect:/login/patient";
 
         try {
-            appointmentService.bookAppointmentWithDepartment(patient.getId(), doctorId, appointmentDate, appointmentTime, reason, department);
+            Appointment appt = appointmentService.bookAppointmentWithDepartment(patient.getId(), doctorId, appointmentDate, appointmentTime, reason, department, consultationType != null ? consultationType : ConsultationType.IN_PERSON);
+            if (consultationType == ConsultationType.VIDEO) {
+                videoConsultationService.createVideoRoom(appt);
+                redirectAttributes.addFlashAttribute("successMessage", "📹 Video consultation booked successfully! Video room generated.");
+                return "redirect:/patient/video-consultations";
+            }
             redirectAttributes.addFlashAttribute("successMessage", "Appointment booked successfully! Waiting for Doctor confirmation.");
             return "redirect:/patient/appointments";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/patient/book-appointment?doctorId=" + doctorId;
+        }
+    }
+
+    @GetMapping("/book-video-consultation")
+    public String showBookVideoConsultationForm(@RequestParam(value = "doctorId", required = false) Long doctorId,
+                                               HttpSession session, Model model) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+
+        List<User> approvedDoctors = userService.findApprovedDoctors();
+
+        model.addAttribute("patient", patient);
+        model.addAttribute("loggedInUser", patient);
+        model.addAttribute("doctors", approvedDoctors);
+        model.addAttribute("doctorProfiles", doctorProfilesForBooking(approvedDoctors));
+        model.addAttribute("selectedDoctorId", doctorId);
+        model.addAttribute("minDate", LocalDate.now().toString());
+        return "patient/book-video-consultation";
+    }
+
+    @PostMapping("/book-video-consultation")
+    public String processBookVideoConsultation(@RequestParam("doctorId") Long doctorId,
+                                              @RequestParam("appointmentDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate appointmentDate,
+                                              @RequestParam("appointmentTime") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime appointmentTime,
+                                              @RequestParam(value = "reason", required = false) String reason,
+                                              HttpSession session,
+                                              RedirectAttributes redirectAttributes) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+
+        try {
+            User doctor = userService.findById(doctorId).orElseThrow(() -> new RuntimeException("Doctor not found"));
+            String deptName = "General Medicine";
+            java.util.Optional<DoctorProfile> prof = userService.getDoctorProfile(doctor);
+            if (prof.isPresent()) {
+                if (prof.get().getDepartment() != null) deptName = prof.get().getDepartment().getName();
+                else if (prof.get().getSpecialization() != null) deptName = prof.get().getSpecialization();
+            }
+
+            Appointment appt = appointmentService.bookAppointmentWithDepartment(
+                    patient.getId(), doctorId, appointmentDate, appointmentTime,
+                    (reason != null && !reason.isBlank() ? reason : "Telemedicine Video Consultation"),
+                    deptName, ConsultationType.VIDEO
+            );
+
+            videoConsultationService.createVideoRoom(appt);
+
+            redirectAttributes.addFlashAttribute("successMessage", "📹 Video consultation with Dr. " + doctor.getFullName() + " booked successfully! Video room link ready.");
+            return "redirect:/patient/video-consultations";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/patient/book-video-consultation?doctorId=" + doctorId;
         }
     }
 
@@ -471,6 +536,48 @@ public class PatientController {
         return "redirect:/patient/appointments";
     }
 
+    @GetMapping("/language")
+    public String languageSettingsPage(HttpSession session, Model model) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+
+        PatientProfile profile = userService.getPatientProfile(patient).orElse(new PatientProfile(patient));
+        model.addAttribute("patient", patient);
+        model.addAttribute("profile", profile);
+        model.addAttribute("currentLang", profile.getPreferredLanguage() != null ? profile.getPreferredLanguage() : "en");
+        model.addAttribute("activePage", "language");
+        return "patient/language";
+    }
+
+    @PostMapping("/language")
+    public String updateLanguagePreference(@RequestParam("lang") String lang,
+                                           HttpSession session,
+                                           RedirectAttributes redirectAttributes) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+
+        PatientProfile profile = userService.getPatientProfile(patient).orElse(new PatientProfile(patient));
+        profile.setPreferredLanguage(lang);
+        userService.updatePatientProfile(patient.getId(), profile);
+        session.setAttribute("smartcare_lang", lang);
+
+        redirectAttributes.addFlashAttribute("successMessage", "✅ Language preference successfully updated!");
+        return "redirect:/patient/language";
+    }
+
+    @PostMapping("/api/language")
+    @ResponseBody
+    public ResponseEntity<?> updateLanguageApi(@RequestParam("lang") String lang, HttpSession session) {
+        User patient = getLoggedInPatient(session);
+        if (patient != null) {
+            PatientProfile profile = userService.getPatientProfile(patient).orElse(new PatientProfile(patient));
+            profile.setPreferredLanguage(lang);
+            userService.updatePatientProfile(patient.getId(), profile);
+            session.setAttribute("smartcare_lang", lang);
+        }
+        return ResponseEntity.ok(Map.of("status", "success", "language", lang));
+    }
+
     @GetMapping("/profile")
     public String viewProfile(HttpSession session, Model model) {
         User patient = getLoggedInPatient(session);
@@ -563,5 +670,125 @@ public class PatientController {
                         .contentType(MediaType.APPLICATION_PDF)
                         .body(pdfService.generateLabReportPdf(lab, patient)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/beds")
+    public String viewBeds(HttpSession session, Model model) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+
+        model.addAttribute("patient", patient);
+        model.addAttribute("availableBeds", admissionService.getAvailableBeds());
+        model.addAttribute("totalBedsCount", admissionService.getTotalBedCount());
+        model.addAttribute("availableBedsCount", admissionService.getAvailableBedCount());
+        model.addAttribute("occupiedBedsCount", admissionService.getOccupiedBedCount());
+        model.addAttribute("wards", admissionService.getAllWards());
+        model.addAttribute("patientAdmissions", admissionService.getAdmissionsByPatient(patient));
+        return "patient/beds";
+    }
+
+    @GetMapping("/book-bed")
+    public String showBookBedForm(@RequestParam(value = "doctorId", required = false) Long doctorId,
+                                  @RequestParam(value = "bedId", required = false) Long bedId,
+                                  HttpSession session, Model model) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+
+        model.addAttribute("patient", patient);
+        model.addAttribute("doctors", userService.findApprovedDoctors());
+        model.addAttribute("selectedDoctorId", doctorId);
+        model.addAttribute("selectedBedId", bedId);
+        model.addAttribute("availableBeds", admissionService.getAvailableBeds());
+        model.addAttribute("wards", admissionService.getAllWards());
+        return "patient/book-bed";
+    }
+
+    @PostMapping("/book-bed")
+    public String processBookBed(@RequestParam(value = "doctorId", required = false) Long doctorId,
+                                 @RequestParam(value = "bedId", required = false) Long bedId,
+                                 @RequestParam("reason") String reason,
+                                 @RequestParam(value = "notes", required = false) String notes,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+
+        try {
+            admissionService.requestBedBooking(patient, doctorId, bedId, reason, notes);
+            redirectAttributes.addFlashAttribute("successMessage", "Bed booking request submitted for your selected bed! Pending admin allocation.");
+            return "redirect:/patient/beds";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/patient/book-bed";
+        }
+    }
+
+    @PostMapping("/beds/{id}/cancel")
+    public String cancelBedBooking(@PathVariable("id") Long id,
+                                   HttpSession session,
+                                   RedirectAttributes redirectAttributes) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+
+        try {
+            admissionService.cancelBedBooking(id, patient);
+            redirectAttributes.addFlashAttribute("successMessage", "Bed booking request cancelled.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/patient/beds";
+    }
+
+    @Autowired
+    private com.hospital.repository.PreCheckInRepository preCheckInRepository;
+
+    @GetMapping("/appointments/{id}/pre-checkin")
+    public String showPreCheckIn(@PathVariable("id") Long id, HttpSession session, Model model) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+
+        Appointment appt = appointmentService.getAppointmentById(id);
+        if (appt == null || !appt.getPatient().getId().equals(patient.getId())) {
+            return "redirect:/patient/appointments";
+        }
+
+        model.addAttribute("patient", patient);
+        model.addAttribute("loggedInUser", patient);
+        model.addAttribute("appointment", appt);
+        model.addAttribute("preCheckIn", preCheckInRepository.findByAppointment(appt).orElse(null));
+        return "patient/pre-checkin";
+    }
+
+    @PostMapping("/appointments/{id}/pre-checkin")
+    public String processPreCheckIn(@PathVariable("id") Long id,
+                                   @RequestParam(value = "confirmedAllergies", required = false) String confirmedAllergies,
+                                   @RequestParam(value = "currentMedications", required = false) String currentMedications,
+                                   @RequestParam(value = "chiefComplaint", required = false) String chiefComplaint,
+                                   @RequestParam(value = "emergencyContactName", required = false) String emergencyContactName,
+                                   @RequestParam(value = "emergencyContactPhone", required = false) String emergencyContactPhone,
+                                   HttpSession session, RedirectAttributes redirectAttributes) {
+        User patient = getLoggedInPatient(session);
+        if (patient == null) return "redirect:/login/patient";
+
+        Appointment appt = appointmentService.getAppointmentById(id);
+        if (appt == null || !appt.getPatient().getId().equals(patient.getId())) {
+            return "redirect:/patient/appointments";
+        }
+
+        com.hospital.model.PreCheckIn preCheckIn = preCheckInRepository.findByAppointment(appt)
+                .orElseGet(() -> new com.hospital.model.PreCheckIn());
+
+        preCheckIn.setAppointment(appt);
+        preCheckIn.setPatient(patient);
+        preCheckIn.setConfirmedAllergies(confirmedAllergies);
+        preCheckIn.setCurrentMedications(currentMedications);
+        preCheckIn.setChiefComplaint(chiefComplaint);
+        preCheckIn.setEmergencyContactName(emergencyContactName);
+        preCheckIn.setEmergencyContactPhone(emergencyContactPhone);
+        preCheckIn.setCompletedAt(java.time.LocalDateTime.now());
+        preCheckInRepository.save(preCheckIn);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Pre-Check-In completed successfully! Your doctor has been notified.");
+        return "redirect:/patient/appointments";
     }
 }

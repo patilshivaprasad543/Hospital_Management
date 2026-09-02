@@ -21,6 +21,7 @@ public class Notification {
     private String message;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 50)
     private NotificationCategory category;
 
     private boolean isRead = false;

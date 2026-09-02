@@ -37,11 +37,23 @@ public class AppointmentService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private VideoConsultationService videoConsultationService;
+
+    public Appointment getAppointmentById(Long id) {
+        if (id == null) return null;
+        return appointmentRepository.findById(id).orElse(null);
+    }
+
     public Appointment bookAppointment(Long patientId, Long doctorId, LocalDate date, LocalTime time, String reason) {
         return bookAppointmentWithDepartment(patientId, doctorId, date, time, reason, "General Consultation");
     }
 
     public Appointment bookAppointmentWithDepartment(Long patientId, Long doctorId, LocalDate date, LocalTime time, String reason, String departmentCategory) {
+        return bookAppointmentWithDepartment(patientId, doctorId, date, time, reason, departmentCategory, ConsultationType.IN_PERSON);
+    }
+
+    public Appointment bookAppointmentWithDepartment(Long patientId, Long doctorId, LocalDate date, LocalTime time, String reason, String departmentCategory, ConsultationType consultationType) {
         User patient = userRepository.findById(patientId)
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
         User doctor = userRepository.findById(doctorId)
@@ -62,12 +74,13 @@ public class AppointmentService {
 
         Appointment appointment = new Appointment(patient, doctor, date, time, reason);
         appointment.setDepartmentCategory(departmentCategory != null ? departmentCategory : "General Consultation");
+        appointment.setConsultationType(consultationType != null ? consultationType : ConsultationType.IN_PERSON);
         appointment.setState(AppointmentState.PENDING_DOCTOR_APPROVAL);
         appointment.setStatus(AppointmentStatus.PENDING);
 
         Appointment saved = appointmentRepository.save(appointment);
 
-        // Notify doctor + patient via in-app, email & WhatsApp
+        // Notify doctor + patient via in-app & email
         notificationService.sendPortalNotification(
             doctor,
             "📅 New Appointment Request",
@@ -162,6 +175,14 @@ public class AppointmentService {
                 NotificationCategory.APPOINTMENT,
                 "/doctor/dashboard"
             );
+            if (savedAppointment.getConsultationType() == ConsultationType.VIDEO) {
+                try {
+                    videoConsultationService.createVideoRoom(savedAppointment);
+                } catch (Exception e) {
+                    // Log error if room creation fails
+                }
+            }
+
             emailService.sendAppointmentConfirmationEmail(savedAppointment);
             userService.getDoctorProfile(savedAppointment.getDoctor()).ifPresent(profile -> {
                 if (profile.getConsultationFee() != null && profile.getConsultationFee() > 0) {

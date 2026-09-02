@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Book Telemedicine Video Consultation')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="app-layout">
+        <aside th:replace="~{fragments/layout :: patient-sidebar}"></aside>
+
+        <main class="main-stage">
+            <div class="page-header" style="margin-bottom:1.5rem;">
+                <h1 style="margin:0;font-size:1.75rem;color:var(--text-main);">📹 Book Telemedicine Video Consultation</h1>
+                <p style="margin:0.25rem 0 0;color:var(--text-muted);">Select any approved hospital specialist for an instant online video consultation from home.</p>
+            </div>
+
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <div class="grid" style="display:grid;grid-template-columns:3fr 2fr;gap:1.5rem;">
+                <!-- Video Booking Form -->
+                <div class="card" style="padding:1.75rem;">
+                    <h3 style="margin-top:0;font-size:1.25rem;">Appointment &amp; Doctor Details</h3>
+
+                    <form th:action="@{/patient/book-video-consultation}" method="post">
+                        <!-- Select Doctor -->
+                        <div class="form-group" style="margin-bottom:1.25rem;">
+                            <label style="font-weight:600;display:block;margin-bottom:0.5rem;">Select Specialist / Doctor <span style="color:#ef4444;">*</span></label>
+                            <select name="doctorId" id="doctorSelect" class="form-control" style="width:100%;" required onchange="updateDoctorFee(this)">
+                                <option value="">-- Choose Any Doctor for Video Call --</option>
+                                <option th:each="doc : ${doctors}"
+                                        th:value="${doc.id}"
+                                        th:selected="${selectedDoctorId != null and selectedDoctorId == doc.id}"
+                                        th:data-fee="${doctorProfiles[doc.id] != null and doctorProfiles[doc.id].consultationFee != null ? doctorProfiles[doc.id].consultationFee : 500}"
+                                        th:data-spec="${doctorProfiles[doc.id] != null ? doctorProfiles[doc.id].specialization : 'General Medicine'}"
+                                        th:text="${'Dr. ' + doc.fullName + ' — ' + (doctorProfiles[doc.id] != null ? doctorProfiles[doc.id].specialization : 'General Medicine') + ' (Fee: ₹' + (doctorProfiles[doc.id] != null and doctorProfiles[doc.id].consultationFee != null ? doctorProfiles[doc.id].consultationFee : 500) + ')'}">
+                                    Dr. John Smith (Cardiology)
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Appointment Date & Time -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;">
+                            <div class="form-group">
+                                <label style="font-weight:600;display:block;margin-bottom:0.5rem;">Consultation Date <span style="color:#ef4444;">*</span></label>
+                                <input type="date" name="appointmentDate" class="form-control" th:min="${minDate}" required>
+                            </div>
+                            <div class="form-group">
+                                <label style="font-weight:600;display:block;margin-bottom:0.5rem;">Preferred Time Slot <span style="color:#ef4444;">*</span></label>
+                                <select name="appointmentTime" class="form-control" required>
+                                    <option value="">-- Select Time --</option>
+                                    <option value="09:00">09:00 AM</option>
+                                    <option value="10:00">10:00 AM</option>
+                                    <option value="11:00">11:00 AM</option>
+                                    <option value="12:00">12:00 PM</option>
+                                    <option value="14:00">02:00 PM</option>
+                                    <option value="15:00">03:00 PM</option>
+                                    <option value="16:00">04:00 PM</option>
+                                    <option value="17:00">05:00 PM</option>
+                                    <option value="18:00">06:00 PM</option>
+                                    <option value="19:00">07:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Reason / Symptoms -->
+                        <div class="form-group" style="margin-bottom:1.5rem;">
+                            <label style="font-weight:600;display:block;margin-bottom:0.5rem;">Reason for Consultation / Symptoms</label>
+                            <textarea name="reason" class="form-control" rows="3" placeholder="Describe symptoms or reasons for virtual consultation (e.g. Follow-up consultation, Fever &amp; Cough review, Medication check)."></textarea>
+                        </div>
+
+                        <div style="display:flex;gap:1rem;align-items:center;">
+                            <button type="submit" class="btn btn-success" style="padding:0.75rem 1.5rem;font-weight:600;background:#10b981;border-color:#10b981;">
+                                📹 Confirm &amp; Generate Video Call Room
+                            </button>
+                            <a href="/patient/video-consultations" class="btn btn-outline">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Info & Guidelines Card -->
+                <div>
+                    <div class="card" style="padding:1.5rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius-lg);margin-bottom:1rem;">
+                        <h4 style="margin:0 0 0.5rem;color:#1e40af;">📹 Instant Telemedicine Experience</h4>
+                        <p style="font-size:0.88rem;color:#1e3a8a;line-height:1.5;margin-bottom:0.75rem;">
+                            When you confirm your video booking:
+                        </p>
+                        <ul style="margin:0;padding-left:1.2rem;font-size:0.85rem;color:#1e3a8a;line-height:1.6;">
+                            <li>A secure encrypted WebRTC video call room is generated immediately.</li>
+                            <li>Both you and the doctor receive instant email &amp; portal notifications with direct room links.</li>
+                            <li>Join from your phone or laptop camera — no app download required!</li>
+                        </ul>
+                    </div>
+
+                    <div class="card" style="padding:1.5rem;background:#f8fafc;border:1px solid #e2e8f0;">
+                        <h4 style="margin:0 0 0.5rem;font-size:1rem;">💻 Requirements for Video Call</h4>
+                        <div style="font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
+                            ✔️ Working Camera &amp; Microphone<br>
+                            ✔️ Stable Internet Connection<br>
+                            ✔️ Chrome / Safari / Firefox Browser
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function updateDoctorFee(select) {
+            var selectedOption = select.options[select.selectedIndex];
+            var fee = selectedOption.getAttribute('data-fee');
+            if (fee) {
+                console.log('Selected doctor fee:', fee);
+            }
+        }
+    </script>
+</body>
+</html>

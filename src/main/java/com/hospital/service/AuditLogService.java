@@ -22,6 +22,14 @@ public class AuditLogService {
         log(user, action, module, null, null, details);
     }
 
+    public void logAction(User user, String action, String details) {
+        auditLogRepository.save(new AuditLog(user, action, "SYSTEM", null, null, details));
+    }
+
+    public void logAction(String actorEmail, String action, String details) {
+        auditLogRepository.save(new AuditLog(null, action, "SYSTEM", null, null, actorEmail + ": " + details));
+    }
+
     public List<AuditLog> getRecentLogs() {
         return auditLogRepository.findTop100ByOrderByCreatedAtDesc();
     }

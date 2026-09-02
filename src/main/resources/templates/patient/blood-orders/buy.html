@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Buy Blood with Doctor Prescription')}"></head>
+<body>
+    <nav th:replace="~{fragments/layout :: patient-nav}"></nav>
+
+    <div class="container" style="max-width: 1100px; margin: 2rem auto;">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+            <div class="page-header-content">
+                <h1 style="color:#b91c1c;display:flex;align-items:center;gap:10px;">
+                    <span>🩸</span> Buy Blood with Doctor Prescription
+                </h1>
+                <p>Order certified donor blood units and blood components directly from the SmartCare Blood Bank using your valid doctor prescription.</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="/patient/blood-bank/orders" class="btn btn-outline">📋 Track My Blood Orders</a>
+            </div>
+        </div>
+
+        <!-- Live Blood Bank Stock Availability Bar -->
+        <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid #dc2626;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                <h3 style="font-size:1.05rem;color:#1e293b;margin:0;display:flex;align-items:center;gap:8px;">
+                    <span>🏥</span> Live Blood Bank Stock Availability
+                </h3>
+                <span class="badge" style="background:#fee2e2;color:#b91c1c;font-weight:600;padding:4px 10px;border-radius:12px;">Real-Time Inventory</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));gap:0.75rem;">
+                <div th:each="bg : ${bloodGroups}" style="background:#f8fafc;border:1px solid #e2e8f0;padding:8px 12px;border-radius:8px;text-align:center;">
+                    <div style="font-weight:700;font-size:0.95rem;color:#0f172a;" th:text="${bg.label}">A+</div>
+                    <div style="font-size:0.8rem;margin-top:2px;"
+                         th:with="cnt=${groupCounts != null and groupCounts.containsKey(bg) ? groupCounts.get(bg) : 0}"
+                         th:class="${cnt > 0 ? 'text-success' : 'text-danger'}">
+                        <span th:text="${cnt + ' Units'}">0 Units</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(prescriptions)}" class="card" style="text-align:center;padding:3rem 1.5rem;">
+            <div style="font-size:3rem;margin-bottom:1rem;">⚠️</div>
+            <h3 style="color:#b91c1c;">Doctor Prescription Required</h3>
+            <p style="color:#64748b;max-width:550px;margin:0.5rem auto 1.5rem;">
+                In accordance with medical safety regulations and hospital policy, blood units can <strong>only</strong> be dispensed with an active doctor prescription. You do not currently have any prescriptions on record.
+            </p>
+            <a href="/patient/appointments" class="btn btn-primary">Book Consultation with Doctor</a>
+        </div>
+
+        <div th:if="${not #lists.isEmpty(prescriptions)}" class="grid" style="display:grid;grid-template-columns:1fr 1.3fr;gap:1.5rem;align-items:start;">
+            
+            <!-- Left Side: Prescription Selector Card -->
+            <div class="card">
+                <h3 style="font-size:1.1rem;color:#0f172a;margin-bottom:1rem;display:flex;align-items:center;gap:8px;">
+                    <span>📋</span> 1. Select Doctor Prescription
+                </h3>
+                <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                    <div th:each="rx : ${prescriptions}" 
+                         th:class="${selectedPrescription != null and selectedPrescription.id == rx.id ? 'card active-rx' : 'card inactive-rx'}"
+                         style="cursor:pointer;padding:12px;border-radius:8px;transition:all 0.2s;"
+                         th:onclick="'window.location.href=\'/patient/blood-bank/buy?prescriptionId=' + ${rx.id} + '\';'">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                            <span style="font-weight:700;color:#0f172a;" th:text="${'Rx #' + rx.id}">Rx #1</span>
+                            <span style="font-size:0.75rem;color:#64748b;" th:text="${#temporals.format(rx.createdAt, 'dd MMM yyyy')}">Date</span>
+                        </div>
+                        <div style="font-size:0.85rem;color:#334155;">
+                            👨‍⚕️ <strong>Doctor:</strong> <span th:text="${'Dr. ' + rx.doctor.fullName}">Dr. Smith</span>
+                        </div>
+                        <div style="font-size:0.85rem;color:#334155;">
+                            🩺 <strong>Diagnosis:</strong> <span th:text="${rx.diagnosis}">Diagnosis</span>
+                        </div>
+                        <div th:if="${rx.hasBloodPrescription()}" style="margin-top:6px;background:#fef2f2;border:1px solid #fecaca;padding:4px 8px;border-radius:6px;font-size:0.78rem;color:#991b1b;">
+                            🩸 Blood Prescribed: <strong th:text="${(rx.bloodUnits != null ? rx.bloodUnits : 1) + ' Unit(s) ' + (rx.bloodGroup != null ? rx.bloodGroup.label : '')}">2 Units</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Blood Purchase & Configuration Form -->
+            <div class="card" th:if="${selectedPrescription != null}">
+                <div style="border-bottom:1px solid #e2e8f0;padding-bottom:1rem;margin-bottom:1.25rem;">
+                    <h3 style="font-size:1.15rem;color:#b91c1c;margin:0 0 4px 0;display:flex;align-items:center;gap:8px;">
+                        <span>🩸</span> 2. Configure Blood Requisition
+                    </h3>
+                    <div style="font-size:0.85rem;color:#64748b;">
+                        Linked with <strong>Prescription #<span th:text="${selectedPrescription.id}">1</span></strong> by Dr. <span th:text="${selectedPrescription.doctor.fullName}">Doctor</span>.
+                    </div>
+                </div>
+
+                <form th:action="@{/patient/blood-bank/buy}" method="post" id="bloodOrderForm">
+                    <input type="hidden" name="prescriptionId" th:value="${selectedPrescription.id}" />
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight:600;">Blood Group *</label>
+                            <select name="bloodGroup" id="bloodGroupSelect" class="form-control" required onchange="updatePriceAndStock()">
+                                <option th:each="bg : ${bloodGroups}"
+                                        th:value="${bg}"
+                                        th:text="${bg.label}"
+                                        th:selected="${selectedPrescription.bloodGroup != null ? selectedPrescription.bloodGroup == bg : (profile.bloodGroup != null and profile.bloodGroup.toUpperCase().contains(bg.label.substring(0,1)))}">
+                                    O+ (O Positive)
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight:600;">Component Type *</label>
+                            <select name="componentType" class="form-control" required>
+                                <option th:each="ct : ${componentTypes}"
+                                        th:value="${ct}"
+                                        th:text="${ct.label}"
+                                        th:selected="${selectedPrescription.bloodComponentType != null and selectedPrescription.bloodComponentType == ct}">
+                                    Packed Red Blood Cells (PRBC)
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight:600;">Units Required *</label>
+                            <input type="number" name="units" id="unitsInput" class="form-control" min="1" max="5" 
+                                   th:value="${selectedPrescription.bloodUnits != null ? selectedPrescription.bloodUnits : 1}" 
+                                   required oninput="updatePriceAndStock()" />
+                            <small style="color:#64748b;">Standard bag: 350-450 mL / unit</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight:600;">Urgency Level *</label>
+                            <select name="urgencyLevel" class="form-control" required>
+                                <option value="URGENT">⚡ Urgent (Surgery / Ward Transfusion)</option>
+                                <option value="STAT_EMERGENCY">🚨 STAT Emergency (Immediate ICU)</option>
+                                <option value="ROUTINE">📅 Routine / Elective Procedure</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label class="form-label" style="font-weight:600;">Delivery / Dispensation Destination *</label>
+                        <select name="deliveryType" class="form-control" required onchange="toggleLocationLabel(this.value)">
+                            <option value="HOSPITAL_WARD">🏥 Hospital Inpatient Ward / Bed</option>
+                            <option value="EMERGENCY_ICU">🚨 Emergency Room / ICU Station</option>
+                            <option value="COLLECT_AT_BLOOD_BANK">🚶 Collect in person at Blood Bank Counter (Cold Chain)</option>
+                            <option value="AMBULANCE_COLD_CHAIN">🚑 Ambulance Transport (Cold Box)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label class="form-label" id="locationLabel" style="font-weight:600;">Ward &amp; Bed Number / Room *</label>
+                        <input type="text" name="deliveryLocation" class="form-control" placeholder="e.g. Inpatient Ward 3, Bed B-104" required
+                               th:value="${profile.address}" />
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight:600;">Contact Phone *</label>
+                            <input type="text" name="patientContact" class="form-control" required 
+                                   th:value="${patient.mobileNumber}" placeholder="Phone number for verification" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight:600;">Payment Mode *</label>
+                            <select name="paymentMethod" class="form-control" required>
+                                <option value="HOSPITAL_BILL">📄 Add to Patient Hospital Bill</option>
+                                <option value="ONLINE">💳 Online Card / NetBanking / UPI</option>
+                                <option value="CASH_AT_COUNTER">💵 Pay at Blood Bank Counter</option>
+                                <option value="INSURANCE">🛡️ Medical Insurance Claim</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:1.25rem;">
+                        <label class="form-label" style="font-weight:600;">Clinical Notes / Transfusion Reason</label>
+                        <input type="text" name="clinicalNotes" class="form-control" 
+                               th:value="${selectedPrescription.bloodTransfusionReason != null ? selectedPrescription.bloodTransfusionReason : selectedPrescription.diagnosis}"
+                               placeholder="e.g. Post-operative recovery, Severe Anemia, Surgery" />
+                    </div>
+
+                    <!-- Price & Summary Card -->
+                    <div style="background:#f8fafc;border:1px solid #cbd5e1;padding:14px;border-radius:8px;margin-bottom:1.25rem;">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.9rem;color:#475569;">
+                            <span>Testing, Cross-matching &amp; Component Prep:</span>
+                            <span>₹<span id="unitPriceDisplay">1,500</span> × <span id="unitsCountDisplay">1</span></span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.9rem;color:#475569;">
+                            <span>Government Regulated Testing Fee:</span>
+                            <span class="text-success">Included</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;border-top:1px solid #e2e8f0;padding-top:8px;font-size:1.1rem;font-weight:700;color:#0f172a;">
+                            <span>Total Payable:</span>
+                            <span style="color:#b91c1c;">₹<span id="totalPriceDisplay">1,500</span></span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" style="background:#dc2626;color:#fff;font-weight:700;width:100%;padding:12px;font-size:1rem;border-radius:8px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(220,38,38,0.3);">
+                        🩸 Confirm &amp; Place Blood Order (Rx Verified)
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .active-rx {
+            border: 2px solid #dc2626 !important;
+            background: #fff5f5 !important;
+        }
+        .inactive-rx {
+            border: 1px solid #e2e8f0 !important;
+            background: #fff !important;
+        }
+        .inactive-rx:hover {
+            border-color: #cbd5e1 !important;
+            background: #f8fafc !important;
+        }
+    </style>
+
+    <script>
+        const unitPrice = 1500;
+
+        function updatePriceAndStock() {
+            const unitsInput = document.getElementById('unitsInput');
+            let units = parseInt(unitsInput.value) || 1;
+            if (units < 1) units = 1;
+            if (units > 10) units = 10;
+            
+            document.getElementById('unitsCountDisplay').innerText = units;
+            const total = units * unitPrice;
+            document.getElementById('totalPriceDisplay').innerText = total.toLocaleString();
+        }
+
+        function toggleLocationLabel(type) {
+            const label = document.getElementById('locationLabel');
+            if (type === 'HOSPITAL_WARD') {
+                label.innerText = 'Ward & Bed Number / Room *';
+            } else if (type === 'EMERGENCY_ICU') {
+                label.innerText = 'ICU / Emergency Room Station *';
+            } else if (type === 'COLLECT_AT_BLOOD_BANK') {
+                label.innerText = 'Collector Full Name & ID Proof *';
+            } else {
+                label.innerText = 'Delivery / Hospital Address *';
+            }
+        }
+    </script>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

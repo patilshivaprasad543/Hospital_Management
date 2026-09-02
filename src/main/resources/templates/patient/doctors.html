@@ -47,8 +47,11 @@
                     Fee: ₹<span th:text="${prof != null && prof.consultationFee != null ? prof.consultationFee : '500'}">500</span>
                     · Exp: <span th:text="${prof != null ? prof.experienceYears : '-'}">5</span> yrs
                 </p>
-                <a th:href="@{/patient/doctors/{id}(id=${doc.id})}" class="btn btn-outline btn-sm btn-block mt-2">View Profile</a>
-                <a th:href="@{/patient/book-appointment(doctorId=${doc.id})}" class="btn btn-primary btn-sm btn-block mt-2">Select &amp; Book</a>
+                <div style="display:flex;gap:0.5rem;margin-top:0.75rem;flex-wrap:wrap;">
+                    <a th:href="@{/patient/doctors/{id}(id=${doc.id})}" class="btn btn-outline btn-sm" style="flex:1;text-align:center;">Profile</a>
+                    <a th:href="@{/patient/book-appointment(doctorId=${doc.id})}" class="btn btn-primary btn-sm" style="flex:1;text-align:center;">In-Person</a>
+                    <a th:href="@{/patient/book-video-consultation(doctorId=${doc.id})}" class="btn btn-success btn-sm" style="flex:1;text-align:center;background:#10b981;border-color:#10b981;font-weight:600;">📹 Video Call</a>
+                </div>
             </div>
             <div th:if="${#lists.isEmpty(doctors)}" class="table-empty" style="grid-column:1/-1;padding:2rem;">
                 No doctors found matching your criteria.

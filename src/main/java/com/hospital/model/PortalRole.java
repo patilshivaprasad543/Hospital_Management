@@ -57,7 +57,7 @@ public enum PortalRole {
         return this != ADMIN;
     }
 
-    public String pathSegment() {
+    public String getPathSegment() {
         return name().toLowerCase();
     }
 

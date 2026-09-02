@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Telemedicine List | SmartCare 360</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="portal-body">
+    <nav th:replace="~{fragments/layout :: doctor-nav}"></nav>
+
+    <div class="container my-4">
+        <div th:if="${successMessage}" class="alert alert-success mb-3" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger mb-3" th:text="${errorMessage}"></div>
+
+        <h2>📹 Doctor Telemedicine Schedule</h2>
+        <p class="text-muted">Upcoming and active video consultations assigned to you.</p>
+
+        <div th:if="${#lists.isEmpty(videoConsultations)}" class="card p-4 text-center">
+            <p class="text-muted">No video consultations scheduled today.</p>
+        </div>
+
+        <div class="row" th:unless="${#lists.isEmpty(videoConsultations)}">
+            <div th:each="vc : ${videoConsultations}" class="col-md-6 mb-3">
+                <div class="card p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary">Patient Video Call</span>
+                        <span th:if="${vc.appointment.status.name() == 'PENDING'}" class="badge bg-warning text-dark" style="font-weight:700;">⏳ PENDING DOCTOR ACCEPTANCE</span>
+                        <span th:if="${vc.appointment.status.name() != 'PENDING'}" class="badge bg-success" style="font-weight:700;" th:text="${vc.appointment.status}">CONFIRMED</span>
+                    </div>
+                    <h5>Patient: <span th:text="${vc.patient.fullName}">Patient Name</span></h5>
+                    <p class="text-muted mb-2">
+                        <strong>Scheduled:</strong> <span th:text="${vc.scheduledStart}">2026-08-28</span>
+                    </p>
+
+                    <!-- PENDING: Require Doctor Acceptance -->
+                    <div th:if="${vc.appointment.status.name() == 'PENDING'}" style="margin-top:0.75rem;padding:0.75rem;background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius-md);">
+                        <p style="margin:0 0 0.5rem;font-size:0.88rem;color:#92400e;font-weight:600;">
+                            ⚠️ Patient requested this video consultation. Accept to open the waiting room.
+                        </p>
+                        <form th:action="@{/doctor/video-consultation/{id}/accept(id=${vc.appointment.id})}" method="post" style="display:inline-block;width:100%;">
+                            <button type="submit" class="btn btn-success btn-sm w-100" style="background:#10b981;border-color:#10b981;font-weight:600;">
+                                ✅ Accept &amp; Open Waiting Room
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- CONFIRMED / ACCEPTED: Show Waiting Room & Doctor Console -->
+                    <div th:if="${vc.appointment.status.name() != 'PENDING'}" class="d-flex gap-2" style="margin-top:0.5rem;">
+                        <a th:href="@{/doctor/video-consultation/{id}/waiting-room(id=${vc.appointment.id})}" class="btn btn-outline-primary btn-sm">Waiting Room</a>
+                        <a th:href="@{/doctor/video-consultation/{id}(id=${vc.appointment.id})}" class="btn btn-primary btn-sm">Open Doctor Console</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
