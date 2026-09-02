@@ -287,7 +287,7 @@
         </li>
     </ul>
 
-    <!-- Header Actions -->
+    <!-- Header Actions (TailAdmin Style) -->
     <div class="navbar-actions">
         <!-- Language Changer Dropdown -->
         <div class="lang-selector-container" style="position:relative;">
@@ -308,15 +308,23 @@
 
         <a href="/emergency/dashboard" class="btn btn-danger btn-sm" title="Emergency Operations">🚑 Emergency</a>
 
-        <div style="display:flex;align-items:center;gap:8px;">
-            <div style="width:34px;height:34px;border-radius:50%;background:#0284c7;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;"
+        <!-- TailAdmin Notification Bell with Alert Dot -->
+        <a href="/admin/notifications" class="nav-icon-btn" title="Notifications">
+            🔔<span class="nav-status-dot"></span>
+        </a>
+
+        <!-- TailAdmin User Profile Pill -->
+        <div class="nav-profile-pill">
+            <div style="width:28px;height:28px;border-radius:50%;background:#465fff;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem;"
                  th:text="${loggedInUser != null ? #strings.substring(loggedInUser.fullName,0,1) : 'A'}">A</div>
-            <a href="/logout/admin" class="btn btn-outline btn-sm">Sign Out</a>
+            <span style="font-size:0.82rem;font-weight:600;color:#0f172a;" th:text="${loggedInUser != null ? loggedInUser.fullName : 'Admin'}">Admin</span>
+            <span style="font-size:0.65rem;color:#94a3b8;">▾</span>
         </div>
+
+        <a href="/logout/admin" class="btn btn-outline btn-sm">Sign Out</a>
     </div>
 </nav>
 
-<!-- Patient Top Navbar Fragment with full Dropdown Navigation -->
 <!-- Patient Top Navbar Fragment with full Dropdown Navigation -->
 <nav th:fragment="patient-nav" class="navbar navbar-patient-main">
     <div style="display:flex;align-items:center;gap:1rem;">
@@ -528,11 +536,20 @@
         <a href="/patient/book-appointment" class="btn btn-primary btn-sm">📅 Book Visit</a>
         <a href="/emergency/dashboard" class="btn btn-danger btn-sm">🚨 Emergency</a>
 
-        <div style="display:flex;align-items:center;gap:8px;">
-            <div style="width:34px;height:34px;border-radius:50%;background:#0284c7;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;"
+        <!-- TailAdmin Notification Bell with Alert Dot -->
+        <a href="/patient/notifications" class="nav-icon-btn" title="Notifications">
+            🔔<span class="nav-status-dot"></span>
+        </a>
+
+        <!-- TailAdmin User Profile Pill -->
+        <div class="nav-profile-pill">
+            <div style="width:28px;height:28px;border-radius:50%;background:#465fff;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem;"
                  th:text="${loggedInUser != null ? #strings.substring(loggedInUser.fullName,0,1) : 'P'}">P</div>
-            <a href="/logout/patient" class="btn btn-outline btn-sm">Sign Out</a>
+            <span style="font-size:0.82rem;font-weight:600;color:#0f172a;" th:text="${loggedInUser != null ? loggedInUser.fullName : 'Patient'}">Patient</span>
+            <span style="font-size:0.65rem;color:#94a3b8;">▾</span>
         </div>
+
+        <a href="/logout/patient" class="btn btn-outline btn-sm">Sign Out</a>
     </div>
 </nav>
 
@@ -682,11 +699,20 @@
         <a href="/doctor/queue" class="btn btn-primary btn-sm">⏱️ Open Queue</a>
         <a href="/emergency/dashboard" class="btn btn-danger btn-sm">🚑 Emergency</a>
 
-        <div style="display:flex;align-items:center;gap:8px;">
-            <div style="width:34px;height:34px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;"
+        <!-- TailAdmin Notification Bell with Alert Dot -->
+        <a href="/doctor/notifications" class="nav-icon-btn" title="Notifications">
+            🔔<span class="nav-status-dot"></span>
+        </a>
+
+        <!-- TailAdmin User Profile Pill -->
+        <div class="nav-profile-pill">
+            <div style="width:28px;height:28px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem;"
                  th:text="${loggedInUser != null ? #strings.substring(loggedInUser.fullName,0,1) : 'D'}">D</div>
-            <a href="/logout/doctor" class="btn btn-outline btn-sm">Sign Out</a>
+            <span style="font-size:0.82rem;font-weight:600;color:#0f172a;" th:text="${loggedInUser != null ? loggedInUser.fullName : 'Doctor'}">Doctor</span>
+            <span style="font-size:0.65rem;color:#94a3b8;">▾</span>
         </div>
+
+        <a href="/logout/doctor" class="btn btn-outline btn-sm">Sign Out</a>
     </div>
 </nav>
 
@@ -819,11 +845,15 @@
             </div>
         </div>
 
-        <div style="display:flex;align-items:center;gap:8px;">
-            <div style="width:34px;height:34px;border-radius:50%;background:#d97706;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;"
+        <!-- TailAdmin User Profile Pill -->
+        <div class="nav-profile-pill">
+            <div style="width:28px;height:28px;border-radius:50%;background:#d97706;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem;"
                  th:text="${loggedInUser != null ? #strings.substring(loggedInUser.fullName,0,1) : 'V'}">V</div>
-            <a href="/logout/vendor" class="btn btn-outline btn-sm">Sign Out</a>
+            <span style="font-size:0.82rem;font-weight:600;color:#0f172a;" th:text="${loggedInUser != null ? loggedInUser.fullName : 'Vendor'}">Vendor</span>
+            <span style="font-size:0.65rem;color:#94a3b8;">▾</span>
         </div>
+
+        <a href="/logout/vendor" class="btn btn-outline btn-sm">Sign Out</a>
     </div>
 </nav>
 

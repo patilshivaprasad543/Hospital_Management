@@ -1,35 +1,36 @@
 /* ============================================================
-   SmartCare 360 — Professional Healthcare Design System
+   SmartCare 360 — TailAdmin Modern Clean Healthcare Design System
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 
 :root {
-    /* Typography */
+    /* Typography — TailAdmin Clean Inter / Plus Jakarta Sans */
     --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 
-    /* Brand — Modern Clinical Sapphire Palette */
+    /* TailAdmin Signature Color Tokens */
     --brand-navy: #0f172a;
-    --brand-blue: #0284c7;
-    --brand-blue-light: #0ea5e9;
+    --brand-indigo: #465fff;
+    --brand-blue: #465fff;
+    --brand-blue-light: #637bfe;
     --brand-teal: #0d9488;
-    --brand-lavender: #f0f9ff;
+    --brand-lavender: #f0f5ff;
 
-    /* Surfaces — Soft, Clean Healthcare Canvas */
+    /* Surfaces — Soft, Ultra-Clean Canvas */
     --bg-page: #f8fafc;
     --bg-surface: #ffffff;
     --bg-subtle: #f1f5f9;
     --bg-muted: #e2e8f0;
 
-    /* Semantic */
-    --primary: #0284c7;
-    --primary-color: #0284c7;
-    --primary-hover: #0369a1;
-    --primary-active: #075985;
-    --primary-soft: #f0f9ff;
-    --primary-subtle: #e0f2fe;
-    --primary-light: #38bdf8;
+    /* Semantic — TailAdmin Modern Indigo Accent */
+    --primary: #465fff;
+    --primary-color: #465fff;
+    --primary-hover: #3b50e0;
+    --primary-active: #2930a6;
+    --primary-soft: #f0f5ff;
+    --primary-subtle: #e0ebff;
+    --primary-light: #637bfe;
 
     --accent-color: #0d9488;
     --cyan-accent: #06b6d4;
@@ -47,25 +48,25 @@
 
     /* Text */
     --text-heading: #0f172a;
-    --text-body: #334155;
+    --text-body: #475569;
     --text-muted: #64748b;
     --text-inverse: #ffffff;
 
-    /* Borders & Shadows — Soft & Elevation-based */
+    /* Borders & Shadows — TailAdmin Clean Low-Elevation */
     --border: #e2e8f0;
     --border-strong: #cbd5e1;
     --glass-border: rgba(226, 232, 240, 0.8);
     --glass-border-hover: #94a3b8;
 
     --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-    --shadow-sm: 0 2px 4px -1px rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
-    --shadow-md: 0 6px 16px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
-    --shadow-lg: 0 16px 32px -4px rgba(15, 23, 42, 0.1), 0 6px 12px -2px rgba(15, 23, 42, 0.04);
+    --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.02);
+    --shadow-md: 0 4px 14px -2px rgba(15, 23, 42, 0.07), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+    --shadow-lg: 0 12px 28px -4px rgba(15, 23, 42, 0.09), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
     --shadow-glass: var(--shadow-sm);
     --shadow-card: var(--shadow-sm);
-    --shadow-accent: 0 4px 14px 0 rgba(2, 132, 199, 0.28);
+    --shadow-accent: 0 6px 18px -2px rgba(70, 95, 255, 0.35);
 
-    --accent-gradient: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+    --accent-gradient: linear-gradient(135deg, #465fff 0%, #637bfe 100%);
 
     /* Layout */
     --radius-sm: 8px;
@@ -73,7 +74,7 @@
     --radius-lg: 16px;
     --radius-xl: 20px;
 
-    --nav-height: 64px;
+    --nav-height: 70px;
     --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
     /* Legacy aliases */
@@ -429,7 +430,76 @@ p, li, label, td, th {
     }
 }
 
-.navbar-actions { display: flex; align-items: center; gap: 1rem; }
+.navbar-actions { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.75rem; 
+}
+
+/* TailAdmin Top Bar Action Elements */
+.header-search-badge {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 600;
+    pointer-events: none;
+}
+
+.nav-icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.15s ease;
+    font-size: 1rem;
+}
+
+.nav-icon-btn:hover {
+    background: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.nav-status-dot {
+    position: absolute;
+    top: 8px;
+    right: 9px;
+    width: 7px;
+    height: 7px;
+    background: #f97316;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+}
+
+.nav-profile-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px 4px 4px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: #ffffff;
+    transition: all 0.15s ease;
+}
+
+.nav-profile-pill:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
 
 /* ── Layout ──────────────────────────────────────────────────── */
 
@@ -484,143 +554,158 @@ p, li, label, td, th {
 
 /* ── Buttons ─────────────────────────────────────────────────── */
 
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.6rem 1.25rem;
-    font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 0.9rem;
-    letter-spacing: 0.01em;
-    border-radius: var(--radius-sm);
-    border: 1px solid transparent;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all var(--transition);
-    gap: 0.45rem;
-    white-space: nowrap;
-    line-height: 1.4;
-}
-
 .btn-primary {
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    background: #465fff;
     color: #ffffff;
-    box-shadow: 0 2px 6px 0 rgba(2, 132, 199, 0.28);
+    border: 1px solid #465fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px 0 rgba(70, 95, 255, 0.2);
+    font-weight: 600;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+    background: #3b50e0;
+    border-color: #3b50e0;
     color: #ffffff;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px 0 rgba(2, 132, 199, 0.35);
+    box-shadow: 0 4px 12px 0 rgba(70, 95, 255, 0.32);
 }
 
 .btn-secondary {
     background: var(--bg-surface);
     color: var(--text-heading);
-    border-color: var(--border-strong);
+    border: 1px solid var(--border);
+    border-radius: 8px;
 }
 
 .btn-secondary:hover {
     background: var(--bg-subtle);
-    border-color: var(--text-muted);
-}
-
-.btn-outline {
-    background: transparent;
-    color: var(--text-body);
     border-color: var(--border-strong);
 }
 
+.btn-outline {
+    background: #ffffff;
+    color: var(--text-body);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-weight: 500;
+}
+
 .btn-outline:hover {
-    background: var(--primary-soft);
-    color: var(--primary);
-    border-color: var(--primary);
+    background: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: #10b981;
+    border: 1px solid #10b981;
     color: #ffffff;
-    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(16, 185, 129, 0.2);
 }
 
 .btn-success:hover {
     background: #059669;
+    border-color: #059669;
     color: #ffffff;
     transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.35);
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: #ef4444;
+    border: 1px solid #ef4444;
     color: #ffffff;
-    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.25);
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(239, 68, 68, 0.2);
 }
 
 .btn-danger:hover {
     background: #dc2626;
+    border-color: #dc2626;
     color: #ffffff;
     transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.35);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
 }
 
 .btn-sm {
-    padding: 0.35rem 0.75rem;
-    font-size: 0.8125rem;
-    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.825rem;
 }
 
-.btn-block { width: 100%; }
-
-/* ── Cards & Grid ────────────────────────────────────────────── */
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.25rem;
-    margin-bottom: 2rem;
+.btn-lg {
+    padding: 0.75rem 1.6rem;
+    font-size: 1.05rem;
+    border-radius: var(--radius-md);
 }
+
+/* ── Cards & TailAdmin Components ────────────────────────────── */
 
 .card {
-    background: var(--bg-surface);
+    background: #ffffff;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 1.75rem;
     box-shadow: var(--shadow-sm);
     transition: all var(--transition);
+    position: relative;
 }
 
 .card:hover {
     box-shadow: var(--shadow-md);
-    border-color: var(--border-strong);
-    transform: translateY(-2px);
+    border-color: #cbd5e1;
 }
 
 .card-title {
     font-family: var(--font-body);
-    font-size: 0.8125rem;
-    font-weight: 700;
+    font-size: 0.875rem;
+    font-weight: 600;
     color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    margin-bottom: 0.55rem;
+    letter-spacing: 0;
+    margin-bottom: 0.65rem;
 }
 
 .stat-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 100px;
+    min-height: 120px;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+}
+
+.stat-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+}
+
+.stat-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: var(--primary);
+    margin-bottom: 0.85rem;
 }
 
 .stat-number {
     font-family: var(--font-display);
-    font-size: 2.25rem;
+    font-size: 2.1rem;
     font-weight: 800;
-    color: var(--primary);
-    line-height: 1.05;
-    letter-spacing: -0.04em;
+    color: #0f172a;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
 }
 
@@ -1821,19 +1906,19 @@ footer, .site-footer {
     background: var(--bg-page);
 }
 
-/* ── Portal Sidebar ──────────────────────────────────────────── */
+/* ── Portal Sidebar (TailAdmin Style) ────────────────────────── */
 
 .sidebar-grouped {
-    width: 260px;
+    width: 270px;
     background: #ffffff;
     border-right: 1px solid var(--border);
-    padding: 1.5rem 0.85rem;
+    padding: 1.5rem 1rem;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.25rem;
     overflow-y: auto;
     flex-shrink: 0;
-    box-shadow: 1px 0 3px 0 rgba(15, 23, 42, 0.02);
+    box-shadow: 1px 0 2px 0 rgba(15, 23, 42, 0.02);
     transition: width var(--transition);
 }
 
@@ -1856,17 +1941,17 @@ footer, .site-footer {
 .sidebar-group {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.25rem;
 }
 
 .sidebar-section-title {
-    font-size: 0.68rem;
-    font-weight: 800;
+    font-size: 0.72rem;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: #94a3b8;
-    padding: 0.35rem 0.75rem;
-    margin-bottom: 0.25rem;
+    padding: 0.4rem 0.75rem;
+    margin-bottom: 0.2rem;
 }
 
 .nav-item-link {
@@ -1874,27 +1959,26 @@ footer, .site-footer {
     align-items: center;
     gap: 0.75rem;
     padding: 0.65rem 0.85rem;
-    color: #475569;
-    font-weight: 600;
-    font-size: 0.88rem;
+    color: #64748b;
+    font-weight: 500;
+    font-size: 0.9rem;
     border-radius: 10px;
     text-decoration: none;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.15s ease;
     position: relative;
 }
 
 .nav-item-link:hover {
-    background: #f0f9ff;
-    color: var(--primary);
-    transform: translateX(3px);
+    background: #f8fafc;
+    color: #0f172a;
 }
 
 .nav-item-link.active {
-    background: linear-gradient(90deg, #e0f2fe 0%, #f0f9ff 100%);
+    background: #f0f5ff;
     color: var(--primary);
-    font-weight: 700;
-    border-left: 3px solid var(--primary);
-    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08);
+    font-weight: 600;
+    border-left: none;
+    box-shadow: none;
 }
 
 .nav-item-icon {
@@ -1905,58 +1989,51 @@ footer, .site-footer {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    color: inherit;
 }
 
-/* ── Main Dashboard Stage ────────────────────────────────────── */
+/* ── Main Dashboard Stage (TailAdmin Clean Layout) ───────────── */
 
 .main-stage {
     flex: 1;
-    padding: 2rem 2.5rem 4rem;
+    padding: 2rem 2.25rem 4rem;
     background: var(--bg-page);
     overflow-y: auto;
     min-width: 0;
 }
 
-/* Portal Top Hero Banner override (for admin, doctor, patient) */
+/* Portal Top Welcome Banner — TailAdmin clean card */
 .main-stage > .card:first-child,
 .card[style*="#1e293b"] {
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 45%, #075985 100%) !important;
-    color: #ffffff !important;
-    border: none !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid var(--border) !important;
     border-radius: 16px !important;
-    padding: 2rem 2.25rem !important;
-    box-shadow: 0 12px 28px -6px rgba(2, 132, 199, 0.35) !important;
+    padding: 1.75rem 2rem !important;
+    box-shadow: var(--shadow-sm) !important;
     position: relative;
     overflow: hidden;
-    margin-bottom: 1.75rem !important;
+    margin-bottom: 1.5rem !important;
 }
 
 .main-stage > .card:first-child::before,
 .card[style*="#1e293b"]::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 320px;
-    height: 320px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
+    display: none !important;
 }
 
 .main-stage > .card:first-child h2,
 .card[style*="#1e293b"] h2 {
-    color: #ffffff !important;
-    font-size: 1.75rem !important;
-    font-weight: 800 !important;
-    letter-spacing: -0.03em !important;
+    color: #0f172a !important;
+    font-size: 1.6rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
 }
 
 .main-stage > .card:first-child p,
 .card[style*="#1e293b"] p {
-    color: rgba(255, 255, 255, 0.88) !important;
-    font-size: 0.95rem !important;
-    margin-top: 0.35rem !important;
+    color: #64748b !important;
+    font-size: 0.92rem !important;
+    margin-top: 0.25rem !important;
 }
 
 /* ── Quick Action Hub ────────────────────────────────────────── */
