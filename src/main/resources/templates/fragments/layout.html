@@ -124,21 +124,407 @@
     </div>
 </nav>
 
-<!-- Legacy Navbar Fragments (Maintained for exact backward compatibility) -->
-<nav th:fragment="admin-nav">
-    <div th:replace="~{fragments/layout :: global-header('Admin')}"></div>
+<!-- Admin Top Navbar Fragment with full Dropdown Navigation -->
+<nav th:fragment="admin-nav" class="navbar navbar-admin-main">
+    <div style="display:flex;align-items:center;gap:1rem;">
+        <a href="/" class="navbar-brand">
+            <div class="brand-mark">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
+            <span class="portal-tag">Admin</span>
+        </a>
+    </div>
+
+    <!-- Navigation Menus Requested by User -->
+    <ul class="portal-nav-links">
+        <!-- OVERVIEW -->
+        <li>
+            <a href="/admin/dashboard" class="portal-nav-link" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
+                <span>🏠</span> Dashboard
+            </a>
+        </li>
+
+        <!-- PEOPLE -->
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>👥</span> People <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu">
+                <a href="/admin/users" class="nav-dropdown-item">
+                    <span class="item-icon">🧑‍🦽</span>
+                    <div class="item-text">
+                        <span class="item-title">Patients</span>
+                        <span class="item-desc">Patient records &amp; registry</span>
+                    </div>
+                </a>
+                <a href="/admin/doctors" class="nav-dropdown-item">
+                    <span class="item-icon">👨‍⚕️</span>
+                    <div class="item-text">
+                        <span class="item-title">Doctors</span>
+                        <span class="item-desc">Doctor staff &amp; verifications</span>
+                    </div>
+                </a>
+                <a href="/admin/pharmacy" class="nav-dropdown-item">
+                    <span class="item-icon">💊</span>
+                    <div class="item-text">
+                        <span class="item-title">Pharmacy</span>
+                        <span class="item-desc">Medicine inventory &amp; orders</span>
+                    </div>
+                </a>
+                <a href="/admin/laboratories" class="nav-dropdown-item">
+                    <span class="item-icon">🧪</span>
+                    <div class="item-text">
+                        <span class="item-title">Labs</span>
+                        <span class="item-desc">Diagnostics &amp; test centers</span>
+                    </div>
+                </a>
+            </div>
+        </li>
+
+        <!-- CARE & OPERATIONS -->
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>🩺</span> Care &amp; Operations <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu">
+                <a href="/admin/appointments" class="nav-dropdown-item">
+                    <span class="item-icon">📅</span>
+                    <div class="item-text">
+                        <span class="item-title">Appointments</span>
+                        <span class="item-desc">Clinical schedules &amp; booking</span>
+                    </div>
+                </a>
+                <a href="/emergency/dashboard" class="nav-dropdown-item">
+                    <span class="item-icon">🚑</span>
+                    <div class="item-text">
+                        <span class="item-title">Emergency</span>
+                        <span class="item-desc">Emergency room triage desk</span>
+                    </div>
+                </a>
+                <a href="/admin/ambulances" class="nav-dropdown-item">
+                    <span class="item-icon">🚨</span>
+                    <div class="item-text">
+                        <span class="item-title">Ambulances</span>
+                        <span class="item-desc">Fleet dispatch &amp; tracking</span>
+                    </div>
+                </a>
+                <a href="/blood-bank/dashboard" class="nav-dropdown-item">
+                    <span class="item-icon">🩸</span>
+                    <div class="item-text">
+                        <span class="item-title">Blood Bank</span>
+                        <span class="item-desc">Blood units &amp; donor inventory</span>
+                    </div>
+                </a>
+                <a href="/admin/beds" class="nav-dropdown-item">
+                    <span class="item-icon">🛏️</span>
+                    <div class="item-text">
+                        <span class="item-title">Bed Allocation</span>
+                        <span class="item-desc">Ward &amp; ICU real-time status</span>
+                    </div>
+                </a>
+            </div>
+        </li>
+
+        <!-- FINANCE -->
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>💳</span> Finance <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu">
+                <a href="/admin/billing" class="nav-dropdown-item">
+                    <span class="item-icon">💳</span>
+                    <div class="item-text">
+                        <span class="item-title">Billing</span>
+                        <span class="item-desc">Invoices, OPD &amp; pharmacy billing</span>
+                    </div>
+                </a>
+                <a href="/admin/insurance" class="nav-dropdown-item">
+                    <span class="item-icon">🛡️</span>
+                    <div class="item-text">
+                        <span class="item-title">Insurance Claims</span>
+                        <span class="item-desc">TPA pre-auth &amp; settlements</span>
+                    </div>
+                </a>
+                <a href="/admin/reports" class="nav-dropdown-item">
+                    <span class="item-icon">📊</span>
+                    <div class="item-text">
+                        <span class="item-title">Reports</span>
+                        <span class="item-desc">Revenue &amp; clinical analytics</span>
+                    </div>
+                </a>
+            </div>
+        </li>
+
+        <!-- SYSTEM -->
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>⚙️</span> System <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu menu-right">
+                <a href="/admin/multihub-chat" class="nav-dropdown-item">
+                    <span class="item-icon">💬</span>
+                    <div class="item-text">
+                        <span class="item-title">Support Chat</span>
+                        <span class="item-desc">Inter-department communication</span>
+                    </div>
+                </a>
+                <a href="/admin/notifications" class="nav-dropdown-item">
+                    <span class="item-icon">🔔</span>
+                    <div class="item-text">
+                        <span class="item-title">Notifications</span>
+                        <span class="item-desc">Hospital system broadcast alerts</span>
+                    </div>
+                </a>
+                <a href="/admin/settings" class="nav-dropdown-item">
+                    <span class="item-icon">⚙️</span>
+                    <div class="item-text">
+                        <span class="item-title">Settings</span>
+                        <span class="item-desc">System configuration &amp; security</span>
+                    </div>
+                </a>
+            </div>
+        </li>
+    </ul>
+
+    <!-- Header Actions -->
+    <div class="navbar-actions">
+        <!-- Language Changer Dropdown -->
+        <div class="lang-selector-container" style="position:relative;">
+            <button type="button" class="btn btn-sm btn-outline lang-dropdown-btn" onclick="toggleLanguageDropdown()" 
+                    style="display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;background:#f8fafc;border:1px solid #cbd5e1;cursor:pointer;font-weight:600;font-size:0.82rem;color:#1e293b;">
+                <span>🌐</span> <span id="currentLangLabel">English</span> <span style="font-size:0.7rem;">▾</span>
+            </button>
+            <div id="languageDropdownMenu" class="lang-dropdown-menu" 
+                 style="display:none;position:absolute;top:100%;right:0;margin-top:6px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,0.15);width:200px;z-index:9999;padding:6px 0;">
+                <a href="javascript:void(0)" onclick="switchLanguage('en', 'English')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇬🇧</span> English
+                </a>
+                <a href="javascript:void(0)" onclick="switchLanguage('hi', 'हिन्दी (Hindi)')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇮🇳</span> हिन्दी (Hindi)
+                </a>
+            </div>
+        </div>
+
+        <a href="/emergency/dashboard" class="btn btn-danger btn-sm" title="Emergency Operations">🚑 Emergency</a>
+
+        <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:#0284c7;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;"
+                 th:text="${loggedInUser != null ? #strings.substring(loggedInUser.fullName,0,1) : 'A'}">A</div>
+            <a href="/logout/admin" class="btn btn-outline btn-sm">Sign Out</a>
+        </div>
+    </div>
 </nav>
 
-<nav th:fragment="patient-nav">
-    <div th:replace="~{fragments/layout :: global-header('Patient')}"></div>
+<!-- Patient Top Navbar Fragment with full Dropdown Navigation -->
+<nav th:fragment="patient-nav" class="navbar navbar-patient-main">
+    <div style="display:flex;align-items:center;gap:1rem;">
+        <a href="/" class="navbar-brand">
+            <div class="brand-mark">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
+            <span class="portal-tag">Patient</span>
+        </a>
+    </div>
+
+    <ul class="portal-nav-links">
+        <li>
+            <a href="/patient/dashboard" class="portal-nav-link" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
+                <span>🏠</span> Dashboard
+            </a>
+        </li>
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>🩺</span> My Care <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu">
+                <a href="/patient/appointments" class="nav-dropdown-item">
+                    <span class="item-icon">📅</span>
+                    <div class="item-text">
+                        <span class="item-title">Appointments</span>
+                        <span class="item-desc">Upcoming &amp; past bookings</span>
+                    </div>
+                </a>
+                <a href="/patient/queue" class="nav-dropdown-item">
+                    <span class="item-icon">⏱️</span>
+                    <div class="item-text">
+                        <span class="item-title">Live Queue</span>
+                        <span class="item-desc">Track real-time OPD position</span>
+                    </div>
+                </a>
+                <a href="/patient/prescriptions" class="nav-dropdown-item">
+                    <span class="item-icon">💊</span>
+                    <div class="item-text">
+                        <span class="item-title">Prescriptions</span>
+                        <span class="item-desc">Medicines &amp; dosages</span>
+                    </div>
+                </a>
+                <a href="/patient/lab-reports" class="nav-dropdown-item">
+                    <span class="item-icon">🧪</span>
+                    <div class="item-text">
+                        <span class="item-title">Lab Reports</span>
+                        <span class="item-desc">Diagnostic test findings</span>
+                    </div>
+                </a>
+                <a href="/patient/records" class="nav-dropdown-item">
+                    <span class="item-icon">📋</span>
+                    <div class="item-text">
+                        <span class="item-title">Medical Records</span>
+                        <span class="item-desc">History &amp; discharge summaries</span>
+                    </div>
+                </a>
+            </div>
+        </li>
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>⚡</span> Services <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu">
+                <a href="/patient/doctors" class="nav-dropdown-item">
+                    <span class="item-icon">👨‍⚕️</span>
+                    <div class="item-text">
+                        <span class="item-title">Find Doctors</span>
+                        <span class="item-desc">Specialists &amp; consultants</span>
+                    </div>
+                </a>
+                <a href="/patient/video-consultations" class="nav-dropdown-item">
+                    <span class="item-icon">🎥</span>
+                    <div class="item-text">
+                        <span class="item-title">Video Consultation</span>
+                        <span class="item-desc">Telehealth virtual rooms</span>
+                    </div>
+                </a>
+                <a href="/patient/beds" class="nav-dropdown-item">
+                    <span class="item-icon">🛏️</span>
+                    <div class="item-text">
+                        <span class="item-title">Bed Booking</span>
+                        <span class="item-desc">Reserve ward &amp; private rooms</span>
+                    </div>
+                </a>
+                <a href="/patient/bills" class="nav-dropdown-item">
+                    <span class="item-icon">💳</span>
+                    <div class="item-text">
+                        <span class="item-title">Pay Bills</span>
+                        <span class="item-desc">Invoices &amp; online payment</span>
+                    </div>
+                </a>
+            </div>
+        </li>
+    </ul>
+
+    <div class="navbar-actions">
+        <a href="/patient/book-appointment" class="btn btn-primary btn-sm">📅 Book Visit</a>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:#0284c7;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;"
+                 th:text="${loggedInUser != null ? #strings.substring(loggedInUser.fullName,0,1) : 'P'}">P</div>
+            <a href="/logout/patient" class="btn btn-outline btn-sm">Sign Out</a>
+        </div>
+    </div>
 </nav>
 
-<nav th:fragment="doctor-nav">
-    <div th:replace="~{fragments/layout :: global-header('Doctor')}"></div>
+<!-- Doctor Top Navbar Fragment with full Dropdown Navigation -->
+<nav th:fragment="doctor-nav" class="navbar navbar-doctor-main">
+    <div style="display:flex;align-items:center;gap:1rem;">
+        <a href="/" class="navbar-brand">
+            <div class="brand-mark">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
+            <span class="portal-tag">Doctor</span>
+        </a>
+    </div>
+
+    <ul class="portal-nav-links">
+        <li>
+            <a href="/doctor/dashboard" class="portal-nav-link" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
+                <span>🏠</span> Dashboard
+            </a>
+        </li>
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>⏱️</span> Clinical Practice <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu">
+                <a href="/doctor/queue" class="nav-dropdown-item">
+                    <span class="item-icon">🎟️</span>
+                    <div class="item-text">
+                        <span class="item-title">Live OPD Queue</span>
+                        <span class="item-desc">Checked-in patient consultations</span>
+                    </div>
+                </a>
+                <a href="/doctor/appointments" class="nav-dropdown-item">
+                    <span class="item-icon">📅</span>
+                    <div class="item-text">
+                        <span class="item-title">Appointment Schedule</span>
+                        <span class="item-desc">Confirmed &amp; pending slots</span>
+                    </div>
+                </a>
+                <a href="/doctor/video-consultations" class="nav-dropdown-item">
+                    <span class="item-icon">🎥</span>
+                    <div class="item-text">
+                        <span class="item-title">Telehealth Room</span>
+                        <span class="item-desc">Virtual video calls</span>
+                    </div>
+                </a>
+                <a href="/doctor/multihub-chat" class="nav-dropdown-item">
+                    <span class="item-icon">💬</span>
+                    <div class="item-text">
+                        <span class="item-title">Patient Messages</span>
+                        <span class="item-desc">Follow-up inquiries</span>
+                    </div>
+                </a>
+            </div>
+        </li>
+    </ul>
+
+    <div class="navbar-actions">
+        <a href="/doctor/queue" class="btn btn-primary btn-sm">⏱️ Open Queue</a>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;"
+                 th:text="${loggedInUser != null ? #strings.substring(loggedInUser.fullName,0,1) : 'D'}">D</div>
+            <a href="/logout/doctor" class="btn btn-outline btn-sm">Sign Out</a>
+        </div>
+    </div>
 </nav>
 
-<nav th:fragment="vendor-nav">
-    <div th:replace="~{fragments/layout :: global-header('Vendor')}"></div>
+<!-- Vendor Top Navbar Fragment -->
+<nav th:fragment="vendor-nav" class="navbar navbar-vendor-main">
+    <div style="display:flex;align-items:center;gap:1rem;">
+        <a href="/" class="navbar-brand">
+            <div class="brand-mark">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
+            <span class="portal-tag">Vendor</span>
+        </a>
+    </div>
+
+    <ul class="portal-nav-links">
+        <li>
+            <a href="/vendor/pharmacy-dashboard" class="portal-nav-link">
+                <span>🏠</span> Dashboard
+            </a>
+        </li>
+        <li>
+            <a href="/vendor/orders" class="portal-nav-link">
+                <span>📦</span> Orders
+            </a>
+        </li>
+        <li>
+            <a href="/vendor/inventory" class="portal-nav-link">
+                <span>💊</span> Inventory
+            </a>
+        </li>
+    </ul>
+
+    <div class="navbar-actions">
+        <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:#d97706;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;"
+                 th:text="${loggedInUser != null ? #strings.substring(loggedInUser.fullName,0,1) : 'V'}">V</div>
+            <a href="/logout/vendor" class="btn btn-outline btn-sm">Sign Out</a>
+        </div>
+    </div>
 </nav>
 
 <!-- Grouped Patient Sidebar Fragment -->
