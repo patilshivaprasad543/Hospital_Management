@@ -1673,25 +1673,29 @@ footer, .site-footer {
 }
 
 /* ============================================================
-   SmartCare 360 — Modern UI/UX Redesign & Navigation System
+   SmartCare 360 — Modern UI/UX Redesign & Portal Navigation System
    ============================================================ */
 
 .app-layout {
     display: flex;
     min-height: calc(100vh - var(--nav-height));
     width: 100%;
+    background: var(--bg-page);
 }
 
+/* ── Portal Sidebar ──────────────────────────────────────────── */
+
 .sidebar-grouped {
-    width: 270px;
-    background: var(--bg-surface);
+    width: 260px;
+    background: #ffffff;
     border-right: 1px solid var(--border);
-    padding: 1.5rem 1rem;
+    padding: 1.5rem 0.85rem;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1.5rem;
     overflow-y: auto;
     flex-shrink: 0;
+    box-shadow: 1px 0 3px 0 rgba(15, 23, 42, 0.02);
     transition: width var(--transition);
 }
 
@@ -1718,46 +1722,191 @@ footer, .site-footer {
 }
 
 .sidebar-section-title {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-    padding: 0.4rem 0.75rem;
-    margin-top: 0.5rem;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    padding: 0.35rem 0.75rem;
+    margin-bottom: 0.25rem;
 }
 
 .nav-item-link {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.6rem 0.85rem;
-    color: var(--text-body);
+    padding: 0.65rem 0.85rem;
+    color: #475569;
     font-weight: 600;
-    font-size: 0.9rem;
-    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    border-radius: 10px;
     text-decoration: none;
-    transition: all var(--transition);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
 }
 
-.nav-item-link:hover, .nav-item-link.active {
-    background: var(--primary-soft);
+.nav-item-link:hover {
+    background: #f0f9ff;
     color: var(--primary);
+    transform: translateX(3px);
+}
+
+.nav-item-link.active {
+    background: linear-gradient(90deg, #e0f2fe 0%, #f0f9ff 100%);
+    color: var(--primary);
+    font-weight: 700;
+    border-left: 3px solid var(--primary);
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08);
 }
 
 .nav-item-icon {
-    font-size: 1.1rem;
-    width: 22px;
+    font-size: 1.15rem;
+    width: 24px;
     text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
 }
 
+/* ── Main Dashboard Stage ────────────────────────────────────── */
+
 .main-stage {
     flex: 1;
-    padding: 2rem;
+    padding: 2rem 2.5rem 4rem;
     background: var(--bg-page);
     overflow-y: auto;
+    min-width: 0;
 }
+
+/* Portal Top Hero Banner override (for admin, doctor, patient) */
+.main-stage > .card:first-child,
+.card[style*="#1e293b"] {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 45%, #075985 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 16px !important;
+    padding: 2rem 2.25rem !important;
+    box-shadow: 0 12px 28px -6px rgba(2, 132, 199, 0.35) !important;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.75rem !important;
+}
+
+.main-stage > .card:first-child::before,
+.card[style*="#1e293b"]::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.main-stage > .card:first-child h2,
+.card[style*="#1e293b"] h2 {
+    color: #ffffff !important;
+    font-size: 1.75rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.03em !important;
+}
+
+.main-stage > .card:first-child p,
+.card[style*="#1e293b"] p {
+    color: rgba(255, 255, 255, 0.88) !important;
+    font-size: 0.95rem !important;
+    margin-top: 0.35rem !important;
+}
+
+/* ── Quick Action Hub ────────────────────────────────────────── */
+
+.quick-action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.quick-action-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.35rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: var(--text-heading);
+    font-weight: 600;
+    font-size: 0.88rem;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-xs);
+    position: relative;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -6px rgba(2, 132, 199, 0.16);
+    border-color: #38bdf8;
+    color: var(--primary);
+}
+
+.quick-action-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.45rem;
+    transition: transform 0.25s ease, background 0.25s ease;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.1);
+}
+
+.quick-action-card:hover .quick-action-icon {
+    transform: scale(1.1);
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+}
+
+/* ── Container Pages (Pharmacy, Vendor, Public) ───────────────── */
+
+.container .page-header {
+    background: #ffffff;
+    padding: 1.75rem 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-xs);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+
+.container .page-header h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    color: var(--text-heading);
+    font-weight: 800;
+}
+
+.container .page-header p {
+    margin: 0.25rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+/* ── Header Search Bar ───────────────────────────────────────── */
 
 .header-search-box {
     position: relative;
@@ -1767,9 +1916,9 @@ footer, .site-footer {
 
 .header-search-input {
     width: 100%;
-    background: var(--bg-page);
-    border: 1px solid var(--border);
-    padding: 0.45rem 1rem 0.45rem 2.2rem;
+    background: #ffffff;
+    border: 1.5px solid var(--border);
+    padding: 0.5rem 1rem 0.5rem 2.35rem;
     border-radius: 99px;
     font-size: 0.875rem;
     color: var(--text-heading);
@@ -1779,13 +1928,13 @@ footer, .site-footer {
 
 .header-search-input:focus {
     border-color: var(--primary);
-    background: #fff;
+    background: #ffffff;
     box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
 }
 
 .header-search-icon {
     position: absolute;
-    left: 0.85rem;
+    left: 0.9rem;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
@@ -1793,49 +1942,7 @@ footer, .site-footer {
     pointer-events: none;
 }
 
-.quick-action-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.quick-action-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 1.25rem 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 0.65rem;
-    text-decoration: none;
-    color: var(--text-heading);
-    font-weight: 700;
-    font-size: 0.9rem;
-    transition: all var(--transition);
-    box-shadow: var(--shadow-xs);
-}
-
-.quick-action-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--primary-light);
-    color: var(--primary);
-}
-
-.quick-action-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
-    background: var(--primary-soft);
-    color: var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-}
+/* ── Mobile Navigation ───────────────────────────────────────── */
 
 .mobile-bottom-nav {
     display: none;
