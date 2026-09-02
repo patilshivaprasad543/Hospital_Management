@@ -1,19 +1,30 @@
 # Build stage
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM eclipse-temurin:17-jdk-alpine AS build
 WORKDIR /app
+
+# Copy build files and Gradle wrapper
 COPY gradlew gradlew.bat settings.gradle build.gradle ./
 COPY gradle ./gradle
+
+# Normalize line endings and ensure gradlew is executable
+RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
+
+# Copy source code
 COPY src ./src
-RUN chmod +x gradlew && ./gradlew bootJar --no-daemon
+
+# Build production jar skipping tests (as DB is not present during build stage)
+RUN ./gradlew bootJar --no-daemon -x test
 
 # Run stage
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-RUN addgroup -S smartcare && adduser -S smartcare -G smartcare
-COPY --from=build /app/build/libs/Hospital_Management-0.0.1-SNAPSHOT.jar app.jar
-RUN mkdir -p /app/data && chown -R smartcare:smartcare /app
-USER smartcare
-ENV SPRING_PROFILES_ACTIVE=prod
-EXPOSE 8080
-# Faster cold start when a free instance wakes from sleep.
-ENTRYPOINT ["sh", "-c", "java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:TieredStopAtLevel=1 -jar app.jar --server.port=${PORT:-8080}"]
+
+RUN addgroup -S hospital && adduser -S hospital -G hospital
+COPY --from=build /app/build/libs/*SNAPSHOT.jar app.jar
+RUN mkdir -p /app/data && chown -R hospital:hospital /app
+
+USER hospital
+EXPOSE 8085
+
+# Cold-start and memory-optimized JVM flags for container environments
+ENTRYPOINT ["sh", "-c", "java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:TieredStopAtLevel=1 -jar app.jar --server.port=${PORT:-8085}"]

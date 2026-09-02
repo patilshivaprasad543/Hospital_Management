@@ -1,15 +1,15 @@
 services:
   - type: web
-    name: hospital-management-system
-    env: java
-    region: singapore
+    name: hospital-management-glt1-ge8d
+    runtime: docker
     plan: free
-    buildCommand: "./gradlew clean build -x test"
-    startCommand: "java -jar build/libs/Hospital__Management-0.0.1-SNAPSHOT.jar"
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /health
     envVars:
       - key: PORT
-        value: 8085
+        value: "8085"
       - key: DB_URL
         sync: false
       - key: DB_USERNAME
@@ -25,4 +25,4 @@ services:
       - key: MAIL_HOST
         value: smtp.gmail.com
       - key: MAIL_PORT
-        value: 587
+        value: "587"
