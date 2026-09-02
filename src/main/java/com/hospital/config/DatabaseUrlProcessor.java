@@ -37,9 +37,12 @@ public class DatabaseUrlProcessor implements EnvironmentPostProcessor, Ordered {
                 System.getenv("JDBC_DATABASE_URL"),
                 getenv(environment, "SMARTCARE_DB_URL"),
                 assembleFromParts(environment));
-        boolean prod = environment.acceptsProfiles(Profiles.of("prod"));
+        boolean prod = environment.acceptsProfiles(Profiles.of("prod"))
+                || "true".equalsIgnoreCase(System.getenv("RENDER"))
+                || System.getenv("RENDER_SERVICE_ID") != null;
         try {
             Map<String, Object> props = configure(raw, prod);
+            applyEnvOverrides(environment, props);
             if (!props.isEmpty()) {
                 environment.getPropertySources().addFirst(new MapPropertySource("smartcareDatabaseUrl", props));
                 System.out.println(">>> Database: " + redact(String.valueOf(props.get("spring.datasource.url"))));
@@ -58,23 +61,26 @@ public class DatabaseUrlProcessor implements EnvironmentPostProcessor, Ordered {
 
     static Map<String, Object> configure(String rawUrl, boolean prod) {
         Map<String, Object> props = new LinkedHashMap<>();
-        if (rawUrl != null && !rawUrl.isBlank() && !rawUrl.startsWith("jdbc:h2:")) {
+        if (rawUrl != null && !rawUrl.isBlank() && !rawUrl.startsWith("jdbc:h2:") && !rawUrl.contains("localhost:3306")) {
             applyExternalUrl(rawUrl.trim(), props);
             return props;
         }
-        if (prod) {
+        if (prod || (rawUrl != null && rawUrl.contains("localhost:3306"))) {
             Path dataDir = Files.isDirectory(Path.of("/app/data")) ? Path.of("/app/data") : Path.of("data");
             try {
                 Files.createDirectories(dataDir);
             } catch (Exception ignored) {
                 dataDir = Path.of("data");
             }
-            String h2 = "jdbc:h2:file:" + dataDir.toAbsolutePath() + "/smartcare360;DB_CLOSE_DELAY=-1";
+            String h2 = "jdbc:h2:file:" + dataDir.toAbsolutePath() + "/hospital_db;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE";
             props.put("spring.datasource.url", h2);
+            props.put("jakarta.persistence.jdbc.url", h2);
             props.put("spring.datasource.driver-class-name", "org.h2.Driver");
             props.put("spring.datasource.username", "sa");
             props.put("spring.datasource.password", "");
             props.put("spring.jpa.database-platform", "org.hibernate.dialect.H2Dialect");
+            props.put("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+            props.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
             props.put("SMARTCARE_DATA_DIR", dataDir.toAbsolutePath().toString());
         }
         return props;
@@ -96,35 +102,46 @@ public class DatabaseUrlProcessor implements EnvironmentPostProcessor, Ordered {
                 }
             }
             props.put("spring.datasource.url", jdbc);
+            props.put("jakarta.persistence.jdbc.url", jdbc);
             props.put("SMARTCARE_DB_URL", jdbc);
             props.put("spring.datasource.driver-class-name", "org.postgresql.Driver");
             props.put("spring.datasource.username", parsed.user);
             props.put("spring.datasource.password", parsed.password);
             props.put("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQLDialect");
+            props.put("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+            props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
             props.put("spring.datasource.hikari.maximum-pool-size", "5");
             return;
         }
         if (url.startsWith("mysql://") || url.startsWith("jdbc:mysql:")) {
+            String jdbc;
             if (url.startsWith("jdbc:")) {
-                props.put("spring.datasource.url", url);
+                jdbc = url;
             } else {
                 ParsedPostgres parsed = parsePostgres("postgresql://" + url.substring("mysql://".length()));
-                String jdbc = "jdbc:mysql://" + parsed.host + ":" + (parsed.port.equals("5432") ? "3306" : parsed.port)
+                jdbc = "jdbc:mysql://" + parsed.host + ":" + (parsed.port.equals("5432") ? "3306" : parsed.port)
                         + parsed.path + "?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-                props.put("spring.datasource.url", jdbc);
                 props.put("spring.datasource.username", parsed.user);
                 props.put("spring.datasource.password", parsed.password);
             }
+            props.put("spring.datasource.url", jdbc);
+            props.put("jakarta.persistence.jdbc.url", jdbc);
             props.put("spring.datasource.driver-class-name", "com.mysql.cj.jdbc.Driver");
             props.put("spring.jpa.database-platform", "org.hibernate.dialect.MySQLDialect");
+            props.put("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+            props.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
             return;
         }
         if (url.startsWith("jdbc:postgresql:")) {
             props.put("spring.datasource.url", url);
+            props.put("jakarta.persistence.jdbc.url", url);
             props.put("spring.datasource.driver-class-name", "org.postgresql.Driver");
             props.put("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQLDialect");
+            props.put("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+            props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         } else if (url.startsWith("jdbc:")) {
             props.put("spring.datasource.url", url);
+            props.put("jakarta.persistence.jdbc.url", url);
         }
     }
 
@@ -236,7 +253,48 @@ public class DatabaseUrlProcessor implements EnvironmentPostProcessor, Ordered {
         return null;
     }
 
+    private static void applyEnvOverrides(ConfigurableEnvironment environment, Map<String, Object> props) {
+        String user = firstNonBlank(
+                System.getenv("SMARTCARE_DB_USERNAME"),
+                getenv(environment, "SMARTCARE_DB_USERNAME"),
+                System.getenv("DB_USERNAME"),
+                getenv(environment, "DB_USERNAME"));
+        if (user != null && !user.isBlank()) {
+            props.put("spring.datasource.username", user);
+        }
+
+        String pass = firstNonBlank(
+                System.getenv("SMARTCARE_DB_PASSWORD"),
+                getenv(environment, "SMARTCARE_DB_PASSWORD"),
+                System.getenv("DB_PASSWORD"),
+                getenv(environment, "DB_PASSWORD"));
+        if (pass != null) {
+            props.put("spring.datasource.password", pass);
+        }
+
+        String dialect = firstNonBlank(
+                System.getenv("SMARTCARE_DB_DIALECT"),
+                getenv(environment, "SMARTCARE_DB_DIALECT"),
+                System.getenv("DB_DIALECT"),
+                getenv(environment, "DB_DIALECT"));
+        if (dialect != null && !dialect.isBlank()) {
+            props.put("spring.jpa.database-platform", dialect);
+            props.put("spring.jpa.properties.hibernate.dialect", dialect);
+            props.put("hibernate.dialect", dialect);
+        }
+
+        String driver = firstNonBlank(
+                System.getenv("SMARTCARE_DB_DRIVER"),
+                getenv(environment, "SMARTCARE_DB_DRIVER"),
+                System.getenv("DB_DRIVER"),
+                getenv(environment, "DB_DRIVER"));
+        if (driver != null && !driver.isBlank()) {
+            props.put("spring.datasource.driver-class-name", driver);
+        }
+    }
+
     private static String redact(String jdbcUrl) {
+        if (jdbcUrl == null) return "null";
         return jdbcUrl.replaceAll("://[^@/]+@", "://****@");
     }
 

@@ -33,21 +33,28 @@ public class AdminCredentialBootstrap implements EnvironmentPostProcessor, Order
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        if (!environment.acceptsProfiles(Profiles.of("prod"))) {
+        boolean isProdOrRender = environment.acceptsProfiles(Profiles.of("prod"))
+                || "true".equalsIgnoreCase(System.getenv("RENDER"))
+                || System.getenv("RENDER_SERVICE_ID") != null;
+        if (!isProdOrRender) {
             return;
         }
 
         String email = firstNonBlank(
+                environment.getProperty("ADMIN_EMAIL"),
                 environment.getProperty("SMARTCARE_ADMIN_EMAIL"),
                 environment.getProperty("smartcare.admin.email"));
         String password = firstNonBlank(
+                environment.getProperty("ADMIN_PASSWORD"),
                 environment.getProperty("SMARTCARE_ADMIN_PASSWORD"),
                 environment.getProperty("smartcare.admin.password"));
         String name = firstNonBlank(
+                environment.getProperty("ADMIN_NAME"),
                 environment.getProperty("SMARTCARE_ADMIN_NAME"),
                 environment.getProperty("smartcare.admin.name"),
                 "System Administrator");
         String mobile = firstNonBlank(
+                environment.getProperty("ADMIN_MOBILE"),
                 environment.getProperty("SMARTCARE_ADMIN_MOBILE"),
                 environment.getProperty("smartcare.admin.mobile"),
                 "9999999999");
