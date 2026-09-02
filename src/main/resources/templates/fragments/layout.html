@@ -317,6 +317,7 @@
 </nav>
 
 <!-- Patient Top Navbar Fragment with full Dropdown Navigation -->
+<!-- Patient Top Navbar Fragment with full Dropdown Navigation -->
 <nav th:fragment="patient-nav" class="navbar navbar-patient-main">
     <div style="display:flex;align-items:center;gap:1rem;">
         <a href="/" class="navbar-brand">
@@ -329,11 +330,14 @@
     </div>
 
     <ul class="portal-nav-links">
+        <!-- OVERVIEW -->
         <li>
             <a href="/patient/dashboard" class="portal-nav-link" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
                 <span>🏠</span> Dashboard
             </a>
         </li>
+
+        <!-- MY CARE -->
         <li class="nav-dropdown">
             <button type="button" class="portal-nav-link nav-dropdown-toggle">
                 <span>🩺</span> My Care <span class="dropdown-caret">▾</span>
@@ -376,6 +380,8 @@
                 </a>
             </div>
         </li>
+
+        <!-- SERVICES -->
         <li class="nav-dropdown">
             <button type="button" class="portal-nav-link nav-dropdown-toggle">
                 <span>⚡</span> Services <span class="dropdown-caret">▾</span>
@@ -395,6 +401,34 @@
                         <span class="item-desc">Telehealth virtual rooms</span>
                     </div>
                 </a>
+                <a href="/patient/consultation-suite" class="nav-dropdown-item">
+                    <span class="item-icon">🩺</span>
+                    <div class="item-text">
+                        <span class="item-title">AI Health Suite</span>
+                        <span class="item-desc">Smart symptom &amp; vitals checker</span>
+                    </div>
+                </a>
+                <a href="/patient/vitals" class="nav-dropdown-item">
+                    <span class="item-icon">📊</span>
+                    <div class="item-text">
+                        <span class="item-title">Health Vitals</span>
+                        <span class="item-desc">BP, pulse &amp; sugar logs</span>
+                    </div>
+                </a>
+                <a href="/patient/pharmacy-orders" class="nav-dropdown-item">
+                    <span class="item-icon">🛍️</span>
+                    <div class="item-text">
+                        <span class="item-title">Pharmacy Orders</span>
+                        <span class="item-desc">Track medicine deliveries</span>
+                    </div>
+                </a>
+                <a href="/patient/blood-bank/orders" class="nav-dropdown-item">
+                    <span class="item-icon">🩸</span>
+                    <div class="item-text">
+                        <span class="item-title">Buy Blood (Rx)</span>
+                        <span class="item-desc">Verified blood unit requests</span>
+                    </div>
+                </a>
                 <a href="/patient/beds" class="nav-dropdown-item">
                     <span class="item-icon">🛏️</span>
                     <div class="item-text">
@@ -402,11 +436,71 @@
                         <span class="item-desc">Reserve ward &amp; private rooms</span>
                     </div>
                 </a>
+                <a href="/patient/ambulance" class="nav-dropdown-item">
+                    <span class="item-icon">🚨</span>
+                    <div class="item-text">
+                        <span class="item-title">Emergency Ambulance</span>
+                        <span class="item-desc">Request immediate dispatch</span>
+                    </div>
+                </a>
+            </div>
+        </li>
+
+        <!-- PAYMENTS -->
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>💳</span> Payments <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu">
                 <a href="/patient/bills" class="nav-dropdown-item">
                     <span class="item-icon">💳</span>
                     <div class="item-text">
-                        <span class="item-title">Pay Bills</span>
+                        <span class="item-title">Bills &amp; Payments</span>
                         <span class="item-desc">Invoices &amp; online payment</span>
+                    </div>
+                </a>
+                <a href="/patient/insurance" class="nav-dropdown-item">
+                    <span class="item-icon">🛡️</span>
+                    <div class="item-text">
+                        <span class="item-title">Insurance Claims</span>
+                        <span class="item-desc">Pre-authorizations &amp; claims</span>
+                    </div>
+                </a>
+            </div>
+        </li>
+
+        <!-- ACCOUNT -->
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>👤</span> Account <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu menu-right">
+                <a href="/patient/multihub-chat" class="nav-dropdown-item">
+                    <span class="item-icon">💬</span>
+                    <div class="item-text">
+                        <span class="item-title">Multi-Hub Chat</span>
+                        <span class="item-desc">Messages with doctors &amp; support</span>
+                    </div>
+                </a>
+                <a href="/patient/notifications" class="nav-dropdown-item">
+                    <span class="item-icon">🔔</span>
+                    <div class="item-text">
+                        <span class="item-title">Notifications</span>
+                        <span class="item-desc">Appointment &amp; order updates</span>
+                    </div>
+                </a>
+                <a href="/patient/profile" class="nav-dropdown-item">
+                    <span class="item-icon">👤</span>
+                    <div class="item-text">
+                        <span class="item-title">Profile Settings</span>
+                        <span class="item-desc">Personal &amp; emergency info</span>
+                    </div>
+                </a>
+                <a href="/patient/language" class="nav-dropdown-item">
+                    <span class="item-icon">🌐</span>
+                    <div class="item-text">
+                        <span class="item-title">Language / भाषा</span>
+                        <span class="item-desc">Multi-lingual display</span>
                     </div>
                 </a>
             </div>
@@ -414,7 +508,26 @@
     </ul>
 
     <div class="navbar-actions">
+        <!-- Language Changer Dropdown -->
+        <div class="lang-selector-container" style="position:relative;">
+            <button type="button" class="btn btn-sm btn-outline lang-dropdown-btn" onclick="toggleLanguageDropdown()" 
+                    style="display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;background:#f8fafc;border:1px solid #cbd5e1;cursor:pointer;font-weight:600;font-size:0.82rem;color:#1e293b;">
+                <span>🌐</span> <span id="currentLangLabel">English</span> <span style="font-size:0.7rem;">▾</span>
+            </button>
+            <div id="languageDropdownMenu" class="lang-dropdown-menu" 
+                 style="display:none;position:absolute;top:100%;right:0;margin-top:6px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,0.15);width:200px;z-index:9999;padding:6px 0;">
+                <a href="javascript:void(0)" onclick="switchLanguage('en', 'English')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇬🇧</span> English
+                </a>
+                <a href="javascript:void(0)" onclick="switchLanguage('hi', 'हिन्दी (Hindi)')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇮🇳</span> हिन्दी (Hindi)
+                </a>
+            </div>
+        </div>
+
         <a href="/patient/book-appointment" class="btn btn-primary btn-sm">📅 Book Visit</a>
+        <a href="/emergency/dashboard" class="btn btn-danger btn-sm">🚨 Emergency</a>
+
         <div style="display:flex;align-items:center;gap:8px;">
             <div style="width:34px;height:34px;border-radius:50%;background:#0284c7;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;"
                  th:text="${loggedInUser != null ? #strings.substring(loggedInUser.fullName,0,1) : 'P'}">P</div>
@@ -436,11 +549,14 @@
     </div>
 
     <ul class="portal-nav-links">
+        <!-- OVERVIEW -->
         <li>
             <a href="/doctor/dashboard" class="portal-nav-link" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
                 <span>🏠</span> Dashboard
             </a>
         </li>
+
+        <!-- CLINICAL -->
         <li class="nav-dropdown">
             <button type="button" class="portal-nav-link nav-dropdown-toggle">
                 <span>⏱️</span> Clinical Practice <span class="dropdown-caret">▾</span>
@@ -464,14 +580,81 @@
                     <span class="item-icon">🎥</span>
                     <div class="item-text">
                         <span class="item-title">Telehealth Room</span>
-                        <span class="item-desc">Virtual video calls</span>
+                        <span class="item-desc">Virtual video consultations</span>
+                    </div>
+                </a>
+                <a href="/doctor/patients" class="nav-dropdown-item">
+                    <span class="item-icon">🧑‍🦽</span>
+                    <div class="item-text">
+                        <span class="item-title">My Patients</span>
+                        <span class="item-desc">Patient records &amp; case notes</span>
+                    </div>
+                </a>
+            </div>
+        </li>
+
+        <!-- ORDERS & LABS -->
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>💊</span> Rx &amp; Diagnostics <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu">
+                <a href="/doctor/prescriptions" class="nav-dropdown-item">
+                    <span class="item-icon">💊</span>
+                    <div class="item-text">
+                        <span class="item-title">Prescriptions</span>
+                        <span class="item-desc">Issue electronic prescriptions</span>
+                    </div>
+                </a>
+                <a href="/doctor/lab-tests" class="nav-dropdown-item">
+                    <span class="item-icon">🧪</span>
+                    <div class="item-text">
+                        <span class="item-title">Lab Requests</span>
+                        <span class="item-desc">Diagnostic test orders</span>
+                    </div>
+                </a>
+            </div>
+        </li>
+
+        <!-- PRACTICE -->
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>📊</span> Practice <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu menu-right">
+                <a href="/doctor/earnings" class="nav-dropdown-item">
+                    <span class="item-icon">💵</span>
+                    <div class="item-text">
+                        <span class="item-title">Earnings</span>
+                        <span class="item-desc">Consultation fees &amp; payouts</span>
+                    </div>
+                </a>
+                <a href="/doctor/reports" class="nav-dropdown-item">
+                    <span class="item-icon">📊</span>
+                    <div class="item-text">
+                        <span class="item-title">Clinical Reports</span>
+                        <span class="item-desc">Patient throughput analytics</span>
                     </div>
                 </a>
                 <a href="/doctor/multihub-chat" class="nav-dropdown-item">
                     <span class="item-icon">💬</span>
                     <div class="item-text">
-                        <span class="item-title">Patient Messages</span>
-                        <span class="item-desc">Follow-up inquiries</span>
+                        <span class="item-title">Patient Chat</span>
+                        <span class="item-desc">Secure clinical follow-up chat</span>
+                    </div>
+                </a>
+                <a href="/doctor/notifications" class="nav-dropdown-item">
+                    <span class="item-icon">🔔</span>
+                    <div class="item-text">
+                        <span class="item-title">Notifications</span>
+                        <span class="item-desc">Schedules &amp; patient updates</span>
+                    </div>
+                </a>
+                <a href="/doctor/profile" class="nav-dropdown-item">
+                    <span class="item-icon">👤</span>
+                    <div class="item-text">
+                        <span class="item-title">Profile Settings</span>
+                        <span class="item-desc">Specialization, fees &amp; timings</span>
                     </div>
                 </a>
             </div>
@@ -479,7 +662,26 @@
     </ul>
 
     <div class="navbar-actions">
+        <!-- Language Changer Dropdown -->
+        <div class="lang-selector-container" style="position:relative;">
+            <button type="button" class="btn btn-sm btn-outline lang-dropdown-btn" onclick="toggleLanguageDropdown()" 
+                    style="display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;background:#f8fafc;border:1px solid #cbd5e1;cursor:pointer;font-weight:600;font-size:0.82rem;color:#1e293b;">
+                <span>🌐</span> <span id="currentLangLabel">English</span> <span style="font-size:0.7rem;">▾</span>
+            </button>
+            <div id="languageDropdownMenu" class="lang-dropdown-menu" 
+                 style="display:none;position:absolute;top:100%;right:0;margin-top:6px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,0.15);width:200px;z-index:9999;padding:6px 0;">
+                <a href="javascript:void(0)" onclick="switchLanguage('en', 'English')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇬🇧</span> English
+                </a>
+                <a href="javascript:void(0)" onclick="switchLanguage('hi', 'हिन्दी (Hindi)')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇮🇳</span> हिन्दी (Hindi)
+                </a>
+            </div>
+        </div>
+
         <a href="/doctor/queue" class="btn btn-primary btn-sm">⏱️ Open Queue</a>
+        <a href="/emergency/dashboard" class="btn btn-danger btn-sm">🚑 Emergency</a>
+
         <div style="display:flex;align-items:center;gap:8px;">
             <div style="width:34px;height:34px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;"
                  th:text="${loggedInUser != null ? #strings.substring(loggedInUser.fullName,0,1) : 'D'}">D</div>
@@ -488,7 +690,7 @@
     </div>
 </nav>
 
-<!-- Vendor Top Navbar Fragment -->
+<!-- Vendor / Pharmacy Top Navbar Fragment with full Dropdown Navigation -->
 <nav th:fragment="vendor-nav" class="navbar navbar-vendor-main">
     <div style="display:flex;align-items:center;gap:1rem;">
         <a href="/" class="navbar-brand">
@@ -496,29 +698,127 @@
                 <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             </div>
             <span class="brand-text">Smart<span class="brand-accent">Care</span> 360</span>
-            <span class="portal-tag">Vendor</span>
+            <span class="portal-tag">Pharmacy &amp; Labs</span>
         </a>
     </div>
 
     <ul class="portal-nav-links">
+        <!-- OVERVIEW -->
         <li>
-            <a href="/vendor/pharmacy-dashboard" class="portal-nav-link">
+            <a href="/vendor/pharmacy-dashboard" class="portal-nav-link" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
                 <span>🏠</span> Dashboard
             </a>
         </li>
-        <li>
-            <a href="/vendor/orders" class="portal-nav-link">
-                <span>📦</span> Orders
-            </a>
+
+        <!-- ORDERS -->
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>📦</span> Orders <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu">
+                <a href="/vendor/orders" class="nav-dropdown-item">
+                    <span class="item-icon">📦</span>
+                    <div class="item-text">
+                        <span class="item-title">All Orders</span>
+                        <span class="item-desc">Incoming prescriptions &amp; tests</span>
+                    </div>
+                </a>
+                <a href="/vendor/orders?status=PROCESSING" class="nav-dropdown-item">
+                    <span class="item-icon">⏳</span>
+                    <div class="item-text">
+                        <span class="item-title">Processing</span>
+                        <span class="item-desc">Orders in preparation</span>
+                    </div>
+                </a>
+                <a href="/vendor/orders?status=DISPATCHED" class="nav-dropdown-item">
+                    <span class="item-icon">🚚</span>
+                    <div class="item-text">
+                        <span class="item-title">Dispatched</span>
+                        <span class="item-desc">Out for delivery</span>
+                    </div>
+                </a>
+                <a href="/vendor/orders?status=DELIVERED" class="nav-dropdown-item">
+                    <span class="item-icon">✅</span>
+                    <div class="item-text">
+                        <span class="item-title">Delivered</span>
+                        <span class="item-desc">Completed orders history</span>
+                    </div>
+                </a>
+            </div>
         </li>
-        <li>
-            <a href="/vendor/inventory" class="portal-nav-link">
-                <span>💊</span> Inventory
-            </a>
+
+        <!-- INVENTORY -->
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>💊</span> Inventory <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu">
+                <a href="/vendor/inventory" class="nav-dropdown-item">
+                    <span class="item-icon">💊</span>
+                    <div class="item-text">
+                        <span class="item-title">Medicine Catalog</span>
+                        <span class="item-desc">Current medicine stock items</span>
+                    </div>
+                </a>
+                <a href="/vendor/inventory?filter=low_stock" class="nav-dropdown-item">
+                    <span class="item-icon">⚠️</span>
+                    <div class="item-text">
+                        <span class="item-title">Low Stock Alert</span>
+                        <span class="item-desc">Items needing immediate reorder</span>
+                    </div>
+                </a>
+                <a href="/vendor/inventory?filter=expiring" class="nav-dropdown-item">
+                    <span class="item-icon">⏳</span>
+                    <div class="item-text">
+                        <span class="item-title">Expiry Watch</span>
+                        <span class="item-desc">Batches near expiration</span>
+                    </div>
+                </a>
+            </div>
+        </li>
+
+        <!-- BUSINESS -->
+        <li class="nav-dropdown">
+            <button type="button" class="portal-nav-link nav-dropdown-toggle">
+                <span>🏢</span> Business <span class="dropdown-caret">▾</span>
+            </button>
+            <div class="nav-dropdown-menu menu-right">
+                <a href="/vendor/reports" class="nav-dropdown-item">
+                    <span class="item-icon">📊</span>
+                    <div class="item-text">
+                        <span class="item-title">Revenue &amp; Reports</span>
+                        <span class="item-desc">Financial statements &amp; sales</span>
+                    </div>
+                </a>
+                <a href="/vendor/profile" class="nav-dropdown-item">
+                    <span class="item-icon">👤</span>
+                    <div class="item-text">
+                        <span class="item-title">Business Profile</span>
+                        <span class="item-desc">Pharmacy license &amp; hours</span>
+                    </div>
+                </a>
+            </div>
         </li>
     </ul>
 
     <div class="navbar-actions">
+        <!-- Language Changer Dropdown -->
+        <div class="lang-selector-container" style="position:relative;">
+            <button type="button" class="btn btn-sm btn-outline lang-dropdown-btn" onclick="toggleLanguageDropdown()" 
+                    style="display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;background:#f8fafc;border:1px solid #cbd5e1;cursor:pointer;font-weight:600;font-size:0.82rem;color:#1e293b;">
+                <span>🌐</span> <span id="currentLangLabel">English</span> <span style="font-size:0.7rem;">▾</span>
+            </button>
+            <div id="languageDropdownMenu" class="lang-dropdown-menu" 
+                 style="display:none;position:absolute;top:100%;right:0;margin-top:6px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,0.15);width:200px;z-index:9999;padding:6px 0;">
+                <a href="javascript:void(0)" onclick="switchLanguage('en', 'English')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇬🇧</span> English
+                </a>
+                <a href="javascript:void(0)" onclick="switchLanguage('hi', 'हिन्दी (Hindi)')" class="lang-opt-item" style="display:flex;align-items:center;gap:10px;padding:8px 16px;text-decoration:none;color:#0f172a;font-size:0.85rem;font-weight:500;">
+                    <span>🇮🇳</span> हिन्दी (Hindi)
+                </a>
+            </div>
+        </div>
+
         <div style="display:flex;align-items:center;gap:8px;">
             <div style="width:34px;height:34px;border-radius:50%;background:#d97706;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;"
                  th:text="${loggedInUser != null ? #strings.substring(loggedInUser.fullName,0,1) : 'V'}">V</div>
