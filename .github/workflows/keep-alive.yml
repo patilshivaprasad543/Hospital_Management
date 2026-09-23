@@ -1,4 +1,4 @@
-# Keeps the Render Free web service receiving traffic before its 15-minute idle window.
+# Keeps the Render web service receiving traffic to detect availability and trigger a cold start when needed.
 # Scheduled workflows can be delayed, so this reduces (but cannot absolutely eliminate) cold starts.
 name: Keep Hospital Management API Alive
 
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Wake and health-check Render service
+      - name: Health-check Render service
         run: |
           set -e
           URL="https://hospital-management-glt1-ge8d.onrender.com/health"
