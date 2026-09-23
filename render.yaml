@@ -8,11 +8,14 @@ services:
     dockerContext: .
     healthCheckPath: /health
     envVars:
-      # Render provides PORT automatically. Do not hardcode it.
-      - key: DATABASE_URL
-        fromDatabase:
-          name: hospital-management-db
-          property: connectionString
+      # Neon is the external PostgreSQL provider. Render only hosts the Spring Boot service.
+      # Set JDBC_DATABASE_URL in the Render dashboard to the JDBC connection string copied from Neon.
+      - key: JDBC_DATABASE_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
       - key: DB_DIALECT
         value: org.hibernate.dialect.PostgreSQLDialect
       - key: ADMIN_NAME
@@ -20,14 +23,8 @@ services:
       - key: ADMIN_EMAIL
         value: admin@hospital.com
       - key: ADMIN_PASSWORD
-        value: Admin@123
+        sync: false
       - key: MAIL_HOST
         value: smtp.gmail.com
       - key: MAIL_PORT
         value: "587"
-
-databases:
-  - name: hospital-management-db
-    plan: free
-    region: singapore
-    postgresMajorVersion: "18"
