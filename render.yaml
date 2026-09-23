@@ -10,12 +10,28 @@ services:
     envVars:
       - key: PORT
         value: "8085"
-      - key: DB_URL
-        sync: false
+      - key: DB_HOST
+        fromDatabase:
+          name: hospital-management-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: hospital-management-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: hospital-management-db
+          property: database
       - key: DB_USERNAME
-        sync: false
+        fromDatabase:
+          name: hospital-management-db
+          property: user
       - key: DB_PASSWORD
-        sync: false
+        fromDatabase:
+          name: hospital-management-db
+          property: password
+      - key: DB_DIALECT
+        value: org.hibernate.dialect.PostgreSQLDialect
       - key: ADMIN_NAME
         value: System Admin
       - key: ADMIN_EMAIL
@@ -26,3 +42,9 @@ services:
         value: smtp.gmail.com
       - key: MAIL_PORT
         value: "587"
+
+databases:
+  - name: hospital-management-db
+    plan: free
+    region: singapore
+    postgresMajorVersion: "18"
