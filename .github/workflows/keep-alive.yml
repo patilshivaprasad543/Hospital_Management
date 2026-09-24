@@ -1,6 +1,8 @@
-# Keeps the Render Free web service receiving traffic before its 15-minute idle window.
-# Scheduled workflows can be delayed, so this reduces (but cannot absolutely eliminate) cold starts.
-name: Keep Hospital Management API Alive
+# Backup health checks for the Render service.
+# The service is configured as paid/always-on in render.yaml, so this workflow
+# is no longer responsible for preventing sleep. It provides an external
+# health check every 10 minutes and can expose a failed deployment quickly.
+name: Hospital Management Health Check
 
 on:
   schedule:
@@ -12,17 +14,17 @@ on:
 permissions: {}
 
 jobs:
-  ping:
+  health-check:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Wake and health-check Render service
+      - name: Check Render health endpoint
         run: |
           set -e
           URL="https://hospital-management-glt1-ge8d.onrender.com/health"
-          echo "Pinging $URL"
+          echo "Checking $URL"
           curl --fail --show-error --silent --max-time 120 \
-            -A "HospitalManagement-KeepAlive/1.0" \
+            -A "HospitalManagement-HealthCheck/1.0" \
             "$URL"
           echo
-          echo "Keep-alive request completed."
+          echo "Health check passed."
