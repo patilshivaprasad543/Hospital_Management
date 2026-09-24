@@ -2,17 +2,16 @@ services:
   - type: web
     name: hospital-management-glt1-ge8d
     runtime: docker
-    plan: free
+    # Paid Starter (0.5 CPU / 512 MB) keeps the API running continuously.
+    # Render Free services sleep after 15 minutes without inbound traffic.
+    plan: 0.5c-512mb
     region: singapore
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /health
     envVars:
       # Neon PostgreSQL credentials are intentionally not stored in Git.
-      # Add these three values in the Render dashboard:
-      # SPRING_DATASOURCE_URL=jdbc:postgresql://<neon-host>/<database>?sslmode=require
-      # SPRING_DATASOURCE_USERNAME=<neon-username>
-      # SPRING_DATASOURCE_PASSWORD=<neon-password>
+      # Add these values in the Render dashboard.
       - key: SPRING_DATASOURCE_URL
         sync: false
       - key: SPRING_DATASOURCE_USERNAME
