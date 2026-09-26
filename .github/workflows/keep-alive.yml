@@ -21,7 +21,7 @@ jobs:
       - name: Check Render health endpoint
         run: |
           set -e
-          URL="https://hospital-management-glt1-ge8d.onrender.com/health"
+          URL="https://hospital-management-glt1-ge8d-a5jy.onrender.com/health"
           echo "Checking $URL"
           curl --fail --show-error --silent --max-time 120 \
             -A "HospitalManagement-HealthCheck/1.0" \
