@@ -1,13 +1,11 @@
-# External health check for the Render service.
-# This workflow does not guarantee that a Render Free service stays awake.
-name: Keep site live (backup)
+# Secondary health check for SmartCare 360.
+# The primary keep-alive workflow runs every 5 minutes.
+name: SmartCare 360 Health Check Backup
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch:
-  push:
-    branches: [main]
 
 permissions: {}
 
@@ -16,13 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - name: Check Render health endpoint
+      - name: Verify Render health endpoint
         run: |
           set -euo pipefail
           URL="https://hospital-management-glt1-ge8d-a5jy.onrender.com"
           echo "Checking $URL/health"
           curl -L --fail --show-error --silent --max-time 300 \\
-            -A "SmartCare360-KeepAlive-Backup/1.0" \\
+            -A "SmartCare360-HealthCheck-Backup/1.0" \\
             "$URL/health"
           echo
-          echo "Render health check passed."
+          echo "Backup health check passed."
